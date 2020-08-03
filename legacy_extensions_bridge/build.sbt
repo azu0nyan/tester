@@ -1,8 +1,10 @@
+
 name := "otsExtensionsBridge"
+
 
 version := "0.1"
 
-scalaVersion := "2.13.3"
+ThisBuild / scalaVersion := "2.13.3"
 
 scalacOptions ++= Seq(
   "-encoding", "utf8", // Option and arguments on same  line
@@ -15,6 +17,29 @@ scalacOptions ++= Seq(
   "-language:postfixOps"
 )
 
+lazy val root = project.in(file(".")).
+  aggregate(foo.js, foo.jvm).
+  settings(
+    publish := {},
+    publishLocal := {},
+  )
+
+lazy val foo = crossProject(JSPlatform, JVMPlatform).in(file("."))
+  .settings(
+    name := "online-test-suite-extensions-bridge",
+    version := "0.2-SNAPSHOT"
+  ).jvmSettings(
+  // Add JVM-specific settings here
+  ).
+  jsSettings(
+    // Add JS-specific settings here
+    scalaJSUseMainModuleInitializer := true,
+  )
+
+
+
+
+
 //val circeVersion = "0.13.0"
 //
 //libraryDependencies ++= Seq(
@@ -22,3 +47,5 @@ scalacOptions ++= Seq(
 //  "io.circe" %%% "circe-generic",
 //  "io.circe" %%% "circe-parser"
 //).map(_ % circeVersion)
+
+
