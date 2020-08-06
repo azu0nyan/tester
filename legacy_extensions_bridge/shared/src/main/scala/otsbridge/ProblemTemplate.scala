@@ -8,6 +8,7 @@ object ProblemTemplate{
 
 
 trait ProblemTemplate {
+  def title(seed:Int): String
   val initialScore: ProblemScore
   val uniqueAlias: String
   val allowedAttempts: Int = 1
