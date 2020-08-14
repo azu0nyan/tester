@@ -25,4 +25,21 @@ case class MultipleRunsResultScore(runResults:Seq[ProgramRunResult]) extends Pro
   def toXOutOfY:XOutOfYScore = XOutOfYScore(successesTotal, tasksTotal)
 }
 
-case class ProgramRunResult(success:Boolean, timeSeconds: Double, message:Option[String])
+sealed trait ProgramRunResult{
+  val success:Boolean
+}
+
+case class ProgramRunResultSuccess(timeMS: Long, message:Option[String]) extends ProgramRunResult {
+  override val success:Boolean = true
+}
+
+case class ProgramRunResultWrongAnswer(timeMS: Long, message:Option[String]) extends ProgramRunResult {
+  override val success:Boolean = false
+}
+
+case class ProgramRunResultFailure(message:Option[String]) extends ProgramRunResult {
+  override val success: Boolean = false
+}
+
+
+

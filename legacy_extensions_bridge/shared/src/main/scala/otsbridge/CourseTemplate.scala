@@ -17,7 +17,7 @@ trait CourseTemplate {
 
   val uniqueAlias: String
 
-  case class GeneratedProblem(template: ProblemTemplate, seed: Int, attempts: Int, initialScore: ProblemScore)
+  case class GeneratedProblem(template: ProblemTemplate, seed: Int, attempts: Option[Int], initialScore: ProblemScore)
 
   type courseGeneratorOutput = Seq[GeneratedProblem]
 
