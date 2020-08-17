@@ -4,9 +4,13 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/fooJS.iml" filepath="$PROJECT_DIR$/.idea/modules/fooJS.iml" group="online-test-suite-extensions-bridge" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/fooJVM.iml" filepath="$PROJECT_DIR$/.idea/modules/fooJVM.iml" group="online-test-suite-extensions-bridge" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/js.fooJS.iml" filepath="$PROJECT_DIR$/.idea/modules/js.fooJS.iml" group="online-test-suite-extensions-bridge" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/jvm.fooJVM.iml" filepath="$PROJECT_DIR$/.idea/modules/jvm.fooJVM.iml" group="online-test-suite-extensions-bridge" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/otsExtensionsBridge-build.iml" filepath="$PROJECT_DIR$/.idea/modules/otsExtensionsBridge-build.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/otsExtensionsBridge-sources.iml" filepath="$PROJECT_DIR$/.idea/modules/otsExtensionsBridge-sources.iml" group="online-test-suite-extensions-bridge" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/otsExtensionsBridge.root.iml" filepath="$PROJECT_DIR$/.idea/modules/otsExtensionsBridge.root.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/root.iml" filepath="$PROJECT_DIR$/.idea/modules/root.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/shared.otsExtensionsBridge-sources.iml" filepath="$PROJECT_DIR$/.idea/modules/shared.otsExtensionsBridge-sources.iml" group="online-test-suite-extensions-bridge" />
     </modules>
   </component>
 </project>

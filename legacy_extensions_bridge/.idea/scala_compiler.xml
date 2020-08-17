@@ -2,8 +2,8 @@
 <project version="4">
   <component name="ScalaCompilerConfiguration">
     <option name="incrementalityType" value="SBT" />
-    <profile name="sbt 1" modules="fooJVM,otsExtensiosBridge" />
-    <profile name="sbt 2" modules="otsExtensionsBridge,root">
+    <profile name="sbt 1" modules="fooJVM,jvm.fooJVM,otsExtensiosBridge" />
+    <profile name="sbt 2" modules="otsExtensionsBridge,otsExtensionsBridge.root,root">
       <option name="postfixOps" value="true" />
       <option name="implicitConversions" value="true" />
       <option name="higherKinds" value="true" />
@@ -16,7 +16,7 @@
         <parameter value="-Xfatal-warnings" />
       </parameters>
     </profile>
-    <profile name="sbt 3" modules="fooJS">
+    <profile name="sbt 3" modules="fooJS,js.fooJS">
       <plugins>
         <plugin path="$USER_HOME$/.cache/coursier/v1/https/repo1.maven.org/maven2/org/scala-js/scalajs-compiler_2.13.3/1.0.0/scalajs-compiler_2.13.3-1.0.0.jar" />
       </plugins>
