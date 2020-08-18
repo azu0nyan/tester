@@ -10,6 +10,6 @@ object CompareProblemScore {
     case (DoubleScore(p1, _), DoubleScore(p2, _)) => if (p1> p2) s1 else s2
     case (XOutOfYScore(p1, _), XOutOfYScore(p2, _)) => if (p1> p2) s1 else s2
     case (m1@MultipleRunsResultScore(_), m2@MultipleRunsResultScore(_)) => if (m1.successesTotal> m2.successesTotal) s1 else s2
-    case _ => s1
+    case _ => if (s1.toInt > s2.toInt) s1 else s2
   }
 }
