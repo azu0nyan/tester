@@ -1,5 +1,7 @@
 package otsbridge
 
+import otsbridge.ProblemScore.ProblemScore
+
 
 trait CourseTemplate {
 

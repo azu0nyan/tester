@@ -1,5 +1,7 @@
 package otsbridge
 
+import otsbridge.ProblemScore.ProblemScore
+
 
 sealed trait AnswerVerificationResult {
   val systemMessage: Option[String]

@@ -1,6 +1,8 @@
 package otsbridge
 
 
+import otsbridge.ProblemScore.ProblemScore
+
 import scala.concurrent.Future
 object ProblemTemplate{
   type ProblemTemplateAlias = String

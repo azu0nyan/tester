@@ -1,5 +1,7 @@
 package otsbridge
 
+import otsbridge.ProblemScore._
+
 object CompareProblemScore {
 
   def bestOf(s1:ProblemScore, s2:ProblemScore):ProblemScore = (s1, s2) match {

@@ -30,6 +30,7 @@ lazy val foo = crossProject(JSPlatform, JVMPlatform).in(file("."))
     version := "0.2-SNAPSHOT"
   ).jvmSettings(
   // Add JVM-specific settings here
+//  libraryDependencies += "org.mongodb.scala" %% "mongo-scala-driver" % "2.9.0",
   ).
   jsSettings(
     // Add JS-specific settings here
