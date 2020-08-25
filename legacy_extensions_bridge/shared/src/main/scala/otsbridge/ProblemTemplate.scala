@@ -19,5 +19,7 @@ trait ProblemTemplate {
   def generateProblemHtml(seed: Int): String
   def answerField(seed: Int): AnswerField
   def verifyAnswer(seed: Int, answer: String): AnswerVerificationResult
+  //problemsToGenerate.zipWithIndex.map { case (pt, i) => GeneratedProblem(pt, seed + i, pt.allowedAttempts, pt.initialScore) }.toSeq
+  def generate(seed:Int): GeneratedProblem = GeneratedProblem(this, seed, allowedAttempts, initialScore)
 }
 

@@ -1,7 +1,9 @@
 package otsbridge
 
+import otsbridge.CoursePiece.CourseMainPiece
 import otsbridge.ProblemScore.ProblemScore
 
+case class GeneratedProblem(template: ProblemTemplate, seed: Int, attempts: Option[Int], initialScore: ProblemScore)
 
 trait CourseTemplate {
 
@@ -13,18 +15,18 @@ trait CourseTemplate {
 
   // registerProblemListTemplate(this)
 
-  val uniqueTemplates: Seq[ProblemTemplate]
+  def problemsToGenerate: Seq[ProblemTemplate]
 
-  val courseTitle: String = "No title"
+  def courseData:CourseMainPiece
+
+  val courseTitle: String
 
   val uniqueAlias: String
 
-  case class GeneratedProblem(template: ProblemTemplate, seed: Int, attempts: Option[Int], initialScore: ProblemScore)
+  type CourseGeneratorOutput = Seq[GeneratedProblem]
 
-  type courseGeneratorOutput = Seq[GeneratedProblem]
-
-  def generate(seed: Int): courseGeneratorOutput =
-    uniqueTemplates.zipWithIndex.map { case (pt, i) => GeneratedProblem(pt, seed + i, pt.allowedAttempts, pt.initialScore) }.toSeq
+  def generate(seed: Int): CourseGeneratorOutput =
+    problemsToGenerate.zipWithIndex.map { case (pt, i) => pt.generate(seed + i)}.toSeq
 
 
   val timeLimitSeconds: Option[Int] = None
