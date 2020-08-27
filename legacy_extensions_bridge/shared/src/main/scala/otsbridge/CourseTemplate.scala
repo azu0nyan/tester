@@ -1,6 +1,6 @@
 package otsbridge
 
-import otsbridge.CoursePiece.CourseMainPiece
+import otsbridge.CoursePiece.CourseRoot
 import otsbridge.ProblemScore.ProblemScore
 
 case class GeneratedProblem(template: ProblemTemplate, seed: Int, attempts: Option[Int], initialScore: ProblemScore)
@@ -17,7 +17,7 @@ trait CourseTemplate {
 
   def problemsToGenerate: Seq[ProblemTemplate]
 
-  def courseData:CourseMainPiece
+  def courseData:CourseRoot
 
   val courseTitle: String
 

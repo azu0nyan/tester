@@ -1,6 +1,7 @@
 package otsbridge
 
 object CoursePiece {
+  val emptyCourse: CourseRoot = CourseRoot("", "", Seq())
 
 
   sealed trait DisplayMe
@@ -16,7 +17,7 @@ object CoursePiece {
     def childs: Seq[CoursePiece]
   }
 
-  case class CourseMainPiece(title: String, annotation: String, themes: Seq[Theme]) extends Container {
+  case class CourseRoot(title: String, annotation: String, themes: Seq[Theme]) extends Container {
     override def alias: String = "main"
     override def childs: Seq[CoursePiece] = themes
     override def displayMe: DisplayMe = OwnPage
