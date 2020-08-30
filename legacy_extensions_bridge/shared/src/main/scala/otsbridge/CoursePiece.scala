@@ -1,12 +1,12 @@
 package otsbridge
 
+import otsbridge.DisplayMe.{ Inline, OwnPage}
+
 object CoursePiece {
   val emptyCourse: CourseRoot = CourseRoot("", "", Seq())
 
 
-  sealed trait DisplayMe
-  case object OwnPage extends DisplayMe
-  case object Inline extends DisplayMe
+
 
   sealed trait CoursePiece {
     def alias: String
