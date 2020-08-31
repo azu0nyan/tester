@@ -10,10 +10,12 @@ object ProblemTemplate{
 
 
 trait ProblemTemplate {
+
   def title(seed:Int): String
   val initialScore: ProblemScore
   val uniqueAlias: String
   val allowedAttempts: Option[Int] = None
+  val requireTeacherVerification:Boolean = false
   //def answerFromString[AT](field: AnswerFieldType[AT]): Option[AT] = ???
   //def generateProblem(seed: Int): ProblemInstance = ProblemInstance.create()
   def generateProblemHtml(seed: Int): String
