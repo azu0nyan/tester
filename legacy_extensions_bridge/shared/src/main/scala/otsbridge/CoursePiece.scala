@@ -35,7 +35,7 @@ object CoursePiece {
     override def alias: String = "main"
     override def displayMe: DisplayMe = OwnPage
 
-    override val displayInContentsHtml: Option[String] = Some(s"<h2>$title</h2>")
+    override val displayInContentsHtml: Option[String] = Some(s"$title")
   }
 
 
@@ -47,7 +47,7 @@ object CoursePiece {
                     displayMe: DisplayMe = OwnPage
                   ) extends Container {
     //    override def displayMe: DisplayMe = OwnPage
-    override val displayInContentsHtml: Option[String] = Some(s"<h3>$title</h3>")
+    override val displayInContentsHtml: Option[String] = Some(s"$title")
   }
 
   case class SubTheme(
@@ -57,7 +57,7 @@ object CoursePiece {
                        childs: Seq[CoursePiece] = Seq(),
                        displayMe: DisplayMe = OwnPage
                      ) extends Container {
-    override val displayInContentsHtml: Option[String] = Some(s"<h4>$title</h4>")
+    override val displayInContentsHtml: Option[String] = Some(s"$title")
     //    override def displayMe: DisplayMe = OwnPage
   }
 
