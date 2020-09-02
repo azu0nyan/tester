@@ -4,24 +4,30 @@ package otsbridge
 import otsbridge.ProblemScore.ProblemScore
 
 import scala.concurrent.Future
-object ProblemTemplate{
+
+object ProblemTemplate {
   type ProblemTemplateAlias = String
+
+  trait ProblemVerifiedByTeacher extends ProblemTemplate {
+    override final val requireTeacherVerification: Boolean = true
+    override final def verifyAnswer(seed: Int, answer: String): AnswerVerificationResult = Verified(initialScore, Some("Ожидает проверки преподавателем"))
+  }
 }
 
 
 trait ProblemTemplate {
 
-  def title(seed:Int): String
+  def title(seed: Int): String
   val initialScore: ProblemScore
   val uniqueAlias: String
   val allowedAttempts: Option[Int] = None
-  val requireTeacherVerification:Boolean = false
+  val requireTeacherVerification: Boolean = false
   //def answerFromString[AT](field: AnswerFieldType[AT]): Option[AT] = ???
   //def generateProblem(seed: Int): ProblemInstance = ProblemInstance.create()
   def generateProblemHtml(seed: Int): String
   def answerField(seed: Int): AnswerField
   def verifyAnswer(seed: Int, answer: String): AnswerVerificationResult
   //problemsToGenerate.zipWithIndex.map { case (pt, i) => GeneratedProblem(pt, seed + i, pt.allowedAttempts, pt.initialScore) }.toSeq
-  def generate(seed:Int): GeneratedProblem = GeneratedProblem(this, seed, allowedAttempts, initialScore)
+  def generate(seed: Int): GeneratedProblem = GeneratedProblem(this, seed, allowedAttempts, initialScore)
 }
 
