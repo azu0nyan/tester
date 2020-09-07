@@ -20,7 +20,7 @@ object CoursePiece {
 
     lazy val linearize: Seq[PieceWithPath] = Seq((this, Seq(alias)))
 
-    lazy val pieceByPath:Map[String, CoursePiece] = linearize.map(x => (pathToString(x._2), x._1)).toMap
+    lazy val pieceByPath: Map[String, CoursePiece] = linearize.map(x => (pathToString(x._2), x._1)).toMap
 
   }
 
@@ -68,8 +68,12 @@ object CoursePiece {
 
   case class Paragraph(alias: String, bodyHtml: String, displayMe: DisplayMe = Inline) extends CoursePiece
 
+  object Problem {
+    def apply(pt: ProblemTemplate, displayMe: DisplayMe): Problem = Problem(pt.uniqueAlias, displayMe)
+  }
+
   case class Problem(problemAlias: String, displayMe: DisplayMe) extends CoursePiece {
-//    override val displayInContentsHtml: Option[String] = Some(s"<h2>$contentsTitle</h2>")
+    //    override val displayInContentsHtml: Option[String] = Some(s"<h2>$contentsTitle</h2>")
     override def alias: String = problemAlias
   }
 
