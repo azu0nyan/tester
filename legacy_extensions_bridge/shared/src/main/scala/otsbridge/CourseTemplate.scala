@@ -1,7 +1,6 @@
 package otsbridge
 
-import otsbridge.CoursePiece.{CoursePiece, CourseRoot}
-import otsbridge.ProblemScore.ProblemScore
+import otsbridge.CoursePiece._
 
 
 

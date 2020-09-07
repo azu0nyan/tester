@@ -2,7 +2,6 @@ package otsbridge
 
 
 import otsbridge.ProblemScore.ProblemScore
-import otsbridge.ProblemTemplate.GeneratedProblem
 
 import scala.concurrent.Future
 
