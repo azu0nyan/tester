@@ -2,6 +2,7 @@ package otsbridge
 
 
 import otsbridge.ProblemScore.ProblemScore
+import otsbridge.ProblemTemplate.GeneratedProblem
 
 import scala.concurrent.Future
 
@@ -12,6 +13,7 @@ object ProblemTemplate {
     override final val requireTeacherVerification: Boolean = true
     override final def verifyAnswer(seed: Int, answer: String): AnswerVerificationResult = Verified(initialScore, Some("Ожидает проверки преподавателем"))
   }
+
 }
 
 
@@ -24,10 +26,9 @@ trait ProblemTemplate {
   val requireTeacherVerification: Boolean = false
   //def answerFromString[AT](field: AnswerFieldType[AT]): Option[AT] = ???
   //def generateProblem(seed: Int): ProblemInstance = ProblemInstance.create()
-  def generateProblemHtml(seed: Int): String
+  def problemHtml(seed: Int): String
   def answerField(seed: Int): AnswerField
   def verifyAnswer(seed: Int, answer: String): AnswerVerificationResult
-  //problemsToGenerate.zipWithIndex.map { case (pt, i) => GeneratedProblem(pt, seed + i, pt.allowedAttempts, pt.initialScore) }.toSeq
-  def generate(seed: Int): GeneratedProblem = GeneratedProblem(this, seed, allowedAttempts, initialScore)
+
 }
 

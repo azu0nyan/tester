@@ -1,21 +1,17 @@
 package otsbridge
 
-import otsbridge.CoursePiece.CourseRoot
+import otsbridge.CoursePiece.{CoursePiece, CourseRoot}
+import otsbridge.CourseType.SimpleCourse
 import otsbridge.ProblemScore.ProblemScore
 
-case class GeneratedProblem(template: ProblemTemplate, seed: Int, attempts: Option[Int], initialScore: ProblemScore)
+
+
 
 trait CourseTemplate {
 
-  val allowedForAll: Boolean = false
-
-  val allowedInstances: Option[Int] = None
-
   def description: Option[String] = None
 
-  // registerProblemListTemplate(this)
-
-  def problemsToGenerate: Seq[ProblemTemplate]
+  def problemAliasesToGenerate:Seq[String] = problemAliasesToGenerateRec(courseData)
 
   def courseData:CourseRoot
 
@@ -23,16 +19,12 @@ trait CourseTemplate {
 
   val uniqueAlias: String
 
-  type CourseGeneratorOutput = Seq[GeneratedProblem]
+  val courseType:CourseType = SimpleCourse()
 
-  def generate(seed: Int): CourseGeneratorOutput =
-    problemsToGenerate.zipWithIndex.map { case (pt, i) => pt.generate(seed + i)}.toSeq
-
-
-  val timeLimitSeconds: Option[Int] = None
-
-  //def grade
-
+  private def problemAliasesToGenerateRec(cp:CoursePiece):Seq[String] = cp match {
+    case container: CoursePiece.Container => container.childs.flatMap(problemAliasesToGenerateRec)
+    case CoursePiece.Problem(problemAlias, displayMe) => Seq(problemAlias)
+  }
 
 }
 
