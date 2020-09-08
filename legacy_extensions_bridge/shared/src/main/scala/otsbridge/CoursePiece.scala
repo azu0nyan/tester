@@ -66,6 +66,11 @@ object CoursePiece {
 
   case class TextWithHeading(alias: String, heading: String, bodyHtml: String, displayMe: DisplayMe = Inline) extends CoursePiece
 
+  @Deprecated
+  case class ContainerWithHeading(alias: String, heading: String, bodyHtml: String, displayMe: DisplayMe = Inline,childs: Seq[CoursePiece] = Seq()) extends Container
+
+
+
   case class Paragraph(alias: String, bodyHtml: String, displayMe: DisplayMe = Inline) extends CoursePiece
 
   object Problem {
