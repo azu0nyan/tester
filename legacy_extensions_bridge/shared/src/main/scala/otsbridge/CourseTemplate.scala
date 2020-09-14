@@ -3,8 +3,6 @@ package otsbridge
 import otsbridge.CoursePiece._
 
 
-
-
 trait CourseTemplate {
 
   def description: Option[String] = None
