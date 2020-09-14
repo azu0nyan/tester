@@ -10,6 +10,7 @@ object ProgramRunResult {
   case class ProgramRunResultWrongAnswer(message: Option[String]) extends ProgramRunResult
   case class ProgramRunResultFailure(message: Option[String]) extends ProgramRunResult
   case class ProgramRunResultTimeLimitExceeded(timeMs:Long) extends ProgramRunResult
+  case class ProgramRunResultNotTested() extends ProgramRunResult
 
 }
 
