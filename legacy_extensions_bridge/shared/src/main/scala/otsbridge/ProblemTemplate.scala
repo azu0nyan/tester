@@ -10,7 +10,8 @@ object ProblemTemplate {
 
   trait ProblemVerifiedByTeacher extends ProblemTemplate {
     override val requireTeacherVerificationIfScoreGEQThan: Option[Int] = Some(0)
-    override final def verifyAnswer(seed: Int, answer: String): AnswerVerificationResult = Verified(initialScore, Some("Ожидает проверки преподавателем"))
+    override final def verifyAnswer(seed: Int, answer: String): AnswerVerificationResult =
+      Verified(initialScore, None)
   }
 
 }
