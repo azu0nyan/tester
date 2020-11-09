@@ -1,6 +1,10 @@
 package otsbridge
 
-
+import io.circe._
+import io.circe.parser._
+import io.circe.generic.auto._
+import io.circe.syntax._
+import otsbridge.ProgrammingLanguage.ProgrammingLanguage
 //case class ProgramAnswer(program: String, language: ProgrammingLanguage)
 
 sealed trait AnswerField {
@@ -17,16 +21,22 @@ case class IntNumberField(override val questionText: String) extends AnswerField
   override type Answer = Int
   override def answerFromString(string: String): Option[Int] = string.toIntOption
 }
-case class TextField(override val questionText: String) extends AnswerField {
+case class TextField(override val questionText: String, lines:Int = 1) extends AnswerField {
   override type Answer = String
   override def answerFromString(string: String): Option[String] = Some(string)
 }
 
+case class ProgramAnswer(program: String, programmingLanguage: ProgrammingLanguage)
+
 case class ProgramInTextField(override val questionText: String,
-                              programmingLanguage: ProgrammingLanguage,
+                              allowedLanguages: Seq[ProgrammingLanguage],
                               initialProgram:Option[String]) extends AnswerField {
-  override type Answer = String
-  override def answerFromString(string: String): Option[String] = Some(string)
+  override type Answer = ProgramAnswer
+  override def answerFromString(string: String): Option[ProgramAnswer] = decode[ProgramAnswer](string).toOption
+    .filter(x => allowedLanguages.contains(x.programmingLanguage))
+
+  override def answerToString(answer: Answer): String = answer.asJson.noSpaces
+
 }
 
 case class SelectOneField(override val questionText: String, variants: Set[String]) extends AnswerField {
