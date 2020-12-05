@@ -22,6 +22,41 @@ object CoursePiece {
 
     lazy val pieceByPath: Map[String, CoursePiece] = linearize.map(x => (pathToString(x._2), x._1)).toMap
 
+    def fullHtml(aliasToPt:Map[String, ProblemTemplate]):String = this match {
+      case HtmlToDisplay(alias, displayMe, htmlRaw) => htmlRaw
+      case TextWithHeading(alias, heading, bodyHtml, displayMe) =>
+        raw"""<div>
+             |<h1>$heading</h1>
+             |$bodyHtml
+             |</div>
+             |""".stripMargin
+
+      case Paragraph(alias, bodyHtml, displayMe) => bodyHtml
+      case Problem(problemAlias, displayMe) =>
+        raw"""<div>
+             |<h1>${ aliasToPt.get(alias).map(_.title(0)).getOrElse("")}</h1>
+             |${ aliasToPt.get(alias).map(_.problemHtml(0)).getOrElse("")}
+             |</div>
+             |""".stripMargin
+
+      case Theme(_, title, text, childs, _) =>
+        raw"""<div>
+             |<h1>$title</h1>
+             |$text
+             |${childs.map(_.fullHtml(aliasToPt)).reduce(_ + _)}
+             |</div>
+             |""".stripMargin
+      case SubTheme(_, title, text, childs, _) =>
+        raw"""<div>
+             |<h1>$title</h1>
+             |$text
+             |${childs.map(_.fullHtml(aliasToPt)).reduceOption(_ + _).getOrElse("")}
+             |</div>
+             |""".stripMargin
+
+      case container: Container => container.childs.map(_.fullHtml(aliasToPt)).reduceOption(_ + _).getOrElse("")
+    }
+
   }
 
   sealed trait Container extends CoursePiece {

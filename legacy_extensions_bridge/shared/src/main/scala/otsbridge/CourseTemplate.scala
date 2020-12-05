@@ -21,6 +21,7 @@ trait CourseTemplate {
     case _ => Seq()
   }
 
+
 }
 
 
