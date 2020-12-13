@@ -17,7 +17,7 @@ trait CourseTemplate {
 
   private def problemAliasesToGenerateRec(cp:CoursePiece):Seq[String] = cp match {
     case container: CoursePiece.Container => container.childs.flatMap(problemAliasesToGenerateRec)
-    case CoursePiece.Problem(problemAlias, displayMe) => Seq(problemAlias)
+    case CoursePiece.Problem(problemAlias, displayMe, contents) => Seq(problemAlias)
     case _ => Seq()
   }
 

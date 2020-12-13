@@ -24,7 +24,7 @@ object CoursePiece {
 
     def fullHtml(aliasToPt:Map[String, ProblemTemplate]):String = this match {
       case HtmlToDisplay(alias, displayMe, htmlRaw) => htmlRaw
-      case TextWithHeading(alias, heading, bodyHtml, displayMe) =>
+      case TextWithHeading(alias, heading, bodyHtml, displayMe, contents) =>
         raw"""<div>
              |<h1>$heading</h1>
              |$bodyHtml
@@ -32,7 +32,7 @@ object CoursePiece {
              |""".stripMargin
 
       case Paragraph(alias, bodyHtml, displayMe) => bodyHtml
-      case Problem(problemAlias, displayMe) =>
+      case Problem(problemAlias, displayMe, contents) =>
         raw"""<div>
              |<h1>${ aliasToPt.get(alias).map(_.title(0)).getOrElse("")}</h1>
              |${ aliasToPt.get(alias).map(_.problemHtml(0)).getOrElse("")}
@@ -99,7 +99,7 @@ object CoursePiece {
 
   case class HtmlToDisplay(alias: String, displayMe: DisplayMe, htmlRaw: String) extends CoursePiece
 
-  case class TextWithHeading(alias: String, heading: String, bodyHtml: String, displayMe: DisplayMe = Inline) extends CoursePiece
+  case class TextWithHeading(alias: String, heading: String, bodyHtml: String, displayMe: DisplayMe = Inline, override val displayInContentsHtml: Option[String] = None) extends CoursePiece
 
   @Deprecated
   case class ContainerWithHeading(alias: String, heading: String, bodyHtml: String, displayMe: DisplayMe = Inline,childs: Seq[CoursePiece] = Seq()) extends Container
@@ -109,11 +109,11 @@ object CoursePiece {
   case class Paragraph(alias: String, bodyHtml: String, displayMe: DisplayMe = Inline) extends CoursePiece
 
   object Problem {
-    def apply(pt: ProblemTemplate, displayMe: DisplayMe): Problem = Problem(pt.uniqueAlias, displayMe)
+    def apply(pt: ProblemTemplate, displayMe: DisplayMe, inContents:Option[String] = None): Problem =
+      Problem(pt.uniqueAlias, displayMe, inContents)
   }
 
-  case class Problem(problemAlias: String, displayMe: DisplayMe) extends CoursePiece {
-    //    override val displayInContentsHtml: Option[String] = Some(s"<h2>$contentsTitle</h2>")
+  case class Problem(problemAlias: String, displayMe: DisplayMe, override val displayInContentsHtml: Option[String]) extends CoursePiece {
     override def alias: String = problemAlias
   }
 
