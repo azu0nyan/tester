@@ -43,7 +43,7 @@ object CoursePiece {
         raw"""<div>
              |<h1>$title</h1>
              |$text
-             |${childs.map(_.fullHtml(aliasToPt)).reduce(_ + _)}
+             |${childs.map(_.fullHtml(aliasToPt)).reduceOption(_ + _).getOrElse("")}
              |</div>
              |""".stripMargin
       case SubTheme(_, title, text, childs, _) =>
