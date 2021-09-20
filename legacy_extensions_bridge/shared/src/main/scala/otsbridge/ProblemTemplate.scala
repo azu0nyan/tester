@@ -1,6 +1,7 @@
 package otsbridge
 
 
+import otsbridge.AnswerField.AnswerField
 import otsbridge.ProblemScore.ProblemScore
 
 import scala.concurrent.Future
@@ -27,6 +28,6 @@ trait ProblemTemplate {
   def problemHtml(seed: Int): String
   def answerField(seed: Int): AnswerField
   def verifyAnswer(seed: Int, answer: String): AnswerVerificationResult
-
+  def editable:Boolean = false
 }
 
