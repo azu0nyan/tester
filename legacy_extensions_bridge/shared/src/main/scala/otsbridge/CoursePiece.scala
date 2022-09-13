@@ -13,6 +13,12 @@ object CoursePiece {
   type PieceWithPath = (CoursePiece, PiecePath)
 
   sealed trait CoursePiece {
+
+    def delete(aliasToDelete: String):CoursePiece = this match {
+      case container: Container => container.setChilds(container.childs.filter(_.alias != aliasToDelete).map(_.delete(aliasToDelete)))
+      case x => x
+    }
+
     def alias: String
     def displayMe: DisplayMe
 
@@ -131,6 +137,8 @@ object CoursePiece {
 
 
   case class CourseRoot(title: String, annotation: String, childs: Seq[CoursePiece]) extends Container {
+
+
     override def alias: String = "main"
     override def displayMe: DisplayMe = OwnPage
 
