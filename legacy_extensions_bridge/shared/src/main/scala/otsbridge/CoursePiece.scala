@@ -65,6 +65,12 @@ object CoursePiece {
       case container: Container => container.childs.map(_.fullHtml(aliasToPt)).reduceOption(_ + _).getOrElse("")
     }
 
+    def allProblems:Seq[Problem] = this match {
+      case c:Container => c.childs.flatMap(_.allProblems)
+      case problem: Problem => Seq(problem)
+      case _ => Seq()
+    }
+
   }
 
 
