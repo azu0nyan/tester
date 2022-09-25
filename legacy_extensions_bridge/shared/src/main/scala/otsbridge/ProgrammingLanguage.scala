@@ -3,6 +3,7 @@ package otsbridge
 object ProgrammingLanguage {
 
   val ALL_LANGUAGES = Seq(Java, Scala, Cpp, Haskell, Kojo)
+  val KOJO_FIRST = Seq(Kojo, Java, Scala, Cpp, Haskell )
 
   sealed trait ProgrammingLanguage
   case object Java extends ProgrammingLanguage
