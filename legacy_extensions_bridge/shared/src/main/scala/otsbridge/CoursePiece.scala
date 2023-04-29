@@ -19,6 +19,11 @@ object CoursePiece {
       case x => x
     }
 
+    def findByAlias(toFind: String): Option[CoursePiece] = if(alias == toFind) Some(this) else this match {
+      case container: Container => container.childs.flatMap(_.findByAlias(toFind)).headOption
+      case _ => None
+    }
+
     def alias: String
     def displayMe: DisplayMe
 
@@ -82,6 +87,7 @@ object CoursePiece {
     override lazy val linearize: Seq[PieceWithPath] = (this, Seq(alias)) +:
       childs.flatMap(_.linearize).map { case (piece, path) => (piece, alias +: path)
       }
+
 
 
     def replaceByAlias(aliasToReplace:String, replacement:CoursePiece): CoursePiece =
