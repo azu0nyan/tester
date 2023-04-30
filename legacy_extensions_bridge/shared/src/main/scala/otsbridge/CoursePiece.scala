@@ -31,6 +31,17 @@ object CoursePiece {
 
     val displayInContentsHtml: Option[String] = None
 
+    lazy val piecesOrdered: Seq[CoursePiece] = linearize.map(_._1)
+    def next(cp: CoursePiece): Option[CoursePiece] = {
+      val i = piecesOrdered.indexOf(cp)
+      Option.when(i + 1 < piecesOrdered.size) (piecesOrdered(i + 1))
+    }
+    def prev(cp: CoursePiece): Option[CoursePiece] = {
+      val i = piecesOrdered.indexOf(cp)
+      Option.when(i >= 1)(piecesOrdered(i - 1))
+    }
+    
+    
     lazy val linearize: Seq[PieceWithPath] = Seq((this, Seq(alias)))
 
     lazy val pieceByPath: Map[String, CoursePiece] = linearize.map(x => (pathToString(x._2), x._1)).toMap
