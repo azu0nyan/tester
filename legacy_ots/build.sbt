@@ -27,10 +27,10 @@ val scalatagsVersion = "0.9.1"
 val udashVersion = "0.9.0"
 val udashJQueryVersion = "3.2.0"
 //dependencies
-lazy val extensionsBridge = ProjectRef(file("../otsExtensionsBridge"), "fooJVM")
-lazy val extensionsBridgeJs = ProjectRef(file("../otsExtensionsBridge"), "fooJS")
+lazy val extensionsBridge = ProjectRef(file("../legacy_extensions_bridge"), "fooJVM")
+lazy val extensionsBridgeJs = ProjectRef(file("../legacy_extensions_bridge"), "fooJS")
 
-lazy val contentProject = RootProject(file("../problemsAndTests"))
+lazy val contentProject = RootProject(file("../../problemsAndTests"))
 
 //Tasks
 val cssDir = settingKey[File]("Target for 'compileCss'  Dtask")
@@ -79,12 +79,11 @@ lazy val foo = crossProject(JSPlatform, JVMPlatform).in(file("."))
     //
     //    sources in(Compile, doc) := Seq.empty,
 
-    mainClass in reStart := Some("app.App"),
-    mainClass in Compile := Some("app.App"),
-    mainClass in(Compile, run) := Some("app.App"),
-    mainClass in(Compile, packageBin) := Some("app.App"),
-    baseDirectory in reStart := file(workdir),
-
+//    mainClass in reStart := Some("app.App"),
+//    mainClass in Compile := Some("app.App"),
+//    mainClass in(Compile, run) := Some("app.App"),
+//    mainClass in(Compile, packageBin) := Some("app.App"),
+//    baseDirectory in reStart := file(workdir),
     Compile / unmanagedResourceDirectories += file(workdir),
 
     javaOptions in Universal ++= Seq(
