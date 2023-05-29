@@ -23,9 +23,9 @@ ALTER SCHEMA tester OWNER TO postgres;
 SET search_path TO pg_catalog,public,tester;
 -- ddl-end --
 
--- object: tester."User" | type: TABLE --
--- DROP TABLE IF EXISTS tester."User" CASCADE;
-CREATE TABLE tester."User" (
+-- object: tester."RegisteredUser" | type: TABLE --
+-- DROP TABLE IF EXISTS tester."RegisteredUser" CASCADE;
+CREATE TABLE tester."RegisteredUser" (
 	id serial NOT NULL,
 	login character varying(256) NOT NULL,
 	"passwordHash" character varying(256) NOT NULL,
@@ -35,11 +35,11 @@ CREATE TABLE tester."User" (
 	email character varying(256),
 	"registeredAt" timestamp NOT NULL,
 	"lastLogin" timestamp,
-	role jsonb,
+	role jsonb NOT NULL,
 	CONSTRAINT user_pk PRIMARY KEY (id)
 );
 -- ddl-end --
-ALTER TABLE tester."User" OWNER TO postgres;
+ALTER TABLE tester."RegisteredUser" OWNER TO postgres;
 -- ddl-end --
 
 -- object: tester."Group" | type: TABLE --
@@ -113,8 +113,8 @@ ALTER TABLE tester."CustomCourseTemplate" OWNER TO postgres;
 -- DROP TABLE IF EXISTS tester."CustomCourseTemplateProblemAlias" CASCADE;
 CREATE TABLE tester."CustomCourseTemplateProblemAlias" (
 	"courseId" integer NOT NULL,
-	"problemAlias" character varying(256) NOT NULL
-
+	"problemAlias" character varying(256) NOT NULL,
+	CONSTRAINT unique_pair UNIQUE ("courseId","problemAlias")
 );
 -- ddl-end --
 ALTER TABLE tester."CustomCourseTemplateProblemAlias" OWNER TO postgres;
@@ -165,7 +165,7 @@ ALTER TABLE tester."Answer" OWNER TO postgres;
 -- object: "user" | type: CONSTRAINT --
 -- ALTER TABLE tester."Course" DROP CONSTRAINT IF EXISTS "user" CASCADE;
 ALTER TABLE tester."Course" ADD CONSTRAINT "user" FOREIGN KEY ("userId")
-REFERENCES tester."User" (id) MATCH SIMPLE
+REFERENCES tester."RegisteredUser" (id) MATCH SIMPLE
 ON DELETE NO ACTION ON UPDATE NO ACTION;
 -- ddl-end --
 
@@ -179,7 +179,7 @@ ON DELETE NO ACTION ON UPDATE NO ACTION;
 -- object: user_fk | type: CONSTRAINT --
 -- ALTER TABLE tester."UserToGroup" DROP CONSTRAINT IF EXISTS user_fk CASCADE;
 ALTER TABLE tester."UserToGroup" ADD CONSTRAINT user_fk FOREIGN KEY ("userId")
-REFERENCES tester."User" (id) MATCH SIMPLE
+REFERENCES tester."RegisteredUser" (id) MATCH SIMPLE
 ON DELETE NO ACTION ON UPDATE NO ACTION;
 -- ddl-end --
 

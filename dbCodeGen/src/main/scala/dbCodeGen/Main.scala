@@ -24,11 +24,11 @@ object Main {
 
     val pgDataSource = new PGSimpleDataSource()
     pgDataSource.setURL(
-      "jdbc:postgresql://127.0.0.1:5432/tester_v1?ssl=false",
+      "jdbc:postgresql://127.0.0.1:5432/testertest2?ssl=false",
     )
     pgDataSource.setUser("postgres")
     pgDataSource.setPassword("password")
-    val gen = new SimpleJdbcCodegen(pgDataSource, "com.my.project") {
+    val gen = new SimpleJdbcCodegen(pgDataSource, "dbGenerated") {
       override def nameParser = LiteralNames
       //JdbcTypeInfo => Option[ClassTag[_]]
       override def typer: Typer = x => super.typer(x).orElse{
