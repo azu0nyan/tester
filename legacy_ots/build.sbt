@@ -1,0 +1,162 @@
+import sbt.Keys.libraryDependencies
+
+ThisBuild / scalaVersion := "2.13.4"
+
+cancelable in Global := true
+
+//enablePlugins(JavaAppPackaging)
+
+val scalacOpts = Seq(
+  "-encoding", "utf8", // Option and arguments on same  line
+  //  "-Xfatal-warnings", // New lines for each options
+  "-deprecation",
+  "-unchecked",
+  "-language:implicitConversions",
+  "-language:higherKinds",
+  "-language:existentials",
+  "-language:postfixOps",
+)
+
+
+val workdir = "workdir"
+
+//libVersions
+val http4sVersion = "0.21.0"
+val circeVersion = "0.13.0"
+val scalatagsVersion = "0.9.1"
+val udashVersion = "0.9.0"
+val udashJQueryVersion = "3.2.0"
+//dependencies
+lazy val extensionsBridge = ProjectRef(file("../otsExtensionsBridge"), "fooJVM")
+lazy val extensionsBridgeJs = ProjectRef(file("../otsExtensionsBridge"), "fooJS")
+
+lazy val contentProject = RootProject(file("../problemsAndTests"))
+
+//Tasks
+val cssDir = settingKey[File]("Target for 'compileCss'  Dtask")
+val compileCss = taskKey[Unit]("Compile CSS files")
+
+
+lazy val root = project.in(file(".")).
+  aggregate(foo.js, foo.jvm).
+  settings(
+    publish := {},
+    publishLocal := {},
+  )
+
+lazy val foo = crossProject(JSPlatform, JVMPlatform).in(file("."))
+  .settings(
+    name := "online-test-suite",
+    version := "0.2-SNAPSHOT",
+    scalacOptions ++= scalacOpts,
+    libraryDependencies += "io.github.cquiroz" %%% "scala-java-time" % "2.0.0",
+    libraryDependencies += "com.lihaoyi" %%% "scalatags" % scalatagsVersion,
+    libraryDependencies += "com.github.japgolly.scalacss" %% "core" % "0.8.0-RC1",
+    //    libraryDependencies += "io.udash" %%% "udash-css" % udashVersion,
+    //    libraryDependencies += "com.lihaoyi" %%% "upickle" % "1.0.0",
+    libraryDependencies ++= Seq(
+      "io.circe" %%% "circe-core",
+      "io.circe" %%% "circe-generic",
+      "io.circe" %%% "circe-parser"
+    ).map(_ % circeVersion)
+  )
+  .jvmConfigure(_.dependsOn(contentProject).enablePlugins(JavaAppPackaging))
+  .jsConfigure(_.dependsOn(extensionsBridgeJs))
+  .jvmSettings(
+    // Add JVM-specific settings here
+    libraryDependencies += "ch.qos.logback" % "logback-classic" % "1.2.3",
+    libraryDependencies += "com.typesafe.scala-logging" %% "scala-logging" % "3.9.2",
+    libraryDependencies += "org.mongodb.scala" %% "mongo-scala-driver" % "2.9.0",
+    libraryDependencies += "com.sparkjava" % "spark-core" % "2.9.1",
+    libraryDependencies += "com.pauldijou" %% "jwt-core" % "4.2.0",
+
+    libraryDependencies += "org.scalaj" %% "scalaj-http" % "2.4.2",
+    libraryDependencies += "com.outr" %% "hasher" % "1.2.2",
+
+    //    publishArtifact in(Compile, packageDoc) := false,
+    //
+    //    publishArtifact in packageDoc := false,
+    //
+    //    sources in(Compile, doc) := Seq.empty,
+
+    mainClass in reStart := Some("app.App"),
+    mainClass in Compile := Some("app.App"),
+    mainClass in(Compile, run) := Some("app.App"),
+    mainClass in(Compile, packageBin) := Some("app.App"),
+    baseDirectory in reStart := file(workdir),
+
+    Compile / unmanagedResourceDirectories += file(workdir),
+
+    javaOptions in Universal ++= Seq(
+      // -J params will be added as jvm parameters
+      "-J-Xmx4096m",
+      "-J-Xms64m",
+
+      // others will be added as app parameters
+      //      "-Dproperty=true",
+      //      "-port=8080",
+
+      // you can access any build setting/task here
+      //      s"-version=${version.value}"
+    ),
+
+    //    publishTo := Some(Resolver.file("testPublish", file("/tmp/")))
+    //    fork in run := true,
+    //    baseDirectory in run := file("workdir")
+  ).
+  jsSettings(
+    libraryDependencies ++= Seq(
+      "io.udash" %%% "udash-core" % udashVersion,
+
+      "io.udash" %%% "udash-i18n" % udashVersion,
+      "io.udash" %%% "udash-auth" % udashVersion,
+      "io.udash" %%% "udash-rest" % udashVersion,
+      "io.udash" %%% "udash-rpc" % udashVersion,
+      "io.udash" %%% "udash-bootstrap4" % udashVersion,
+      "io.udash" %%% "udash-jquery" % udashJQueryVersion),
+    // Add JS-specific settings here
+    scalaJSUseMainModuleInitializer := true,
+    //    artifactPath in fullOptJS in Compile := file(workdir),
+    //    artifactPath in fastOptJS in Compile := file(workdir)
+    libraryDependencies += "org.scala-js" %%% "scalajs-dom" % "2.4.0",
+    (compile in Compile) := ((compile in Compile) dependsOn compileCss).value,
+    Compile / fastOptJS / artifactPath := file(workdir) / "main.js", //baseDirectory.value / "workdir" / "main.js"
+    Compile / fullOptJS / artifactPath := file(workdir) / "main.js", //baseDirectory.value / "workdir" / "main.js"
+    mainClass := Some("JsMain")
+  )
+
+
+
+lazy val fooJS = foo.js.settings(
+  cssDir := {
+    file(workdir) / "styles"
+    //    (Compile / fastOptJS / target).value /
+    //      "UdashStatics" / "WebContent" / "styles"
+  },
+  compileCss := Def.taskDyn {
+    val dir = (Compile / cssDir).value
+    val path = dir.absolutePath
+    println(s"Generating CSS files in `$path`...")
+    dir.mkdirs()
+    // make sure you have configured the valid `CssRenderer` path
+    // we assume that `CssRenderer` exists in the `backend` module
+    (foo.jvm / Compile / runMain)
+      .toTask(s" cssRender.CssRenderer $path true")
+  }.value,
+)
+//lazy val fooJS = foo.js.dependsOn(extensionsBridge)
+//lazy val fooJVM = foo.jvm.dependsOn(extensionsBridge, contentProject)
+
+
+//addCompilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full)
+//
+// This is an application with a main method
+//scalaJSUseMainModuleInitializer := true
+//
+//libraryDependencies += "org.scala-js" %%% "scalajs-dom" % "1.0.0"
+
+
+addCommandAlias("bt", "fooJS / fullOptJS; fooJVM / universal:packageBin")
+addCommandAlias("pt", "fooJVM / universal:packageBin")
+addCommandAlias("tt", "fooJS / fastOptJS; fooJVM / reStart")
+addCommandAlias("rt", "fooJVM / reStart ")
