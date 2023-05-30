@@ -23,13 +23,13 @@ object Main {
   import ctx._
 
   def main(args: Array[String]): Unit = try {
-    migrateUsers()
-    migrateGroups()
-    migrateUserToGroup()
-    migrateCourses()
-    migrateCourseTemplateForGroup()
-    migrateProblems()
-    migrateAnswers()
+//    migrateUsers()
+//    migrateGroups()
+//    migrateUserToGroup()
+//    migrateCourses()
+//    migrateCourseTemplateForGroup()
+//    migrateProblems()
+//    migrateAnswers()
     migrateCustomProblems()
     migrateCustomCourses()
 
@@ -53,7 +53,7 @@ object Main {
       val toIns = CustomProblemTemplate(t.uniqueAlias, t.staticTitle, t.staticHtml, JsonbValue(t.staticAnswerField), JsonbValue(t.initialScore))
       val q = quote { (p: CustomProblemTemplate) =>
         sql"""INSERT INTO "CustomProblemTemplate" ("alias", "title", "html", "answerField", "initialScore")
-             VALUES ${p.alias} ${p.title} ${p.html} ${p.answerField} ${p.initialScore}"""
+             VALUES (${p.alias}, ${p.title}, ${p.html}, ${p.answerField}::jsonb, ${p.initialScore}::jsonb)"""
           .as[Insert[CustomProblemTemplate]].onConflictIgnore
       }
       ctx.run(q(ctx.lift(toIns)))
@@ -123,9 +123,13 @@ object Main {
     val allProblems = controller.db.problems.all()
     println(s"Found ${allProblems.size} problems.")
     problemIds = allProblems.map(u => (u._id.toHexString, ids.getAndIncrement())).toMap
+    var c = 0
 
     for (p <- allProblems) try{
       val toIns = Problem(problemIds(p._id.toHexString), courseIds(p.courseId.toHexString), p.templateAlias, p.seed, JsonbValue(p.score))
+
+      c += 1
+      if(c % 1000 == 0) println(c)
 
       val q = quote { (p: Problem) =>
         sql"""INSERT INTO "Problem" ("id","courseId","templateAlias","seed","score")
@@ -144,7 +148,7 @@ object Main {
     val ids = new AtomicInteger(0)
     println(s"Found ${as.size} answers")
 
-    for (a <- as) {
+    for (a <- as) try{
       ids.getAndIncrement()
       if (ids.get() % 1000 == 0) {
         println(ids.get())
@@ -156,6 +160,9 @@ object Main {
           .as[Insert[Answer]].onConflictIgnore
       }
       ctx.run(q(ctx.lift(toIns)))
+    } catch {
+      case t: Throwable =>
+        println(s"Error while migrating answer ${a}")
     }
   }
 
