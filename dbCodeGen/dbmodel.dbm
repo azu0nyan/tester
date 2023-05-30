@@ -3,7 +3,7 @@
 CAUTION: Do not modify this file unless you know what you are doing.
  Unexpected results may occur if the code is changed deliberately.
 -->
-<dbmodel pgmodeler-ver="1.0.0-beta1" use-changelog="false" last-position="0,132" last-zoom="0.6" max-obj-count="12"
+<dbmodel pgmodeler-ver="1.0.0-beta1" use-changelog="false" last-position="454,451" last-zoom="0.75" max-obj-count="12"
 	 default-schema="public" default-owner="postgres"
 	 layers="Default layer"
 	 active-layers="0"
@@ -23,7 +23,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 <table name="RegisteredUser" layers="0" collapse-mode="2" max-obj-count="12" z-value="0">
 	<schema name="tester"/>
 	<role name="postgres"/>
-	<position x="1220" y="640"/>
+	<position x="1200" y="680"/>
 	<column name="id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -59,10 +59,10 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	</constraint>
 </table>
 
-<table name="Group" layers="0" collapse-mode="2" max-obj-count="3" z-value="0">
+<table name="UserGroup" layers="0" collapse-mode="2" max-obj-count="3" z-value="0">
 	<schema name="tester"/>
 	<role name="postgres"/>
-	<position x="200" y="620"/>
+	<position x="180" y="660"/>
 	<column name="id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -72,15 +72,15 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	<column name="description" not-null="true">
 		<type name="text" length="0"/>
 	</column>
-	<constraint name="group_pk" type="pk-constr" table="tester.&quot;Group&quot;">
+	<constraint name="group_pk" type="pk-constr" table="tester.&quot;UserGroup&quot;">
 		<columns names="id" ref-type="src-columns"/>
 	</constraint>
 </table>
 
-<table name="Course" layers="0" collapse-mode="2" max-obj-count="6" z-value="0">
+<table name="Course" layers="0" collapse-mode="2" max-obj-count="4" z-value="0">
 	<schema name="tester"/>
 	<role name="postgres"/>
-	<position x="1720" y="640"/>
+	<position x="1700" y="680"/>
 	<column name="id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -93,9 +93,6 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	<column name="seed" not-null="true">
 		<type name="integer" length="0"/>
 	</column>
-	<column name="status" not-null="true">
-		<type name="jsonb" length="0"/>
-	</column>
 	<constraint name="course_pk" type="pk-constr" table="tester.&quot;Course&quot;">
 		<columns names="id" ref-type="src-columns"/>
 	</constraint>
@@ -104,7 +101,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 <table name="UserToGroup" layers="0" collapse-mode="2" max-obj-count="6" z-value="0">
 	<schema name="tester"/>
 	<role name="postgres"/>
-	<position x="800" y="600"/>
+	<position x="780" y="640"/>
 	<column name="id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -120,7 +117,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	<column name="leavedAt">
 		<type name="timestamp" length="0"/>
 	</column>
-	<constraint name="unique_pair" type="uq-constr" table="tester.&quot;UserToGroup&quot;">
+	<constraint name="unique_pair_co" type="uq-constr" table="tester.&quot;UserToGroup&quot;">
 		<columns names="userId,groupId" ref-type="src-columns"/>
 	</constraint>
 	<constraint name="UserToGroup_pk" type="pk-constr" table="tester.&quot;UserToGroup&quot;">
@@ -131,14 +128,14 @@ CAUTION: Do not modify this file unless you know what you are doing.
 <table name="CourseTemplateForGroup" layers="0" collapse-mode="2" max-obj-count="4" z-value="0">
 	<schema name="tester"/>
 	<role name="postgres"/>
-	<position x="180" y="940"/>
+	<position x="160" y="980"/>
 	<column name="id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
 	<column name="groupId" not-null="true">
 		<type name="integer" length="0"/>
 	</column>
-	<column name="templateAlias">
+	<column name="templateAlias" not-null="true">
 		<type name="character varying" length="256"/>
 	</column>
 	<column name="forceStartForGroupMembers" not-null="true">
@@ -152,7 +149,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 <table name="CustomCourseTemplate" layers="0" collapse-mode="2" max-obj-count="4" z-value="0">
 	<schema name="tester"/>
 	<role name="postgres"/>
-	<position x="180" y="1220"/>
+	<position x="160" y="1260"/>
 	<column name="id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -173,7 +170,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 <table name="CustomCourseTemplateProblemAlias" layers="0" collapse-mode="2" max-obj-count="2" z-value="0">
 	<schema name="tester"/>
 	<role name="postgres"/>
-	<position x="180" y="1540"/>
+	<position x="160" y="1580"/>
 	<column name="courseId" not-null="true">
 		<type name="integer" length="0"/>
 	</column>
@@ -188,21 +185,21 @@ CAUTION: Do not modify this file unless you know what you are doing.
 <table name="CustomProblemTemplate" layers="0" collapse-mode="2" max-obj-count="6" z-value="0">
 	<schema name="tester"/>
 	<role name="postgres"/>
-	<position x="660" y="1520"/>
+	<position x="640" y="1560"/>
 	<column name="alias" not-null="true">
-		<type name="character varying" length="256"/>
+		<type name="text" length="256"/>
 	</column>
 	<column name="title" not-null="true">
-		<type name="character varying" length="256"/>
+		<type name="text" length="256"/>
 	</column>
 	<column name="html" not-null="true">
 		<type name="text" length="0"/>
 	</column>
 	<column name="answerField" not-null="true">
-		<type name="json" length="0"/>
+		<type name="jsonb" length="0"/>
 	</column>
 	<column name="initialScore" not-null="true">
-		<type name="json" length="0"/>
+		<type name="jsonb" length="0"/>
 	</column>
 	<constraint name="CustomProblemTemplate_pk" type="pk-constr" table="tester.&quot;CustomProblemTemplate&quot;">
 		<columns names="alias" ref-type="src-columns"/>
@@ -212,7 +209,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 <table name="Problem" layers="0" collapse-mode="2" max-obj-count="6" z-value="0">
 	<schema name="tester"/>
 	<role name="postgres"/>
-	<position x="1720" y="1180"/>
+	<position x="1700" y="1220"/>
 	<column name="id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -225,7 +222,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 	<column name="seed" not-null="true">
 		<type name="integer" length="0"/>
 	</column>
-	<column name="score">
+	<column name="score" not-null="true">
 		<type name="jsonb" length="0"/>
 	</column>
 	<constraint name="Problem_pk" type="pk-constr" table="tester.&quot;Problem&quot;">
@@ -236,7 +233,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 <table name="Answer" layers="0" collapse-mode="2" max-obj-count="6" z-value="0">
 	<schema name="tester"/>
 	<role name="postgres"/>
-	<position x="1760" y="1460"/>
+	<position x="1740" y="1500"/>
 	<column name="id" not-null="true">
 		<type name="serial" length="0"/>
 	</column>
@@ -264,7 +261,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 </constraint>
 
 <constraint name="group_fk" type="fk-constr" comparison-type="MATCH SIMPLE"
-	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="tester.&quot;Group&quot;" table="tester.&quot;UserToGroup&quot;">
+	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="tester.&quot;UserGroup&quot;" table="tester.&quot;UserToGroup&quot;">
 	<columns names="groupId" ref-type="src-columns"/>
 	<columns names="id" ref-type="dst-columns"/>
 </constraint>
@@ -276,7 +273,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 </constraint>
 
 <constraint name="group_fk" type="fk-constr" comparison-type="MATCH SIMPLE"
-	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="tester.&quot;Group&quot;" table="tester.&quot;CourseTemplateForGroup&quot;">
+	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="tester.&quot;UserGroup&quot;" table="tester.&quot;CourseTemplateForGroup&quot;">
 	<columns names="groupId" ref-type="src-columns"/>
 	<columns names="id" ref-type="dst-columns"/>
 </constraint>
@@ -306,7 +303,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 
 <relationship name="&quot;rel_userToGroup_group&quot;" type="relfk" layers="0"
 	 src-table="tester.&quot;UserToGroup&quot;"
-	 dst-table="tester.&quot;Group&quot;" reference-fk="group_fk"
+	 dst-table="tester.&quot;UserGroup&quot;" reference-fk="group_fk"
 	 src-required="false" dst-required="true"/>
 
 <relationship name="&quot;rel_userToGroup_user&quot;" type="relfk" layers="0"
@@ -316,7 +313,7 @@ CAUTION: Do not modify this file unless you know what you are doing.
 
 <relationship name="&quot;rel_CourseTemplateForGroup_Group&quot;" type="relfk" layers="0"
 	 src-table="tester.&quot;CourseTemplateForGroup&quot;"
-	 dst-table="tester.&quot;Group&quot;" reference-fk="group_fk"
+	 dst-table="tester.&quot;UserGroup&quot;" reference-fk="group_fk"
 	 src-required="false" dst-required="true"/>
 
 <relationship name="&quot;rel_CustomCourseProblemAliases_CustomCourseTemplate&quot;" type="relfk" layers="0"
