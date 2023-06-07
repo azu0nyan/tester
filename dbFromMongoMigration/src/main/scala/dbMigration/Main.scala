@@ -23,13 +23,13 @@ object Main {
   import ctx._
 
   def main(args: Array[String]): Unit = try {
-//    migrateUsers()
-//    migrateGroups()
-//    migrateUserToGroup()
-//    migrateCourses()
-//    migrateCourseTemplateForGroup()
-//    migrateProblems()
-//    migrateAnswers()
+    migrateUsers()
+    migrateGroups()
+    migrateUserToGroup()
+    migrateCourses()
+    migrateCourseTemplateForGroup()
+    migrateProblems()
+    migrateAnswers()
     migrateCustomProblems()
     migrateCustomCourses()
 
