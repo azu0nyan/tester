@@ -20,7 +20,7 @@ val zioTestDependencies = Seq(
 )
 
 
-lazy val zioDockerRunner = RootProject(file("../zioDockerRunner"))
+lazy val zioDockerRunner = RootProject(file("zioDockerRunner"))
 
 lazy val jvmToJsApi = (project in file("jvmToJsApi"))
   .settings(
