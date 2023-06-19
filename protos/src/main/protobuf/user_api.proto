@@ -1,0 +1,33 @@
+syntax = "proto3";
+import "google/protobuf/empty.proto";
+package grpc_api;
+
+message UserInfo{
+  string login = 1;
+  string first_name = 2;
+  string last_name = 3;
+}
+
+message UserListRequest {
+
+}
+
+message UserListResponse {
+    repeated UserInfo users = 1;
+}
+
+message CheckFreeLoginRequest{
+  string login = 1;
+}
+
+message CheckFreeLoginResponse{
+  bool isFree = 1;
+}
+
+service UserService {
+  rpc UserList(UserListRequest) returns (UserListResponse);
+
+  rpc CheckFreeLogin(CheckFreeLoginRequest) returns (CheckFreeLoginResponse);
+
+  rpc LoggedInUserStream(google.protobuf.Empty) returns (stream UserInfo);
+}

@@ -72,7 +72,8 @@ lazy val protos = crossProject(JSPlatform, JVMPlatform)
     ),
     Compile / PB.protoSources := Seq(
       (ThisBuild / baseDirectory).value / "protos" / "src" / "main" / "protobuf"
-    )
+    ),
+    libraryDependencies += "com.thesamet.scalapb" %% "scalapb-runtime" % scalapb.compiler.Version.scalapbVersion % "protobuf",
   )
   .jvmSettings(
     libraryDependencies ++= Seq(
