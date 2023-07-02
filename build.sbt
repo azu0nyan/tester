@@ -21,7 +21,7 @@ val basicZioDependencies = Seq(
 )
 
 val quillDependencies = Seq(
-  "io.getquill" %% "quill-jdbc-zio" % "4.6.0",
+  "io.getquill" %% "quill-jdbc-zio" % "4.6.0.1",
   "org.postgresql" % "postgresql" % "42.3.1"
 )
 
