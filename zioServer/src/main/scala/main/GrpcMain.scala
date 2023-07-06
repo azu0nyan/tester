@@ -1,4 +1,5 @@
 package main
+
 import io.getquill.{PostgresEscape, PostgresJdbcContext}
 import scalapb.zio_grpc.*
 import grpc_api.user_api.{CheckFreeLoginRequest, CheckFreeLoginResponse, UserInfo, UserListRequest, UserListResponse}
@@ -11,23 +12,26 @@ import io.grpc.protobuf.services.ProtoReflectionService
 
 object GrpcMain extends ZIOAppDefault {
   //todo add PostgresJdbcLayer
+  val postgresContext = new PostgresJdbcContext[PostgresEscape](PostgresEscape, "databaseConfig")
 
-  def postgresLive: ZLayer[Any, Throwable, PostgresUserServiceContext] = ZLayer.succeed{
-    new PostgresJdbcContext[PostgresEscape](PostgresEscape, "databaseConfig")
+  def postgresLive: ZLayer[Any, Throwable, PostgresUserServiceContext] = ZLayer.succeed {
+    postgresContext
   }
-//
-//  def services = ServiceList.add(PostgresUserService)
+
+  //
+//    def services = ServiceList.add(PostgresUserService)
   def services = ServiceList.add(DummyUserService)
-//
+
+  //
   def port: Int = 9000
 
   def welcome: ZIO[Any, Throwable, Unit] =
     printLine("Server is running. Press Ctrl-C to stop.")
 
-  def smth: ZIO[ZUserService[Any], Throwable, Unit] =
+  def smth: ZIO[ZUserService[PostgresUserServiceContext], Throwable, Unit] =
     for {
-      s <- ZIO.service[ZUserService[Any]]
-      r <- s.userList(UserListRequest(), ())
+      s <- ZIO.service[ZUserService[PostgresUserServiceContext]]
+      r <- s.userList(UserListRequest(), postgresContext)
       _ <- Console.print(r)
     } yield ()
 
@@ -36,8 +40,10 @@ object GrpcMain extends ZIOAppDefault {
 
   def serverLive: ZLayer[Any, Throwable, Server] = ServerLayer.fromServiceList(builder, services)
 
-  val myAppLogic = welcome *> (smth.provideLayer(ZLayer.succeed(DummyUserService))) *> serverLive.launch
+  val myAppLogic = welcome *>
+    smth.provideSomeLayer(ZLayer.succeed(PostgresUserService)) *>
+    serverLive.launch
 
   def run = myAppLogic.exitCode
-//  def run = ZIO.succeed(()).exit
+  //  def run = ZIO.succeed(()).exit
 }
