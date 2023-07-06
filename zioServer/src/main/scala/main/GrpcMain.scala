@@ -5,6 +5,7 @@ import scalapb.zio_grpc.*
 import grpc_api.user_api.{CheckFreeLoginRequest, CheckFreeLoginResponse, UserInfo, UserListRequest, UserListResponse}
 import grpc_api.user_api.ZioUserApi.ZUserService
 import zio.*
+import zio.ZIO as Z
 import zio.Console.*
 import io.grpc.ServerBuilder
 import io.grpc.protobuf.services.ProtoReflectionService
@@ -19,8 +20,8 @@ object GrpcMain extends ZIOAppDefault {
   }
 
   //
-//    def services = ServiceList.add(PostgresUserService)
-  def services = ServiceList.add(DummyUserService)
+    def services = ServiceList.add(PostgresUserService.transformContextZIO((rc: RequestContext) => ZIO.succeed(postgresContext)))
+//  def services = ServiceList.add(DummyUserService)
 
   //
   def port: Int = 9000
