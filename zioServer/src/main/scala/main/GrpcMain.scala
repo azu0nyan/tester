@@ -20,18 +20,18 @@ object GrpcMain extends ZIOAppDefault {
   }
 
   //
-    def services = ServiceList.add(PostgresUserService.transformContextZIO((rc: RequestContext) => ZIO.succeed(postgresContext)))
+    def services = ServiceList.add(PostgresUserService.transformContextZIO((rc: RequestContext) => Z.succeed(postgresContext)))
 //  def services = ServiceList.add(DummyUserService)
 
   //
   def port: Int = 9000
 
-  def welcome: ZIO[Any, Throwable, Unit] =
+  def welcome: Z[Any, Throwable, Unit] =
     printLine("Server is running. Press Ctrl-C to stop.")
 
-  def smth: ZIO[ZUserService[PostgresUserServiceContext], Throwable, Unit] =
+  def smth: Z[ZUserService[PostgresUserServiceContext], Throwable, Unit] =
     for {
-      s <- ZIO.service[ZUserService[PostgresUserServiceContext]]
+      s <- Z.service[ZUserService[PostgresUserServiceContext]]
       r <- s.userList(UserListRequest(), postgresContext)
       _ <- Console.print(r)
     } yield ()
