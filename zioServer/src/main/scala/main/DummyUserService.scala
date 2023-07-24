@@ -6,7 +6,7 @@ import grpc_api.user_api.ZioUserApi.ZUserService
 import io.grpc.StatusException
 import zio.ZIO as Z
 import zio.*
-
+/*
 //todo move to tests
 object DummyUserService extends ZUserService[Any]{
   val users = Seq(
@@ -24,3 +24,4 @@ object DummyUserService extends ZUserService[Any]{
   override def loggedInUserStream(request: Empty, context: Any): stream.Stream[StatusException, UserInfo] =
     stream.ZStream.empty
 }
+*/

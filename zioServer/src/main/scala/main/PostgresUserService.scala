@@ -5,25 +5,26 @@ import grpc_api.user_api.{CheckFreeLoginRequest, CheckFreeLoginResponse, LoginRe
 import grpc_api.user_api.ZioUserApi.ZUserService
 import io.getquill.PostgresJdbcContext
 import io.getquill.context.jdbc.JdbcContext
-import io.grpc.StatusException
+import io.grpc.{Status, StatusException}
 import zio.*
 import io.getquill.*
 
 type PostgresUserServiceContext = PostgresJdbcContext[PostgresEscape]
 
-object PostgresUserService extends ZUserService[PostgresUserServiceContext]{
-  override def userList(request: UserListRequest, context: PostgresUserServiceContext): IO[StatusException, UserListResponse] = {
-    import context.*
-    case class RegisteredUser(login: String)
+object PostgresUserService extends ZUserService[PostgresUserServiceContext] {
+  override def userList(request: UserListRequest, context: PostgresUserServiceContext): IO[StatusException, UserListResponse] =
+    ZIO.attemptBlocking {
+      import context.*
+      case class RegisteredUser(login: String)
 
-    inline def q = quote {
-      query[RegisteredUser]
-    }
+      inline def q = quote {
+        query[RegisteredUser]
+      }
 
-    val list: List[UserInfo] = run(q).map(u => UserInfo(u.login, "name", "last"))
+      val list: List[UserInfo] = run(q).map(u => UserInfo(u.login, "name", "last"))
 
-    ZIO.succeed(UserListResponse.of(list))
-  }
+      UserListResponse.of(list)
+    }.mapError(_ => new StatusException(Status.UNKNOWN))
 
   override def checkFreeLogin(request: CheckFreeLoginRequest, context: PostgresUserServiceContext): IO[StatusException, CheckFreeLoginResponse] = ???
 
