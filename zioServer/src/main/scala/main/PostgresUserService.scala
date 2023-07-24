@@ -1,7 +1,7 @@
 package main
 
 import com.google.protobuf.empty.Empty
-import grpc_api.user_api.{CheckFreeLoginRequest, CheckFreeLoginResponse, UserInfo, UserListRequest, UserListResponse}
+import grpc_api.user_api.{CheckFreeLoginRequest, CheckFreeLoginResponse, LoginRequest, LoginResponse, RegistrationRequest, RegistrationResponse, UserDataRequest, UserInfo, UserListRequest, UserListResponse, UserViewData}
 import grpc_api.user_api.ZioUserApi.ZUserService
 import io.getquill.PostgresJdbcContext
 import io.getquill.context.jdbc.JdbcContext
@@ -28,4 +28,7 @@ object PostgresUserService extends ZUserService[PostgresUserServiceContext]{
   override def checkFreeLogin(request: CheckFreeLoginRequest, context: PostgresUserServiceContext): IO[StatusException, CheckFreeLoginResponse] = ???
 
   override def loggedInUserStream(request: Empty, context: PostgresUserServiceContext): stream.Stream[StatusException, UserInfo] = ???
+  override def register(request: RegistrationRequest, context: PostgresUserServiceContext): IO[StatusException, RegistrationResponse] = ???
+  override def logIn(request: LoginRequest, context: PostgresUserServiceContext): IO[StatusException, LoginResponse] = ???
+  override def getUserData(request: UserDataRequest, context: PostgresUserServiceContext): IO[StatusException, UserViewData] = ???
 }

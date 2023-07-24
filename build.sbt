@@ -67,8 +67,8 @@ lazy val protos = crossProject(JSPlatform, JVMPlatform)
   .settings(
     scalaVersion := scalaVer,
     Compile / PB.targets := Seq(
-      scalapb.gen(grpc = true) -> (Compile / sourceManaged).value,
-      scalapb.zio_grpc.ZioCodeGenerator -> (Compile / sourceManaged).value
+      scalapb.gen(grpc = true) -> (Compile / sourceManaged).value / "scalapb",
+      scalapb.zio_grpc.ZioCodeGenerator -> (Compile / sourceManaged).value / "scalapb"
     ),
     Compile / PB.protoSources := Seq(
       (ThisBuild / baseDirectory).value / "protos" / "src" / "main" / "protobuf"

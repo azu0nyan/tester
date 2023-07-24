@@ -1,5 +1,7 @@
 syntax = "proto3";
 import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+
 package grpc_api;
 
 message UserInfo{
@@ -8,12 +10,95 @@ message UserInfo{
   string last_name = 3;
 }
 
+message UserViewData{
+  string id = 1;
+  string login = 2;
+  string first_name = 3;
+  string last_name = 4;
+  string email = 5;
+  google.protobuf.Timestamp registered_at = 6;
+  string role = 7;
+}
+
+message RegistrationRequest{
+  string login = 1;
+  string password = 2;
+  string first_name = 3;
+  string last_name = 4;
+  string email = 5;
+}
+
+message RegistrationFailure{
+  oneof failure{
+    string user_already_exists = 1;
+    string login_to_short = 2;
+    string unknown_error = 3;
+  }
+}
+
+message RegistrationResponse{
+  oneof result{
+    google.protobuf.Empty success = 1;
+    RegistrationFailure failure = 2;
+  }
+}
+
+message LoginRequest{
+  string login = 1;
+  string password = 2;
+}
+
+message LoginFailure{
+  oneof failure{
+    string user_not_found = 1;
+    string wrong_password = 2;
+    string server_error = 3;
+    string restricted = 4;
+  }
+}
+
+message LoginResponse{
+  oneof result{
+    google.protobuf.Empty success = 1;
+    LoginFailure failure = 2;
+  }
+}
+
+message UpdateUserDataRequest{
+  string firstName = 1;
+  string lastName = 2;
+  string email = 3;
+  string oldPassword = 4;
+  string newPassword = 5;
+}
+
+message UpdateUserDataFailure{
+  oneof failure{
+    google.protobuf.Empty wrong_password = 1;
+    google.protobuf.Empty unknown = 2;
+  }
+}
+
+message UpdateUserDataResponse{
+  oneof result{
+    google.protobuf.Empty success = 1;
+    UpdateUserDataFailure failure = 2;
+  }
+}
+
+
+
+message UserDataRequest{
+  string id = 1;
+}
+
+
 message UserListRequest {
 
 }
 
 message UserListResponse {
-    repeated UserInfo users = 1;
+  repeated UserInfo users = 1;
 }
 
 message CheckFreeLoginRequest{
@@ -25,6 +110,12 @@ message CheckFreeLoginResponse{
 }
 
 service UserService {
+  rpc Register(RegistrationRequest) returns (RegistrationResponse);
+
+  rpc LogIn(LoginRequest) returns (LoginResponse);
+
+  rpc GetUserData(UserDataRequest) returns (UserViewData);
+
   rpc UserList(UserListRequest) returns (UserListResponse);
 
   rpc CheckFreeLogin(CheckFreeLoginRequest) returns (CheckFreeLoginResponse);
