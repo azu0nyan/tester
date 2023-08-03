@@ -4,11 +4,6 @@ ThisBuild / cancelable := true
 
 ThisBuild / connectInput := true
 
-
-//ThisBuild / scalaVersion := "2.13.10"
-//ThisBuild / scalaVersion := "3.2.0"
-
-
 val scalaVer = "3.2.0"
 //val scalaVer = "2.13.10"
 

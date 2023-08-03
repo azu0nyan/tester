@@ -33,7 +33,11 @@ object GrpcMain extends ZIOAppDefault {
     for {
       s <- Z.service[ZUserService[PostgresUserServiceContext]]
       r <- s.userList(UserListRequest(), postgresContext)
-      _ <- Console.print(r)
+      _ <- Console.printLine(r)
+      l1 <- s.checkFreeLogin(CheckFreeLoginRequest(login = "azu"), postgresContext)
+      l2 <- s.checkFreeLogin(CheckFreeLoginRequest(login = "az"), postgresContext)
+      _ <- Console.printLine(l1)
+      _ <- Console.printLine(l2)
     } yield ()
 
 
