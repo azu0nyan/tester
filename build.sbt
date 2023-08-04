@@ -31,6 +31,11 @@ val grpcJvmDependencies = Seq(
   "io.grpc" % "grpc-netty" % grpcVersion
 )
 
+val loginRegisterHashing = Seq(
+  libraryDependencies += "com.pauldijou" %% "jwt-core" % "5.0.0",
+  libraryDependencies += "com.outr" %% "hasher" % "1.2.2",
+)
+
 
 //lazy val zioDockerRunner = RootProject(file("zioDockerRunner"))
 /*lazy val jvmToJsApi = (project in file("jvmToJsApi"))
