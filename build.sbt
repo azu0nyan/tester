@@ -26,6 +26,13 @@ val zioTestDependencies = Seq(
   "dev.zio" %% "zio-test-magnolia" % zioVersion % Test
 )
 
+val doobieDependencies = Seq(
+  "io.github.gaelrenoux" %% "tranzactio" % "5.0.1",
+  "org.tpolecat" %% "doobie-core"      % "1.0.0-RC4",
+  "org.tpolecat" %% "doobie-postgres"  % "1.0.0-RC4",
+
+)
+
 val grpcVersion = "1.50.1"
 val grpcJvmDependencies = Seq(
   "io.grpc" % "grpc-netty" % grpcVersion
@@ -84,6 +91,7 @@ lazy val protos = crossProject(JSPlatform, JVMPlatform)
 val zioServer = (project in file("zioServer"))
   .dependsOn(/**jvmToJsApi,*/ /*zioDockerRunner,*/ protos.jvm /**, dbGenerated*/)
   .settings(
+    version := "0.0.1",
     scalaVersion := scalaVer,
     name := "zioServer",
     fork := true,
