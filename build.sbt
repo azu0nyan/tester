@@ -4,7 +4,7 @@ ThisBuild / cancelable := true
 
 ThisBuild / connectInput := true
 
-val scalaVer = "3.2.0"
+val scalaVer = "3.3.0"
 //val scalaVer = "2.13.10"
 
 
@@ -27,7 +27,7 @@ val zioTestDependencies = Seq(
 )
 
 val doobieDependencies = Seq(
-  "io.github.gaelrenoux" %% "tranzactio" % "5.0.1",
+  "io.github.gaelrenoux" %% "tranzactio" % "4.2.0",
   "org.tpolecat" %% "doobie-core"      % "1.0.0-RC4",
   "org.tpolecat" %% "doobie-postgres"  % "1.0.0-RC4",
 
@@ -98,6 +98,7 @@ val zioServer = (project in file("zioServer"))
     libraryDependencies ++= basicZioDependencies,
     libraryDependencies ++= zioTestDependencies,
     libraryDependencies ++= quillDependencies,
+    libraryDependencies ++= doobieDependencies,
     libraryDependencies ++= grpcJvmDependencies,
     resolvers ++= Resolver.sonatypeOssRepos("snapshots"),
     testFrameworks += new TestFramework("zio.test.sbt.ZTestFramework")
