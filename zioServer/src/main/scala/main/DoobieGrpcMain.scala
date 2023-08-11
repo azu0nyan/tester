@@ -30,10 +30,10 @@ object DoobieGrpcMain extends ZIOAppDefault {
   def welcome: Z[Any, Throwable, Unit] =
     printLine("Server is running. Press Ctrl-C to stop.")
 
-  def smth: Z[ZUserService[DoobieServiceContext], Throwable, Unit] =
+  def smth: Z[ZUserService[DoobieCtx], Throwable, Unit] =
     for {
       _ <- Console.printLine("Running..")
-      s <- Z.service[ZUserService[DoobieServiceContext]]
+      s <- Z.service[ZUserService[DoobieCtx]]
       _ <- Console.printLine("Running.....")
       r <- s.userList(UserListRequest(), database).tapError(err => Console.printLine(err))
       _ <- Console.printLine(s"user list $r")
