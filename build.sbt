@@ -15,11 +15,6 @@ val basicZioDependencies = Seq(
   "dev.zio" %% "zio-logging" % "2.1.13",
 )
 
-val quillDependencies = Seq(
-  "io.getquill" %% "quill-jdbc-zio" % "4.6.0.1",
-  "org.postgresql" % "postgresql" % "42.3.1"
-)
-
 val zioTestDependencies = Seq(
   "dev.zio" %% "zio-test"          % zioVersion % Test,
   "dev.zio" %% "zio-test-sbt"      % zioVersion % Test,
@@ -27,6 +22,7 @@ val zioTestDependencies = Seq(
 )
 
 val doobieDependencies = Seq(
+  "org.postgresql" % "postgresql" % "42.3.1",
   "io.github.gaelrenoux" %% "tranzactio" % "4.2.0",
   "org.tpolecat" %% "doobie-core"      % "1.0.0-RC2",
   "org.tpolecat" %% "doobie-postgres"  % "1.0.0-RC2",
@@ -97,7 +93,6 @@ val zioServer = (project in file("zioServer"))
     fork := true,
     libraryDependencies ++= basicZioDependencies,
     libraryDependencies ++= zioTestDependencies,
-    libraryDependencies ++= quillDependencies,
     libraryDependencies ++= doobieDependencies,
     libraryDependencies ++= grpcJvmDependencies,
     resolvers ++= Resolver.sonatypeOssRepos("snapshots"),

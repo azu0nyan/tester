@@ -34,6 +34,7 @@ object ConnectionPool {
         ds.setDatabaseName("testerDB")
         ds.setUser("postgres")
         ds.setPassword("password")
+        ds.setCurrentSchema("tester")
         ds.setApplicationName("tester")
         ds
       }

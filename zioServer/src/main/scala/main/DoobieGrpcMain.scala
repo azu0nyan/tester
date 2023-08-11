@@ -2,7 +2,6 @@ package main
 
 
 import doobie.util.transactor
-import io.getquill.{PostgresEscape, PostgresJdbcContext}
 import scalapb.zio_grpc.*
 import grpc_api.user_api.{CheckFreeLoginRequest, CheckFreeLoginResponse, UserInfo, UserListRequest, UserListResponse}
 import grpc_api.user_api.ZioUserApi.ZUserService

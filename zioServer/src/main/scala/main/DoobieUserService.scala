@@ -23,11 +23,8 @@ object DoobieUserService extends ZUserService[DoobieServiceContext] {
 
   override def userList(request: UserListRequest, context: DoobieServiceContext): IO[StatusException, UserListResponse] =
     (for {
-      _ <- Console.printLine(s"Getting user list")
       db <- ZIO.service[Database]
-      _ <- Console.printLine(s"Got service")
       res <- db.transactionOrWiden(UserQuery.userList)
-      _ <- Console.printLine(s"Got users")
     } yield UserListResponse.of(res.map(r => UserInfo(r.login, r.firstName, r.lastName))))
       .provideLayer(context)
       .tapError(err => Console.printLine(err))
@@ -44,7 +41,7 @@ case class RegisteredUser(login: String, firstName: String, lastName: String)
 
 object UserQuery {
   def userList: TranzactIO[List[RegisteredUser]] = tzio {
-    sql"""SELECT login, "firstName", "lastName" FROM tester."RegisteredUser" """
+    sql"""SELECT login, firstName, lastName FROM RegisteredUser"""
       .query[RegisteredUser].to[List]
   }
 }
