@@ -28,8 +28,8 @@ val zioTestDependencies = Seq(
 
 val doobieDependencies = Seq(
   "io.github.gaelrenoux" %% "tranzactio" % "4.2.0",
-  "org.tpolecat" %% "doobie-core"      % "1.0.0-RC4",
-  "org.tpolecat" %% "doobie-postgres"  % "1.0.0-RC4",
+  "org.tpolecat" %% "doobie-core"      % "1.0.0-RC2",
+  "org.tpolecat" %% "doobie-postgres"  % "1.0.0-RC2",
 
 )
 
