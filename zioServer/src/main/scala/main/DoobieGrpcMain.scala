@@ -12,6 +12,7 @@ import io.grpc.{ServerBuilder, Status, StatusException}
 import io.grpc.protobuf.services.ProtoReflectionService
 import io.github.gaelrenoux.tranzactio.doobie.*
 import io.github.gaelrenoux.tranzactio.{DatabaseOps, DbException, ErrorStrategiesRef}
+import tester.srv.grpc.{DoobieCtx, DoobieUserService}
 
 object DoobieGrpcMain extends ZIOAppDefault {
   //todo add PostgresJdbcLayer

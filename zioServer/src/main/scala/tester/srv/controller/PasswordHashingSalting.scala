@@ -1,11 +1,10 @@
-package main
-
+package tester.srv.controller
 
 import java.math.BigInteger
 import java.security.SecureRandom
+import java.security.spec.KeySpec
 import javax.crypto.SecretKeyFactory
 import javax.crypto.spec.PBEKeySpec
-import java.security.spec.KeySpec
 
 object PasswordHashingSalting {
 
