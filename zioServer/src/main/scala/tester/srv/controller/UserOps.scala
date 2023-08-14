@@ -33,17 +33,20 @@ object UserOps {
 
   case class RegisteredUser(login: String, firstName: String, lastName: String, email: String,
                             passwordHash: String, passwordSalt: String, registeredAt: Instant, role: String)
-
+  def getUser(login: String): TranzactIO[RegisteredUser] = tzio {
+    sql"""SELECT login, firstName, lastName, email, passwordHash, passwordSalt, registeredAt, role FROM RegisteredUser
+         WHERE login ILIKE ${login}""".query[RegisteredUser].unique
+  }
 
   //todo assign role to new users
-  private def registerUserQuery(req: RegistrationRequest) = tzio {
+  private def registerUserQuery(req: RegistrationData) = tzio {
     val HashAndSalt(hash, salt) = PasswordHashingSalting.hashPassword(req.password)
     val user = RegisteredUser(req.login, req.firstName, req.lastName, req.email, hash, salt,
-      java.time.Clock.systemUTC().instant(), "Student()")
+      java.time.Clock.systemUTC().instant(), "{ \"Student\": {}}")
     Update[RegisteredUser](
       """INSERT INTO RegisteredUser
-         (login, firstName, lastName, email, passwordHash, passwordSalt, registeredAt) VALUES
-         (?, ?, ?, ?, ?, ?, ?)
+         (login, firstName, lastName, email, passwordHash, passwordSalt, registeredAt, role) VALUES
+         (?, ?, ?, ?, ?, ?, ?, ?::jsonb)
          """).updateMany(List(user))
   }
 
@@ -61,8 +64,9 @@ object UserOps {
     case object ZeroRowsUpdated extends Fail
     case class UnknownError(t: Option[Throwable] = None, msg: Option[String] = None) extends Fail
   }
+  case class RegistrationData(login: String, password: String, firstName: String, lastName: String, email: String)
 
-  def registerUser(req: RegistrationRequest): TranzactIO[RegistrationResult] =
+  def registerUser(req: RegistrationData): TranzactIO[RegistrationResult] =
     if (req.login.length < minLoginLength)
       ZIO.succeed(RegistrationResult.LoginToShort(minLoginLength))
     else if (!req.login.matches("[a-zA-Z0-9]*"))

@@ -15,7 +15,7 @@ import io.github.gaelrenoux.tranzactio.doobie.{Connection, Database, TranzactIO,
 import io.grpc.{Status, StatusException}
 import tester.srv.controller.{PasswordHashingSalting, UserOps}
 import tester.srv.controller.PasswordHashingSalting.HashAndSalt
-import tester.srv.controller.UserOps.RegistrationResult
+import tester.srv.controller.UserOps.{RegistrationData, RegistrationResult}
 import zio.*
 
 import java.time.Instant
@@ -50,12 +50,12 @@ object DoobieUserService extends ZUserService[DoobieCtx] {
         RegistrationResponse(result = Result.Failure(
           RegistrationFailure(RegistrationFailure.Failure.UnknownError(msg.getOrElse(""))))) // todo
 
-  override def register(request: RegistrationRequest, context: DoobieCtx): IO[StatusException, RegistrationResponse] =
+  override def register(req: RegistrationRequest, context: DoobieCtx): IO[StatusException, RegistrationResponse] =
     val trans = for {
       db <- ZIO.service[Database]
       res <-
         db
-        .transactionOrWiden(UserOps.registerUser(request))
+        .transactionOrWiden(UserOps.registerUser(RegistrationData(req.login, req.password, req.firstName, req.lastName, req.email)))
         .map(mapRegistrationResults)
     } yield res
     trans
