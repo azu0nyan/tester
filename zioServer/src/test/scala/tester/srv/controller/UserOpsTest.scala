@@ -14,7 +14,8 @@ object UserOpsTest extends ZIOSpecDefault {
     checkFreeLogin,
     registration,
     noDoubleRegistration,
-    loginTest
+    loginTest,
+    logoutTest
   ).provideLayer(EmbeddedPG.connectionLayer) @@
     timeout(60.seconds) @@
     withLiveClock
@@ -57,7 +58,7 @@ object UserOpsTest extends ZIOSpecDefault {
   val loginTest = test("Login test") {
     val data1 = RegistrationData("loginTester", "password", "Aliecbob", "Joens", "a@a.com")
     val loginData = LoginData("loginTester", "password")
-    for{
+    for {
       _ <- UserOps.registerUser(data1)
       usrOpt <- UserOps.getUser("loginTester")
       result <- UserOps.loginUser(loginData)
@@ -69,6 +70,26 @@ object UserOpsTest extends ZIOSpecDefault {
       sessions.size == 1,
       sessions.head.userId == usrOpt.get.id,
       sessions.head.token == result.asInstanceOf[LoggedIn].token
+    )
+  }
+
+  val logoutTest = test("Logout test") {
+    val data1 = RegistrationData("loginTester", "password", "Aliecbob", "Joens", "a@a.com")
+    val loginData = LoginData("loginTester", "password")
+
+    for {
+      _ <- UserOps.registerUser(data1)
+      usrOpt <- UserOps.getUser("loginTester")
+      result <- UserOps.loginUser(loginData)
+      token = result.asInstanceOf[LoggedIn].token
+      loginResultBefore <- UserOps.validateToken(token)
+      _ <- UserOps.invalidateSessionByToken(token)
+      loginResultAfter <- UserOps.validateToken(token)
+      sessions <- UserOps.getValidUserSessions(usrOpt.get.id)
+    } yield assertTrue(
+      loginResultBefore.isInstanceOf[TokenOps.TokenValid],
+      loginResultAfter.isInstanceOf[TokenOps.InvalidToken.type],
+      sessions.isEmpty
     )
   }
 

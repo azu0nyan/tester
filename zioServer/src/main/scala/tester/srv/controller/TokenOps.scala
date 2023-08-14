@@ -26,7 +26,7 @@ object TokenOps {
   case class TokenValid(id: Long) extends ValidationResult
   case object Expired extends ValidationResult
   case object CantDecode extends ValidationResult
-  case object NotInDatabase extends ValidationResult
+  case object InvalidToken extends ValidationResult
 
 
   /** Returns user id if token valid */

@@ -133,8 +133,12 @@ object UserOps {
          WHERE valid = TRUE AND userId = $id""".query[UserSession].to[List]
   }
 
-  def invalidateSession(sessionId: Long) = tzio {
+  def invalidateSessionBySessionId(sessionId: Long) = tzio {
     sql"""UPDATE Session  SET valid=false WHERE id = $sessionId""".update.run
+  }
+
+  def invalidateSessionByToken(token: String) = tzio {
+    sql"""UPDATE Session  SET valid=false WHERE token = $token""".update.run
   }
 
   def validateToken(token: String): TranzactIO[TokenOps.ValidationResult] = {
@@ -142,7 +146,7 @@ object UserOps {
       case TokenOps.TokenValid(id) =>
         for (sessions <- getValidUserSessions(id))
           yield if (sessions.exists(_.token == token)) TokenOps.TokenValid(id)
-          else TokenOps.NotInDatabase
+          else TokenOps.InvalidToken
       case other => ZIO.succeed(other)
   }
 }
