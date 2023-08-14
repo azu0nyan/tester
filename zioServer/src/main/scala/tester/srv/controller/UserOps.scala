@@ -10,8 +10,9 @@ import doobie.implicits.javasql.*
 import doobie.postgres.*
 import doobie.postgres.implicits.*
 import doobie.postgres.pgisimplicits.*
-import io.github.gaelrenoux.tranzactio.doobie
+import io.github.gaelrenoux.tranzactio.{DbException, doobie}
 import doobie.{Connection, Database, TranzactIO, tzio}
+import tester.srv.controller.UserOps.LoginResult.{LoggedIn, UserNotFound, WrongPassword}
 
 import java.time.Instant
 
@@ -31,22 +32,22 @@ object UserOps {
         .query[Exists].unique.map(_.exists)
     }
 
-  case class RegisteredUser(login: String, firstName: String, lastName: String, email: String,
+  case class RegisteredUser(id: Long, login: String, firstName: String, lastName: String, email: String,
                             passwordHash: String, passwordSalt: String, registeredAt: Instant, role: String)
-  def getUser(login: String): TranzactIO[RegisteredUser] = tzio {
-    sql"""SELECT login, firstName, lastName, email, passwordHash, passwordSalt, registeredAt, role FROM RegisteredUser
-         WHERE login ILIKE ${login}""".query[RegisteredUser].unique
+  def getUser(login: String): TranzactIO[Option[RegisteredUser]] = tzio {
+    sql"""SELECT id, login, firstName, lastName, email, passwordHash, passwordSalt, registeredAt, role FROM RegisteredUser
+         WHERE login ILIKE ${login}""".query[RegisteredUser].option
   }
 
   //todo assign role to new users
   private def registerUserQuery(req: RegistrationData) = tzio {
     val HashAndSalt(hash, salt) = PasswordHashingSalting.hashPassword(req.password)
-    val user = RegisteredUser(req.login, req.firstName, req.lastName, req.email, hash, salt,
+    val user = RegisteredUser(0, req.login, req.firstName, req.lastName, req.email, hash, salt,
       java.time.Clock.systemUTC().instant(), "{ \"Student\": {}}")
     Update[RegisteredUser](
       """INSERT INTO RegisteredUser
-         (login, firstName, lastName, email, passwordHash, passwordSalt, registeredAt, role) VALUES
-         (?, ?, ?, ?, ?, ?, ?, ?::jsonb)
+         (id, login, firstName, lastName, email, passwordHash, passwordSalt, registeredAt, role) VALUES
+         (?, ?, ?, ?, ?, ?, ?, ?, ?::jsonb)
          """).updateMany(List(user))
   }
 
@@ -83,5 +84,66 @@ object UserOps {
           }
         )
       } yield res
+
+
+  case class LoginData(login: String, password: String, sessionLengthSec: Int = 24 * 60 * 60,
+                       ip: Option[String] = None, userAgent: Option[String] = None, platform: Option[String] = None, locale: Option[String] = None,
+                      )
+
+  sealed trait LoginResult
+  object LoginResult {
+    final case class LoggedIn(token: String) extends LoginResult
+    final case class UserNotFound(login: String) extends LoginResult
+    final case class WrongPassword(login: String, password: String) extends LoginResult
+  }
+  def loginUser(data: LoginData): TranzactIO[LoginResult] =
+    for {
+      u <- UserOps.getUser(data.login)
+      res <- u match
+        case Some(user) =>
+          val correctPassword = PasswordHashingSalting.checkPassword(data.password, user.passwordHash, user.passwordSalt)
+          if (correctPassword)
+            val token = TokenOps.generateToken(user.id, data.sessionLengthSec)
+            val start = java.time.Clock.systemUTC().instant()
+            val end = java.time.Clock.systemUTC().instant().plus(java.time.Duration.ofSeconds(data.sessionLengthSec))
+            for {
+              _ <- insertSession(UserSession(0, user.id, token, data.ip,
+                data.userAgent, data.platform, data.locale, start, end))
+            } yield LoggedIn(token)
+          else ZIO.succeed(WrongPassword(data.login, data.password))
+        case None => ZIO.succeed(UserNotFound(data.login))
+    } yield res
+
+
+  case class UserSession(id: Long, userId: Long, token: String,
+                         ip: Option[String], userAgent: Option[String], platform: Option[String], locale: Option[String],
+                         start: Instant, end: Instant, valid: Boolean = true)
+
+  def insertSession(userSession: UserSession) =
+    tzio {
+      Update[UserSession](
+        """INSERT INTO Session
+             (id, userId, token, ip, userAgent, platform, locale, startAt, endAt, valid) VALUES
+             (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""").updateMany(List(userSession))
+    }
+
+  def getValidUserSessions(id: Long): TranzactIO[List[UserSession]] = tzio {
+    sql"""SELECT id, userId, token, ip, userAgent, platform, locale, startAt, endAt, valid
+         FROM Session
+         WHERE valid = TRUE AND userId = $id""".query[UserSession].to[List]
+  }
+
+  def invalidateSession(sessionId: Long) = tzio {
+    sql"""UPDATE Session  SET valid=false WHERE id = $sessionId""".update.run
+  }
+
+  def validateToken(token: String): TranzactIO[TokenOps.ValidationResult] = {
+    TokenOps.decodeAndValidateUserToken(token) match
+      case TokenOps.TokenValid(id) =>
+        for (sessions <- getValidUserSessions(id))
+          yield if (sessions.exists(_.token == token)) TokenOps.TokenValid(id)
+          else TokenOps.NotInDatabase
+      case other => ZIO.succeed(other)
+  }
 }
 

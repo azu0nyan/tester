@@ -30,6 +30,9 @@ val doobieDependencies = Seq(
   "org.tpolecat" %% "doobie-postgres"  % "1.0.0-RC2",
 
 )
+val jwtDependencies = Seq(
+  "com.github.jwt-scala" %% "jwt-core" % "9.4.3"
+)
 
 val embeddedPG = Seq(
   "io.zonky.test"  % "embedded-postgres" %  "2.0.4" % Test,
@@ -103,6 +106,7 @@ val zioServer = (project in file("zioServer"))
     libraryDependencies ++= embeddedPG,
     libraryDependencies ++= doobieDependencies,
     libraryDependencies ++= grpcJvmDependencies,
+    libraryDependencies ++= jwtDependencies,
     resolvers ++= Resolver.sonatypeOssRepos("snapshots"),
     testFrameworks += new TestFramework("zio.test.sbt.ZTestFramework"),
 //    envVars in Test ++= Map("LC_ALL" -> "en_US.UTF-8" , "LC_CTYPE" -> "en_US.UTF-8")

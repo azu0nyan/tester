@@ -622,3 +622,25 @@ ALTER TABLE ONLY tester.usertogroup
 -- PostgreSQL database dump complete
 --
 
+CREATE TABLE tester.Session
+(
+    id serial NOT NULL,
+    userid bigint NOT NULL,
+    token text NOT NULL,
+    ip text,
+    useragent text,
+    platform text,
+    locale text,
+    startat timestamp without time zone NOT NULL,
+    endat timestamp without time zone NOT NULL,
+    valid boolean NOT NULL,
+    PRIMARY KEY (id),
+    CONSTRAINT "SessionToUserID" FOREIGN KEY (userid)
+        REFERENCES tester.registereduser (id) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION
+        NOT VALID
+);
+
+ALTER TABLE IF EXISTS tester.Session
+    OWNER to postgres;
