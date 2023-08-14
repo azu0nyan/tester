@@ -13,6 +13,8 @@ val basicZioDependencies = Seq(
   "dev.zio" %% "zio" % zioVersion,
   "dev.zio" %% "zio-streams" % zioVersion,
   "dev.zio" %% "zio-logging" % "2.1.13",
+//  "dev.zio" %% "zio-logging-slf4j2-bridge" % "2.1.14"
+
 )
 
 val zioTestDependencies = Seq(
@@ -27,6 +29,11 @@ val doobieDependencies = Seq(
   "org.tpolecat" %% "doobie-core"      % "1.0.0-RC2",
   "org.tpolecat" %% "doobie-postgres"  % "1.0.0-RC2",
 
+)
+
+val embeddedPG = Seq(
+  "io.zonky.test"  % "embedded-postgres" %  "2.0.4" % Test,
+  "ch.qos.logback" % "logback-classic" % "1.4.11" % Test
 )
 
 val grpcVersion = "1.50.1"
@@ -93,8 +100,10 @@ val zioServer = (project in file("zioServer"))
     fork := true,
     libraryDependencies ++= basicZioDependencies,
     libraryDependencies ++= zioTestDependencies,
+    libraryDependencies ++= embeddedPG,
     libraryDependencies ++= doobieDependencies,
     libraryDependencies ++= grpcJvmDependencies,
     resolvers ++= Resolver.sonatypeOssRepos("snapshots"),
-    testFrameworks += new TestFramework("zio.test.sbt.ZTestFramework")
+    testFrameworks += new TestFramework("zio.test.sbt.ZTestFramework"),
+//    envVars in Test ++= Map("LC_ALL" -> "en_US.UTF-8" , "LC_CTYPE" -> "en_US.UTF-8")
   )

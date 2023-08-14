@@ -53,7 +53,8 @@ object DoobieUserService extends ZUserService[DoobieCtx] {
   override def register(request: RegistrationRequest, context: DoobieCtx): IO[StatusException, RegistrationResponse] =
     val trans = for {
       db <- ZIO.service[Database]
-      res <- db
+      res <-
+        db
         .transactionOrWiden(UserOps.registerUser(request))
         .map(mapRegistrationResults)
     } yield res

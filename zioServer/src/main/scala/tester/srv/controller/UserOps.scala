@@ -61,7 +61,7 @@ object UserOps {
     case object ZeroRowsUpdated extends Fail
     case class UnknownError(t: Option[Throwable] = None, msg: Option[String] = None) extends Fail
   }
-  
+
   def registerUser(req: RegistrationRequest): TranzactIO[RegistrationResult] =
     if (req.login.length < minLoginLength)
       ZIO.succeed(RegistrationResult.LoginToShort(minLoginLength))
