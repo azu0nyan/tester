@@ -119,12 +119,15 @@ ALTER SEQUENCE tester."CourseTemplateForGroup_id_seq" OWNED BY tester.coursetemp
 -- Name: course; Type: TABLE; Schema: tester; Owner: postgres
 --
 
-CREATE TABLE tester.course (
-    id integer NOT NULL,
+CREATE TABLE IF NOT EXISTS tester.course
+(
+    id integer NOT NULL DEFAULT nextval('tester."Course_id_seq"'::regclass),
     userid integer NOT NULL,
-    templatealias character varying(256) NOT NULL,
-    seed integer NOT NULL
-);
+    templatealias character varying(256) COLLATE pg_catalog."default" NOT NULL,
+    seed integer NOT NULL,
+    startedat timestamp without time zone,
+    endedat timestamp without time zone,
+)
 
 
 ALTER TABLE tester.course OWNER TO postgres;
