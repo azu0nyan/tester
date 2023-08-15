@@ -12,23 +12,48 @@ import doobie.{Connection, Database, TranzactIO, tzio}
 
 
 object CourseTemplateOps {
-  case class CustomCourseTemplate(id: Long, templateAlias: String, description: String, courseData: String)
+  case class CourseTemplate(alias: String, description: String, courseData: String)
 
-  def templateByAlias(alias: String) = tzio{
-    sql"""SELECT id, templateAlias, description, courseData FROM CustomCourseTemplate
-         WHERE templateAlias = alias
-       """.query[CustomCourseTemplate].option
+  def templateByAlias(alias: String) = tzio {
+    sql"""SELECT templateAlias, description, courseData FROM CourseTemplate
+         WHERE templateAlias = $alias
+       """.query[CourseTemplate].option
   }
 
-  def problemAliases(courseId: Long): TranzactIO[Seq[String]] = tzio {
-    sql"""SELECT problemAlias FROM CustomCourseTemplateProblemAlias
-         JOIN CustomCourseTemplate ON
-         CustomCourseTemplateProblemAlias.courseId =  CustomCourseTemplate.Id
-         WHERE CustomCourseTemplate.Id = courseID
+  def templateProblemAliases(alias: String): TranzactIO[Seq[String]] = tzio {
+    sql"""SELECT problemAlias FROM CourseTemplateProblemAlias
+         JOIN CourseTemplate ON
+         CourseTemplateProblemAlias.courseId = CourseTemplate.Id
+         WHERE templateAlias = $alias
        """.query[String].to[List]
   }
 
-  def addProblemToCourse(courseId: Long, problemAlias: String) = ???
 
-  def removeProblemFromCourse(courseId: Long, problemAlias: String) = ???
+  def insertCourseTemplateProblem(courseAlias: String, problemAlias: String) = tzio {
+    sql"""INSERT INTO CourseTemplateProblemAlias
+         (courseAlias, problemAlias) VALUES ($courseAlias, $problemAlias)"""
+      .update.run
+  }
+
+  def addProblemToTemplateAndUpdateCourses(courseAlias: String, problemAlias: String) =
+    for {
+      _ <- insertCourseTemplateProblem(courseAlias, problemAlias)
+      courses <- CourseOps.linkedToTemplateCourses(courseAlias)
+      _ <- ZIO.foreach(courses)(course => ProblemOps.startProblem(course.id, problemAlias))
+    } yield ()
+
+ 
+  private def removeProblemFromTemplateQuery(courseAlias: String, problemAlias: String) = tzio{
+    sql"""DELETE FROM CourseTemplateProblemAlias 
+         WHERE courseALias = $courseAlias AND problemAlias = $problemAlias"""
+      .update.run
+  }
+
+  /**!!!Удлаяет все ответы пользователей*/
+  def removeProblemFromTemplateAndUpdateCourses(courseAlias: String, problemAlias: String) =
+    for{
+      _ <- removeProblemFromTemplateQuery(courseAlias, problemAlias)
+      courses <- CourseOps.linkedToTemplateCourses(courseAlias)
+      _ <- ZIO.foreach(courses)(course => ProblemOps.removeProblem(course.id, problemAlias))
+    } yield ()
 }
