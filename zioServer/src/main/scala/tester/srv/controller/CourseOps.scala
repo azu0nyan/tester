@@ -70,4 +70,7 @@ object CourseOps {
     } yield courseId
 
 
+    def removeCourseFromUser(alias: String, userId: Long) = ???
+
+
 }
