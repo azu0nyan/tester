@@ -2,6 +2,7 @@ package tester.srv.controller
 
 import EmbeddedPG.EmbeddedPG
 import tester.srv.controller.CourseTemplateOps.CourseTemplate
+import tester.srv.dao.CourseTemplateDao
 import zio.*
 import zio.test.*
 import zio.test.Assertion.*
@@ -17,8 +18,8 @@ object CourseTemplateTest extends ZIOSpecDefault {
 
   val courseTemplateCreation = test("Course template creation"){
     for{
-      _ <- CourseTemplateOps.insert(CourseTemplate("alias", "description", "{}"))
-      ct <- CourseTemplateOps.byAlias("alias")
+      _ <- CourseTemplateDao.insert(CourseTemplate("alias", "description", "{}"))
+      ct <- CourseTemplateDao.byAlias("alias")
     } yield assertTrue(
       ct.nonEmpty,
       ct.get.description == "description",
@@ -27,7 +28,7 @@ object CourseTemplateTest extends ZIOSpecDefault {
 
   val courseTemplateAddRemoveProblem = test("Course template add problem"){
     for{
-      _ <- CourseTemplateOps.insert(CourseTemplate("alias", "description", "{}"))
+      _ <- CourseTemplateDao.insert(CourseTemplate("alias", "description", "{}"))
       _ <- CourseTemplateOps.addProblemToTemplateAndUpdateCourses("alias", "problemAlias")
       listOne <- CourseTemplateOps.templateProblemAliases("alias")
       _ <- CourseTemplateOps.removeProblemFromTemplateAndUpdateCourses("alias", "problemAlias")

@@ -9,6 +9,8 @@ import doobie.postgres.implicits.*
 import doobie.postgres.pgisimplicits.*
 import io.github.gaelrenoux.tranzactio.{DbException, doobie}
 import doobie.{Connection, Database, TranzactIO, tzio}
+import tester.srv.controller.CourseTemplateOps.CourseTemplate
+import tester.srv.dao.{AbstractDao, ByAlias}
 
 
 object CourseTemplateOps {
@@ -63,3 +65,6 @@ object CourseTemplateOps {
       _ <- ZIO.foreach(courses)(course => ProblemOps.removeProblem(course.id, problemAlias))
     } yield ()
 }
+
+
+

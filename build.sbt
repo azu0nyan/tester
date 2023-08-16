@@ -16,6 +16,10 @@ val basicZioDependencies = Seq(
 //  "dev.zio" %% "zio-logging-slf4j2-bridge" % "2.1.14"
 
 )
+val zioSchema = Seq(
+  "dev.zio" %% "zio-schema" % "0.4.13",
+  "dev.zio" %% "zio-schema-derivation" % "0.4.13"
+)
 
 val zioTestDependencies = Seq(
   "dev.zio" %% "zio-test"          % zioVersion % Test,
@@ -102,6 +106,7 @@ val zioServer = (project in file("zioServer"))
     name := "zioServer",
     fork := true,
     libraryDependencies ++= basicZioDependencies,
+    libraryDependencies ++= zioSchema,
     libraryDependencies ++= zioTestDependencies,
     libraryDependencies ++= embeddedPG,
     libraryDependencies ++= doobieDependencies,
