@@ -20,23 +20,24 @@ object CourseOps {
   def startCourseForUser(alias: String, userId: Long): TranzactIO[Long] =
     for {
       courseTemplate <- CourseTemplateOps.templateByAlias(alias).map(_.get)
-      course = Course(0, userId, courseTemplate.alias,
+      course = CourseDao.Course(0, userId, courseTemplate.alias,
         scala.util.Random.nextLong(), Some(java.time.Clock.systemUTC().instant()), None)
-      courseId <- startCourseForUserQuery(course)
+      courseId <- CourseDao.startCourseForUserQuery(course)
       aliases <- CourseTemplateOps.templateProblemAliases(courseTemplate.alias)
       _ <- ZIO.foreach(aliases)(a => ProblemOps.startProblem(courseId, a))
     } yield courseId
 
-    /** Так же удаляет все ответы пользователя */
-    def removeCourseFromUser(alias: String, userId: Long) =
-      for {
-        c <-
-      }
+  /** Так же удаляет все ответы пользователя */
+  def removeCourseFromUser(alias: String, userId: Long) =
+    for {
+      c <- CourseDao.byAliasAndUserId(alias, userId)
+      _ <- ZIO.when(c.nonEmpty)(CourseDao.removeById(c.get.id))
+    } yield ()
 }
 
-object CourseDao{
+object CourseDao {
   case class Course(id: Long, userId: Long, templateAlias: String, seed: Long, startedAt: Option[Instant], endedAt: Option[Instant])
-//  classOf[Course].getField(0).getName
+  //  classOf[Course].getField(0).getName
 
   private val courseFields = fr"id, userId, templateAlias, seed, startedAt, endedAt"
   private val courseSelect = fr"SELECT $courseFields FROM course"
@@ -45,6 +46,14 @@ object CourseDao{
     courseSelect.query[Course].to[List]
   }
 
+  /** CASCADE delete problems and answers */
+  def removeById(id: Long) = tzio {
+    sql"""DELETE FROM Course WHERE id = $id""".update.run
+  }
+
+  def byAliasAndUserId(alias: String, userId: Long): TranzactIO[Option[Course]] = tzio {
+    (courseSelect ++ fr"WHERE userId = $userId AND templateAlias = $alias").query[Course].option
+  }
   def byId(courseId: Int): TranzactIO[Option[Course]] = tzio {
     (courseSelect ++ fr"WHERE id = $courseId").query[Course].option
   }

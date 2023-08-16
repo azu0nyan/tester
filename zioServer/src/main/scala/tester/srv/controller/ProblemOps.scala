@@ -32,7 +32,7 @@ object ProblemOps {
   def removeProblem(courseId: Long, templateAlias: String) =
     for {
       problem <- problemByCourseAndTemplate(courseId, templateAlias)
-      _ <- ZIO.when(problem.nonEmpty)(AnswerOps.deleteProblemAnswers(problem.get.id))
+      _ <- ZIO.when(problem.nonEmpty)(removeProblemQuery(problem.get.id))
     } yield ()
 
   def removeProblemQuery(problemId: Long) = tzio {

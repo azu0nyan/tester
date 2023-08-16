@@ -5,7 +5,7 @@
 -- Dumped from database version 15.3 (Ubuntu 15.3-0ubuntu0.23.04.1)
 -- Dumped by pg_dump version 15.3 (Ubuntu 15.3-0ubuntu0.23.04.1)
 
--- Started on 2023-08-15 13:57:41 MSK
+-- Started on 2023-08-16 16:46:23 MSK
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -585,12 +585,12 @@ ALTER TABLE ONLY tester.session
 
 
 --
--- TOC entry 3315 (class 2606 OID 16528)
+-- TOC entry 3315 (class 2606 OID 32801)
 -- Name: problem course_fk; Type: FK CONSTRAINT; Schema: tester; Owner: postgres
 --
 
 ALTER TABLE ONLY tester.problem
-    ADD CONSTRAINT course_fk FOREIGN KEY (courseid) REFERENCES tester.course(id);
+    ADD CONSTRAINT course_fk FOREIGN KEY (courseid) REFERENCES tester.course(id) ON DELETE CASCADE NOT VALID;
 
 
 --
@@ -612,12 +612,12 @@ ALTER TABLE ONLY tester.coursetemplateforgroup
 
 
 --
--- TOC entry 3312 (class 2606 OID 16548)
+-- TOC entry 3312 (class 2606 OID 32796)
 -- Name: answer problem_fk; Type: FK CONSTRAINT; Schema: tester; Owner: postgres
 --
 
 ALTER TABLE ONLY tester.answer
-    ADD CONSTRAINT problem_fk FOREIGN KEY (problemid) REFERENCES tester.problem(id);
+    ADD CONSTRAINT problem_fk FOREIGN KEY (problemid) REFERENCES tester.problem(id) ON DELETE CASCADE NOT VALID;
 
 
 --
@@ -638,7 +638,7 @@ ALTER TABLE ONLY tester.usertogroup
     ADD CONSTRAINT user_fk FOREIGN KEY (userid) REFERENCES tester.registereduser(id);
 
 
--- Completed on 2023-08-15 13:57:41 MSK
+-- Completed on 2023-08-16 16:46:23 MSK
 
 --
 -- PostgreSQL database dump complete
