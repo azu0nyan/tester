@@ -54,6 +54,8 @@ trait AbstractDao[T: Read : Write] {
   def updateWhereOrOpt(set: Fragment, where: Option[Fragment]*): TranzactIO[Int] = tzio {
     (updateFragment ++ set ++ Fragments.whereOrOpt(where: _ *)).update.run
   }
+  
+  def all: TranzactIO[List[T]] = tzio(selectFragment.query[T].to[List])
 
   def selectWhereOption(fr: Fragment): TranzactIO[Option[T]] = tzio((selectFragment ++ fr"WHERE" ++ fr).query[T].option)
   def selectWhere(fr: Fragment): TranzactIO[T] = tzio((selectFragment ++ fr"WHERE" ++ fr).query[T].unique)

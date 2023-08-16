@@ -16,6 +16,7 @@ import io.grpc.{Status, StatusException}
 import tester.srv.controller.{PasswordHashingSalting, UserOps}
 import tester.srv.controller.PasswordHashingSalting.HashAndSalt
 import tester.srv.controller.UserOps.{RegistrationData, RegistrationResult}
+import tester.srv.dao.RegisteredUserDao
 import zio.*
 
 import java.time.Instant
@@ -70,7 +71,7 @@ object DoobieUserService extends ZUserService[DoobieCtx] {
   override def userList(request: UserListRequest, context: DoobieCtx): IO[StatusException, UserListResponse] =
     val trans = for {
       db <- ZIO.service[Database]
-      res <- db.transactionOrWiden(UserOps.userList)
+      res <- db.transactionOrWiden(RegisteredUserDao.all)
     } yield UserListResponse.of(res.map(r => UserInfo(r.login, r.firstName, r.lastName)))
     trans
       .provideLayer(context)
@@ -80,7 +81,7 @@ object DoobieUserService extends ZUserService[DoobieCtx] {
   override def checkFreeLogin(request: CheckFreeLoginRequest, context: DoobieCtx): IO[StatusException, CheckFreeLoginResponse] =
     val trans = for {
       db <- ZIO.service[Database]
-      res <- db.transactionOrWiden(UserOps.loginExists(request.login))
+      res <- db.transactionOrWiden(RegisteredUserDao.loginExists(request.login))
     } yield CheckFreeLoginResponse.of(!res)
     trans
       .provideLayer(context)

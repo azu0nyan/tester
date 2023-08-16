@@ -4,6 +4,7 @@ import EmbeddedPG.EmbeddedPG
 import tester.srv.controller.UserOps.LoginResult.LoggedIn
 import tester.srv.controller.UserOps.RegistrationResult.AlreadyExists
 import tester.srv.controller.UserOps.{LoginData, RegistrationData, RegistrationResult}
+import tester.srv.dao.{RegisteredUserDao, UserSessionDao}
 import zio.*
 import zio.test.*
 import zio.test.Assertion.*
@@ -21,17 +22,17 @@ object UserOpsTest extends ZIOSpecDefault {
     withLiveClock
 
   val checkFreeLogin = test("Check free login") {
-    val tt = UserOps.loginExists("nonExistentLogin").exit
+    val tt = RegisteredUserDao.loginExists("nonExistentLogin").exit
     assertZIO(tt)(succeeds(equalTo(false)))
   }
 
   val registration = test("Registration test") {
     val req = RegistrationData("regUserLogin", "password", "Aliecbob", "Joens", "a@a.com")
     for {
-      notExists <- UserOps.loginExists("regUserLogin")
+      notExists <- RegisteredUserDao.loginExists("regUserLogin")
       regResult <- UserOps.registerUser(req)
-      exists <- UserOps.loginExists("regUserLogin")
-      dataOpt <- UserOps.getUser("regUserLogin")
+      exists <- RegisteredUserDao.loginExists("regUserLogin")
+      dataOpt <- RegisteredUserDao.byLogin("regUserLogin")
       data = dataOpt.get
     } yield assertTrue(
       notExists == false,
@@ -60,9 +61,9 @@ object UserOpsTest extends ZIOSpecDefault {
     val loginData = LoginData("loginTester", "password")
     for {
       _ <- UserOps.registerUser(data1)
-      usrOpt <- UserOps.getUser("loginTester")
+      usrOpt <- RegisteredUserDao.byLogin("loginTester")
       result <- UserOps.loginUser(loginData)
-      sessions <- UserOps.getValidUserSessions(usrOpt.get.id)
+      sessions <- UserSessionDao.getValidUserSessions(usrOpt.get.id)
       loginResult <- UserOps.validateToken(result.asInstanceOf[LoggedIn].token)
     } yield assertTrue(
       loginResult.isInstanceOf[TokenOps.TokenValid],
@@ -79,13 +80,13 @@ object UserOpsTest extends ZIOSpecDefault {
 
     for {
       _ <- UserOps.registerUser(data1)
-      usrOpt <- UserOps.getUser("loginTester")
+      usrOpt <- RegisteredUserDao.byLogin("loginTester")
       result <- UserOps.loginUser(loginData)
       token = result.asInstanceOf[LoggedIn].token
       loginResultBefore <- UserOps.validateToken(token)
-      _ <- UserOps.invalidateSessionByToken(token)
+      _ <- UserSessionDao.invalidateSessionByToken(token)
       loginResultAfter <- UserOps.validateToken(token)
-      sessions <- UserOps.getValidUserSessions(usrOpt.get.id)
+      sessions <- UserSessionDao.getValidUserSessions(usrOpt.get.id)
     } yield assertTrue(
       loginResultBefore.isInstanceOf[TokenOps.TokenValid],
       loginResultAfter.isInstanceOf[TokenOps.InvalidToken.type],

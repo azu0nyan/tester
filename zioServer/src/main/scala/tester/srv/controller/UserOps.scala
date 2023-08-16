@@ -13,7 +13,8 @@ import doobie.postgres.pgisimplicits.*
 import io.github.gaelrenoux.tranzactio.{DbException, doobie}
 import doobie.{Connection, Database, TranzactIO, tzio}
 import tester.srv.controller.UserOps.LoginResult.{LoggedIn, UserNotFound, WrongPassword}
-import tester.srv.dao.UserSessionDao
+import tester.srv.dao.RegisteredUserDao.RegisteredUser
+import tester.srv.dao.{RegisteredUserDao, UserSessionDao}
 import tester.srv.dao.UserSessionDao.UserSession
 
 import java.time.Instant
@@ -22,36 +23,16 @@ import java.time.Instant
 object UserOps {
   case class UserFromList(login: String, firstName: String, lastName: String)
 
-  def userList: TranzactIO[List[UserFromList]] = tzio {
-    sql"""SELECT login, firstName, lastName FROM RegisteredUser"""
-      .query[UserFromList].to[List]
-  }
 
-  def loginExists(login: String): TranzactIO[Boolean] =
-    case class Exists(exists: Boolean)
-    tzio {
-      sql"""SELECT EXISTS(SELECT * FROM RegisteredUser where login ILIKE ${login})"""
-        .query[Exists].unique.map(_.exists)
-    }
-
-  case class RegisteredUser(id: Long, login: String, firstName: String, lastName: String, email: String,
-                            passwordHash: String, passwordSalt: String, registeredAt: Instant, role: String)
-  def getUser(login: String): TranzactIO[Option[RegisteredUser]] = tzio {
-    sql"""SELECT id, login, firstName, lastName, email, passwordHash, passwordSalt, registeredAt, role FROM RegisteredUser
-         WHERE login ILIKE ${login}""".query[RegisteredUser].option
-  }
 
   //todo assign role to new users
-  private def registerUserQuery(req: RegistrationData) = tzio {
+  private def registerUserQuery(req: RegistrationData) =
     val HashAndSalt(hash, salt) = PasswordHashingSalting.hashPassword(req.password)
     val user = RegisteredUser(0, req.login, req.firstName, req.lastName, req.email, hash, salt,
       java.time.Clock.systemUTC().instant(), "{ \"Student\": {}}")
-    Update[RegisteredUser](
-      """INSERT INTO RegisteredUser
-         (id, login, firstName, lastName, email, passwordHash, passwordSalt, registeredAt, role) VALUES
-         (?, ?, ?, ?, ?, ?, ?, ?, ?::jsonb)
-         """).updateMany(List(user))
-  }
+    RegisteredUserDao.insert(user)
+  end registerUserQuery
+
 
   val minLoginLength = 3
   val minPassowdLength = 4
@@ -78,7 +59,7 @@ object UserOps {
       ZIO.succeed(RegistrationResult.PasswordToShort(minPassowdLength))
     else
       for {
-        res <- ZIO.ifZIO(loginExists(req.login))(
+        res <- ZIO.ifZIO(RegisteredUserDao.loginExists(req.login))(
           onTrue = ZIO.succeed(RegistrationResult.AlreadyExists(req.login)),
           onFalse = registerUserQuery(req).map { x =>
             if (x > 0) RegistrationResult.Success
@@ -100,7 +81,7 @@ object UserOps {
   }
   def loginUser(data: LoginData): TranzactIO[LoginResult] =
     for {
-      u <- UserOps.getUser(data.login)
+      u <- RegisteredUserDao.byLogin(data.login)
       res <- u match
         case Some(user) =>
           val correctPassword = PasswordHashingSalting.checkPassword(data.password, user.passwordHash, user.passwordSalt)
@@ -115,7 +96,7 @@ object UserOps {
           else ZIO.succeed(WrongPassword(data.login, data.password))
         case None => ZIO.succeed(UserNotFound(data.login))
     } yield res
-  
+
   def validateToken(token: String): TranzactIO[TokenOps.ValidationResult] = {
     TokenOps.decodeAndValidateUserToken(token) match
       case TokenOps.TokenValid(id) =>
