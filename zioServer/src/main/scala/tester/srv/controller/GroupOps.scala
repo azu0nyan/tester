@@ -23,7 +23,8 @@ object GroupOps {
   def addUserToGroup(userId: Long, groupId: Long) =
     for {
       _ <- addUserToGroupQuery(userId, groupId)
-      courses <- active
+      courses <- forcedCourses(groupId)
+      _ <- ZIO.foreach(courses)(course => CourseOps.startCourseForUser(course.templateAlias, userId))
     } yield ()
 
   private def addUserToGroupQuery(userId: Long, groupId: Long) = tzio {
@@ -87,11 +88,11 @@ object GroupOps {
     } yield ()
 
   def removeCourseTemplateFromGroup(templateAlias: String, groupId: Long, forceRemoval: Boolean) =
-    for{
+    for {
       _ <- removeCourseFromGroupQuery(templateAlias, groupId)
       toRemoveUserIds <-
-        if(forceRemoval) usersInGroup(groupId)
+        if (forceRemoval) usersInGroup(groupId)
         else ZIO.succeed(Seq())
-      _ <- ZIO.foreach(toRemoveUserIds)(userId => CourseOps.removeCourseFromUser(templateALias, userId))
+      _ <- ZIO.foreach(toRemoveUserIds)(userId => CourseOps.removeCourseFromUser(templateAlias, userId))
     } yield ()
 }
