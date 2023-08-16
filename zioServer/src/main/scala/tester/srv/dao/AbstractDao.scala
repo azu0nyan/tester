@@ -32,9 +32,27 @@ trait AbstractDao[T: Read : Write] {
   lazy val selectFragment: Fragment = Fragment.const(s"""SELECT $fieldString FROM $tableName""")
   lazy val deleteFragment: Fragment = Fragment.const(s"""DELETE FROM $tableName""")
   lazy val insertString = s"""INSERT INTO $tableName ($fieldString) VALUES $valuesString"""
+  lazy val updateFragment = Fragment.const(s"""UPDATE $tableName SET""")
+
 
   def insert(t: T): TranzactIO[Int] = tzio {
     Update[T](insertString).toUpdate0(t).run
+  }
+
+  def updateWhere(set: Fragment, where: Fragment): TranzactIO[Int] = tzio {
+    (updateFragment ++ set ++ fr"WHERE" ++ where).update.run
+  }
+  def updateWhereAnd(set: Fragment, where: Fragment*): TranzactIO[Int] = tzio {
+    (updateFragment ++ set ++ Fragments.whereAnd(where: _ *)).update.run
+  }
+  def updateWhereOr(set: Fragment, where: Fragment*): TranzactIO[Int] = tzio {
+    (updateFragment ++ set ++ Fragments.whereOr(where: _ *)).update.run
+  }
+  def updateWhereAndOpt(set: Fragment, where: Option[Fragment]*): TranzactIO[Int] = tzio {
+    (updateFragment ++ set ++ Fragments.whereAndOpt(where: _ *)).update.run
+  }
+  def updateWhereOrOpt(set: Fragment, where: Option[Fragment]*): TranzactIO[Int] = tzio {
+    (updateFragment ++ set ++ Fragments.whereOrOpt(where: _ *)).update.run
   }
 
   def selectWhereOption(fr: Fragment): TranzactIO[Option[T]] = tzio((selectFragment ++ fr"WHERE" ++ fr).query[T].option)
@@ -89,7 +107,7 @@ object AbstractDao {
   trait ByAlias[T: Read] extends AbstractDao[T] {
     def byAliasOption(alias: String): TranzactIO[Option[T]] = selectWhereAndOption(fr"alias = $alias")
     def byAlias(alias: String): TranzactIO[T] = selectWhereAnd(fr"alias = $alias")
-    def deleteByALias(alias: String): TranzactIO[Int] = deleteWhere(fr"alias = $alias")
 
+    def deleteByAlias(alias: String): TranzactIO[Int] = deleteWhere(fr"alias = $alias")
   }
 }
