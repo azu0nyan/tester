@@ -104,6 +104,8 @@ object AbstractDao {
     def byId(id: Long): TranzactIO[T] = selectWhereAnd(fr"id = $id")
 
     def deleteById(id: Long): TranzactIO[Int] = deleteWhere(fr"id = $id")
+    
+    def updateById(id: Long, set: Fragment): TranzactIO[Int] = updateWhere(set, fr"id = $id")
   }
 
   trait ByAlias[T: Read] extends AbstractDao[T] {

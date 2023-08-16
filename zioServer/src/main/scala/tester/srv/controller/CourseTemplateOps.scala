@@ -15,13 +15,7 @@ import tester.srv.dao.{AbstractDao, CourseDao, CourseTemplateProblemDao}
 
 object CourseTemplateOps {
 
-
-
-//  def insertCourseTemplateProblem(courseAlias: String, problemAlias: String) = tzio {
-//    sql"""INSERT INTO CourseTemplateProblem
-//         (courseAlias, problemAlias) VALUES ($courseAlias, $problemAlias)"""
-//      .update.run
-//  }
+  
 
   def addProblemToTemplateAndUpdateCourses(courseAlias: String, problemAlias: String) =
     for {
@@ -31,16 +25,11 @@ object CourseTemplateOps {
     } yield ()
 
 
-  private def removeProblemFromTemplateQuery(courseAlias: String, problemAlias: String) = tzio {
-    sql"""DELETE FROM CourseTemplateProblem
-         WHERE courseAlias = $courseAlias AND problemAlias = $problemAlias"""
-      .update.run
-  }
 
   /** !!!Удлаяет все ответы пользователей */
   def removeProblemFromTemplateAndUpdateCourses(courseAlias: String, problemAlias: String) =
     for {
-      _ <- removeProblemFromTemplateQuery(courseAlias, problemAlias)
+      _ <- CourseTemplateProblemDao.removeProblemFromTemplate(courseAlias, problemAlias)
       courses <- CourseDao.linkedToTemplateCourses(courseAlias)
       _ <- ZIO.foreach(courses)(course => ProblemOps.removeProblem(course.id, problemAlias))
     } yield ()

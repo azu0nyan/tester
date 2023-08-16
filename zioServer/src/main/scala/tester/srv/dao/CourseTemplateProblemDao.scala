@@ -1,6 +1,6 @@
 package tester.srv.dao
 
-import io.github.gaelrenoux.tranzactio.doobie.TranzactIO
+import io.github.gaelrenoux.tranzactio.doobie.{TranzactIO, tzio}
 import CourseTemplateProblemDao.CourseTemplateProblem
 import zio.schema.{DeriveSchema, Schema}
 import doobie.*
@@ -19,5 +19,8 @@ object CourseTemplateProblemDao extends AbstractDao [CourseTemplateProblem]{
 
   def templateProblemAliases(alias: String): TranzactIO[Seq[CourseTemplateProblem]] =
     selectWhereAndList(fr"courseAlias = $alias")
+
+  def removeProblemFromTemplate(courseAlias: String, problemAlias: String): TranzactIO[Int] =
+    deleteWhere(fr"courseAlias = $courseAlias AND problemAlias = $problemAlias")
 
 }
