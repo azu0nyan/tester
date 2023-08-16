@@ -14,6 +14,7 @@ import doobie.{Connection, Database, TranzactIO, tzio}
 object CourseTemplateOps {
   case class CourseTemplate(alias: String, description: String, courseData: String)
 
+
   def templateByAlias(alias: String) = tzio {
     sql"""SELECT templateAlias, description, courseData FROM CourseTemplate
          WHERE templateAlias = $alias
@@ -42,9 +43,9 @@ object CourseTemplateOps {
       _ <- ZIO.foreach(courses)(course => ProblemOps.startProblem(course.id, problemAlias))
     } yield ()
 
- 
+
   private def removeProblemFromTemplateQuery(courseAlias: String, problemAlias: String) = tzio{
-    sql"""DELETE FROM CourseTemplateProblemAlias 
+    sql"""DELETE FROM CourseTemplateProblemAlias
          WHERE courseALias = $courseAlias AND problemAlias = $problemAlias"""
       .update.run
   }
