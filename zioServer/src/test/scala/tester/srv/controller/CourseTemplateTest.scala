@@ -1,8 +1,9 @@
 package tester.srv.controller
 
 import EmbeddedPG.EmbeddedPG
-import tester.srv.controller.CourseTemplateOps.CourseTemplate
-import tester.srv.dao.CourseTemplateDao
+import tester.srv.dao.{CourseTemplateDao, CourseTemplateProblemDao}
+import tester.srv.dao.CourseTemplateDao.CourseTemplate
+import tester.srv.dao.CourseTemplateProblemDao.CourseTemplateProblem
 import zio.*
 import zio.test.*
 import zio.test.Assertion.*
@@ -19,7 +20,7 @@ object CourseTemplateTest extends ZIOSpecDefault {
   val courseTemplateCreation = test("Course template creation"){
     for{
       _ <- CourseTemplateDao.insert(CourseTemplate("alias", "description", "{}"))
-      ct <- CourseTemplateDao.byAlias("alias")
+      ct <- CourseTemplateDao.byAliasOption("alias")
     } yield assertTrue(
       ct.nonEmpty,
       ct.get.description == "description",
@@ -30,13 +31,13 @@ object CourseTemplateTest extends ZIOSpecDefault {
     for{
       _ <- CourseTemplateDao.insert(CourseTemplate("alias", "description", "{}"))
       _ <- CourseTemplateOps.addProblemToTemplateAndUpdateCourses("alias", "problemAlias")
-      listOne <- CourseTemplateOps.templateProblemAliases("alias")
+      listOne <- CourseTemplateProblemDao.templateProblemAliases("alias")
       _ <- CourseTemplateOps.removeProblemFromTemplateAndUpdateCourses("alias", "problemAlias")
-      listTwo <- CourseTemplateOps.templateProblemAliases("alias")
+      listTwo <- CourseTemplateProblemDao.templateProblemAliases("alias")
     } yield assertTrue(
       listOne.size == 1,
       listTwo.isEmpty,
-      listOne.head == "problemAlias"
+      listOne.head.problemAlias == "problemAlias"
     )
   }
 

@@ -9,43 +9,23 @@ import doobie.postgres.implicits.*
 import doobie.postgres.pgisimplicits.*
 import io.github.gaelrenoux.tranzactio.{DbException, doobie}
 import doobie.{Connection, Database, TranzactIO, tzio}
-import tester.srv.controller.CourseTemplateOps.CourseTemplate
-import tester.srv.dao.{AbstractDao, ByAlias}
+import tester.srv.dao.CourseTemplateProblemDao.CourseTemplateProblem
+import tester.srv.dao.{AbstractDao, CourseTemplateProblemDao}
 
 
 object CourseTemplateOps {
-  case class CourseTemplate(alias: String, description: String, courseData: String)
-
-  val courseTemplateFields = fr"alias, description, courseData"
-  val courseTemplateSelect = fr"SELECT $courseTemplateFields FROM CourseTemplate"
-
-  def byAlias(alias: String): TranzactIO[Option[CourseTemplate]] = tzio {
-    (courseTemplateSelect ++ fr"WHERE alias = $alias")
-      .query[CourseTemplate].option
-  }
-
-  def insert(c: CourseTemplate) = tzio {
-    sql"""INSERT INTO CourseTemplate ($courseTemplateFields) VALUES
-         (${c.alias}, ${c.description}, ${c.courseData}::json)"""
-      .update.run
-  }
-
-  def templateProblemAliases(alias: String): TranzactIO[Seq[String]] = tzio {
-    sql"""SELECT problemAlias FROM CourseTemplateProblem
-         WHERE courseAlias = $alias
-       """.query[String].to[List]
-  }
 
 
-  def insertCourseTemplateProblem(courseAlias: String, problemAlias: String) = tzio {
-    sql"""INSERT INTO CourseTemplateProblem
-         (courseAlias, problemAlias) VALUES ($courseAlias, $problemAlias)"""
-      .update.run
-  }
+
+//  def insertCourseTemplateProblem(courseAlias: String, problemAlias: String) = tzio {
+//    sql"""INSERT INTO CourseTemplateProblem
+//         (courseAlias, problemAlias) VALUES ($courseAlias, $problemAlias)"""
+//      .update.run
+//  }
 
   def addProblemToTemplateAndUpdateCourses(courseAlias: String, problemAlias: String) =
     for {
-      _ <- insertCourseTemplateProblem(courseAlias, problemAlias)
+      _ <- CourseTemplateProblemDao.insert(CourseTemplateProblem(courseAlias, problemAlias))
       courses <- CourseDao.linkedToTemplateCourses(courseAlias)
       _ <- ZIO.foreach(courses)(course => ProblemOps.startProblem(course.id, problemAlias))
     } yield ()
