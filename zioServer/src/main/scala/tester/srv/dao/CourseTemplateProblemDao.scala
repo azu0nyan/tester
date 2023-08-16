@@ -1,7 +1,6 @@
 package tester.srv.dao
 
 import io.github.gaelrenoux.tranzactio.doobie.TranzactIO
-import tester.srv.dao.CourseTemplateDao.CourseTemplate
 import tester.srv.dao.CourseTemplateProblemDao.CourseTemplateProblem
 import zio.schema.{DeriveSchema, Schema}
 import doobie.*

@@ -13,6 +13,8 @@ import doobie.postgres.pgisimplicits.*
 import io.github.gaelrenoux.tranzactio.{DbException, doobie}
 import doobie.{Connection, Database, TranzactIO, tzio}
 import tester.srv.controller.UserOps.LoginResult.{LoggedIn, UserNotFound, WrongPassword}
+import tester.srv.dao.UserSessionDao
+import tester.srv.dao.UserSessionDao.UserSession
 
 import java.time.Instant
 
@@ -107,44 +109,17 @@ object UserOps {
             val start = java.time.Clock.systemUTC().instant()
             val end = java.time.Clock.systemUTC().instant().plus(java.time.Duration.ofSeconds(data.sessionLengthSec))
             for {
-              _ <- insertSession(UserSession(0, user.id, token, data.ip,
+              _ <- UserSessionDao.insert(UserSession(0, user.id, token, data.ip,
                 data.userAgent, data.platform, data.locale, start, end))
             } yield LoggedIn(token)
           else ZIO.succeed(WrongPassword(data.login, data.password))
         case None => ZIO.succeed(UserNotFound(data.login))
     } yield res
-
-
-  case class UserSession(id: Long, userId: Long, token: String,
-                         ip: Option[String], userAgent: Option[String], platform: Option[String], locale: Option[String],
-                         start: Instant, end: Instant, valid: Boolean = true)
-
-  def insertSession(userSession: UserSession) =
-    tzio {
-      Update[UserSession](
-        """INSERT INTO Session
-             (id, userId, token, ip, userAgent, platform, locale, startAt, endAt, valid) VALUES
-             (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""").updateMany(List(userSession))
-    }
-
-  def getValidUserSessions(id: Long): TranzactIO[List[UserSession]] = tzio {
-    sql"""SELECT id, userId, token, ip, userAgent, platform, locale, startAt, endAt, valid
-         FROM Session
-         WHERE valid = TRUE AND userId = $id""".query[UserSession].to[List]
-  }
-
-  def invalidateSessionBySessionId(sessionId: Long) = tzio {
-    sql"""UPDATE Session  SET valid=false WHERE id = $sessionId""".update.run
-  }
-
-  def invalidateSessionByToken(token: String) = tzio {
-    sql"""UPDATE Session  SET valid=false WHERE token = $token""".update.run
-  }
-
+  
   def validateToken(token: String): TranzactIO[TokenOps.ValidationResult] = {
     TokenOps.decodeAndValidateUserToken(token) match
       case TokenOps.TokenValid(id) =>
-        for (sessions <- getValidUserSessions(id))
+        for (sessions <- UserSessionDao.getValidUserSessions(id))
           yield if (sessions.exists(_.token == token)) TokenOps.TokenValid(id)
           else TokenOps.InvalidToken
       case other => ZIO.succeed(other)

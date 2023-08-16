@@ -1,8 +1,8 @@
 package tester.srv.controller
 
 import EmbeddedPG.EmbeddedPG
-import tester.srv.dao.{CourseTemplateDao, CourseTemplateProblemDao}
-import tester.srv.dao.CourseTemplateDao.CourseTemplate
+import tester.srv.dao.{UserSessionDao, CourseTemplateProblemDao}
+import tester.srv.dao.UserSessionDao.CourseTemplate
 import tester.srv.dao.CourseTemplateProblemDao.CourseTemplateProblem
 import zio.*
 import zio.test.*
@@ -19,8 +19,8 @@ object CourseTemplateTest extends ZIOSpecDefault {
 
   val courseTemplateCreation = test("Course template creation"){
     for{
-      _ <- CourseTemplateDao.insert(CourseTemplate("alias", "description", "{}"))
-      ct <- CourseTemplateDao.byAliasOption("alias")
+      _ <- UserSessionDao.insert(CourseTemplate("alias", "description", "{}"))
+      ct <- UserSessionDao.byAliasOption("alias")
     } yield assertTrue(
       ct.nonEmpty,
       ct.get.description == "description",
@@ -29,7 +29,7 @@ object CourseTemplateTest extends ZIOSpecDefault {
 
   val courseTemplateAddRemoveProblem = test("Course template add problem"){
     for{
-      _ <- CourseTemplateDao.insert(CourseTemplate("alias", "description", "{}"))
+      _ <- UserSessionDao.insert(CourseTemplate("alias", "description", "{}"))
       _ <- CourseTemplateOps.addProblemToTemplateAndUpdateCourses("alias", "problemAlias")
       listOne <- CourseTemplateProblemDao.templateProblemAliases("alias")
       _ <- CourseTemplateOps.removeProblemFromTemplateAndUpdateCourses("alias", "problemAlias")

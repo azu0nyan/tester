@@ -9,7 +9,7 @@ import doobie.postgres.implicits.*
 import doobie.postgres.pgisimplicits.*
 import io.github.gaelrenoux.tranzactio.{DbException, doobie}
 import doobie.{Connection, Database, TranzactIO, tzio}
-import tester.srv.dao.{CourseTemplateDao, CourseTemplateProblemDao}
+import tester.srv.dao.{UserSessionDao, CourseTemplateProblemDao}
 
 import java.time.Instant
 
@@ -20,7 +20,7 @@ object CourseOps {
   /** Returns courseId */
   def startCourseForUser(alias: String, userId: Long): TranzactIO[Long] =
     for {
-      courseTemplate <- CourseTemplateDao.byAliasOption(alias).map(_.get)
+      courseTemplate <- UserSessionDao.byAliasOption(alias).map(_.get)
       course = CourseDao.Course(0, userId, courseTemplate.alias,
         scala.util.Random.nextLong(), Some(java.time.Clock.systemUTC().instant()), None)
       courseId <- CourseDao.startCourseForUserQuery(course)
