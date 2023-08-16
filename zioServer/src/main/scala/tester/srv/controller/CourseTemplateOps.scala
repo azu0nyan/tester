@@ -10,7 +10,7 @@ import doobie.postgres.pgisimplicits.*
 import io.github.gaelrenoux.tranzactio.{DbException, doobie}
 import doobie.{Connection, Database, TranzactIO, tzio}
 import tester.srv.dao.CourseTemplateProblemDao.CourseTemplateProblem
-import tester.srv.dao.{AbstractDao, CourseTemplateProblemDao}
+import tester.srv.dao.{AbstractDao, CourseDao, CourseTemplateProblemDao}
 
 
 object CourseTemplateOps {

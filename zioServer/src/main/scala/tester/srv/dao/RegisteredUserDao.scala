@@ -2,7 +2,7 @@ package tester.srv.dao
 
 
 import io.github.gaelrenoux.tranzactio.doobie.{TranzactIO, tzio}
-import tester.srv.dao.CourseTemplateProblemDao.CourseTemplateProblem
+import CourseTemplateProblemDao.CourseTemplateProblem
 import zio.schema.{DeriveSchema, Schema}
 import doobie.*
 import doobie.implicits.*
@@ -10,7 +10,7 @@ import doobie.implicits.javasql.*
 import doobie.postgres.*
 import doobie.postgres.implicits.*
 import doobie.postgres.pgisimplicits.*
-import tester.srv.dao.RegisteredUserDao.RegisteredUser
+import RegisteredUserDao.RegisteredUser
 
 import java.time.Instant
 

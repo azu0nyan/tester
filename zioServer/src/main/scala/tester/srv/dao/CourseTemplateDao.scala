@@ -1,7 +1,7 @@
 package tester.srv.dao
 
-import tester.srv.dao.AbstractDao.*
-import tester.srv.dao.CourseTemplateDao.CourseTemplate
+import AbstractDao.*
+import CourseTemplateDao.CourseTemplate
 import zio.schema.{DeriveSchema, Schema}
 
 object CourseTemplateDao extends AbstractDao[CourseTemplate]

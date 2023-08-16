@@ -9,34 +9,21 @@ import doobie.postgres.implicits.*
 import doobie.postgres.pgisimplicits.*
 import io.github.gaelrenoux.tranzactio.{DbException, doobie}
 import doobie.{Connection, Database, TranzactIO, tzio}
+import tester.srv.dao.ProblemDao
+import tester.srv.dao.ProblemDao.Problem
 
 object ProblemOps {
-  type Score = String //todo
-  case class Problem(id: Long, courseId: Long, templateAlias: String, seed: Long, score: Score)
 
-  val problemFields = fr"id, courseId, templateAlias, seed, score"
-  val problemSelect = fr"SELECT $problemFields FROM Problem"
-
-  def startProblem(courseId: Long, templateAlias: String) = tzio {
+  def startProblem(courseId: Long, templateAlias: String): TranzactIO[Int] = {
     val toInsert = Problem(0, courseId, templateAlias, scala.util.Random.nextLong(), "{}")
-    Update[Problem](
-      s"""INSERT INTO Problem ($problemFields)
-         VALUES (?, ?, ?, ?, ?::jsonb)""").toUpdate0(toInsert).run
+    ProblemDao.insert(toInsert)
   }
 
-  def problemByCourseAndTemplate(courseId: Long, templateAlias: String): TranzactIO[Option[Problem]] = tzio {
-    (problemSelect ++ fr"""WHERE courseId = $courseId AND templateAlias = $templateAlias""")
-      .query[Problem].option
-  }
-
-  def removeProblem(courseId: Long, templateAlias: String) =
+  def removeProblem(courseId: Long, templateAlias: String): TranzactIO[Unit] =
     for {
-      problem <- problemByCourseAndTemplate(courseId, templateAlias)
-      _ <- ZIO.when(problem.nonEmpty)(removeProblemQuery(problem.get.id))
+      problem <- ProblemDao.byCourseAndTemplate(courseId, templateAlias)
+      _ <- ZIO.when(problem.nonEmpty)(ProblemDao.deleteById(problem.get.id))
     } yield ()
 
-  def removeProblemQuery(problemId: Long) = tzio {
-    sql"""DELETE FROM Problem WHERE id = $problemId"""
-      .update.run
-  }
+
 }

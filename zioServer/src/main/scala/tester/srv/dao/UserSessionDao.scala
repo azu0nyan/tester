@@ -1,8 +1,8 @@
 package tester.srv.dao
 
 import doobie.implicits.toSqlInterpolator
-import tester.srv.dao.AbstractDao.*
-import tester.srv.dao.UserSessionDao.UserSession
+import AbstractDao.ById
+import UserSessionDao.UserSession
 import zio.schema.{DeriveSchema, Schema}
 import zio.schema.{DeriveSchema, Schema}
 import doobie.*
@@ -33,7 +33,7 @@ object UserSessionDao extends AbstractDao[UserSession]
 
   def invalidateSessionBySessionId(sessionId: Long): TranzactIO[Int] =
     updateWhere(fr"valid=false", fr"id = $sessionId")
-  
+
   def invalidateSessionByToken(token: String): TranzactIO[Int] =
     updateWhere(fr"valid=false", fr"token = $token")
 
