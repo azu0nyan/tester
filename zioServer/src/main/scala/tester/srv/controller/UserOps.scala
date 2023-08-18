@@ -26,11 +26,12 @@ object UserOps {
 
 
   //todo assign role to new users
-  private def registerUserQuery(req: RegistrationData) =
+  /**Returns userId*/
+  private def registerUserQuery(req: RegistrationData): TranzactIO[Int] =
     val HashAndSalt(hash, salt) = PasswordHashingSalting.hashPassword(req.password)
     val user = RegisteredUser(0, req.login, req.firstName, req.lastName, req.email, hash, salt,
       java.time.Clock.systemUTC().instant(), "{ \"Student\": {}}")
-    RegisteredUserDao.insert(user)
+    RegisteredUserDao.insertReturnId(user)
   end registerUserQuery
 
 
@@ -39,7 +40,7 @@ object UserOps {
 
   sealed trait RegistrationResult
   object RegistrationResult {
-    case object Success extends RegistrationResult
+    case class Success(userId: Int) extends RegistrationResult
     sealed trait Fail extends RegistrationResult
     case class AlreadyExists(login: String) extends Fail
     case class LoginToShort(min: Int) extends Fail
@@ -61,9 +62,8 @@ object UserOps {
       for {
         res <- ZIO.ifZIO(RegisteredUserDao.loginExists(req.login))(
           onTrue = ZIO.succeed(RegistrationResult.AlreadyExists(req.login)),
-          onFalse = registerUserQuery(req).map { x =>
-            if (x > 0) RegistrationResult.Success
-            else RegistrationResult.ZeroRowsUpdated
+          onFalse = registerUserQuery(req).map { userId =>
+            RegistrationResult.Success(userId)
           }
         )
       } yield res

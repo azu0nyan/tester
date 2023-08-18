@@ -11,12 +11,14 @@ import doobie.postgres.*
 import doobie.postgres.implicits.*
 import doobie.postgres.pgisimplicits.*
 import RegisteredUserDao.RegisteredUser
+import AbstractDao.ById
 
 import java.time.Instant
 
 
-object RegisteredUserDao extends AbstractDao [RegisteredUser]{
-  case class RegisteredUser(id: Long, login: String, firstName: String, lastName: String, email: String,
+object RegisteredUserDao extends AbstractDao [RegisteredUser]
+ with ById[RegisteredUser]{
+  case class RegisteredUser(id: Int, login: String, firstName: String, lastName: String, email: String,
                             passwordHash: String, passwordSalt: String, registeredAt: Instant, role: String)
 
   override val schema: Schema[RegisteredUser] = DeriveSchema.gen[RegisteredUser]

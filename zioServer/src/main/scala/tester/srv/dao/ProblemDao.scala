@@ -19,14 +19,17 @@ object ProblemDao extends AbstractDao[Problem]
   with ById[Problem] {
 
   type Score = String //todo
-  case class Problem(id: Long, courseId: Long, templateAlias: String, seed: Long, score: Score)
+  case class Problem(id: Int, courseId: Int, templateAlias: String, seed: Int, score: Score)
 
   override val schema: Schema[Problem] = DeriveSchema.gen[Problem]
   override val tableName: String = "Problem"
   override val jsonbFields: Seq[String] = Seq("score")
 
-  def byCourseAndTemplate(courseId: Long, templateAlias: String): TranzactIO[Option[Problem]] =
+  def byCourseAndTemplate(courseId: Int, templateAlias: String): TranzactIO[Option[Problem]] =
     selectWhereAndOption(fr"courseId = $courseId", fr"templateAlias = $templateAlias")
+
+  def courseProblems(courseId: Int): TranzactIO[List[Problem]] =
+    selectWhereList(fr"courseId = $courseId")
 
 }
 

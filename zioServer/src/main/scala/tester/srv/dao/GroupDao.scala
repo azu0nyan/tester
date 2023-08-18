@@ -14,7 +14,7 @@ import AbstractDao.ById
 object GroupDao extends AbstractDao [Group]
   with ById[Group]{
 
-  case class Group(id: Long, title: String, description: String)
+  case class Group(id: Int, title: String, description: String)
 
   override val schema: Schema[Group] = DeriveSchema.gen[Group]
   override val tableName: String = "Group"

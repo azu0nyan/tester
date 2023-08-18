@@ -18,29 +18,29 @@ import tester.srv.dao.UserToGroupDao.UserToGroup
 object GroupOps {
 
 
-  def addUserToGroup(userId: Long, groupId: Long) =
+  def addUserToGroup(userId: Int, groupId: Int) =
     for {
       _ <- addUserToGroupQuery(userId, groupId)
       courses <- CourseTemplateForGroupDao.forcedCourses(groupId)
       _ <- ZIO.foreach(courses)(course => CourseOps.startCourseForUser(course.templateAlias, userId))
     } yield ()
 
-  private def addUserToGroupQuery(userId: Long, groupId: Long) =
+  private def addUserToGroupQuery(userId: Int, groupId: Int) =
     UserToGroupDao.insert(UserToGroup(0, userId, groupId, java.time.Clock.systemUTC().instant(), None))
 
 
-  def removeUserFromGroup(userId: Long, groupId: Long) = ???
+  def removeUserFromGroup(userId: Int, groupId: Int) = ???
 
-  private def removeUserFromGroupQuery(userId: Long, groupId: Long) =
+  private def removeUserFromGroupQuery(userId: Int, groupId: Int) =
     UserToGroupDao.updateWhere(fr"leavedat = ${java.time.Clock.systemUTC().instant()} ",
       fr"userId = $userId AND groupId = $groupId")
 
 
-  def addCourseToGroupQuery(templateAlias: String, groupId: Long, forceStart: Boolean) =
+  def addCourseToGroupQuery(templateAlias: String, groupId: Int, forceStart: Boolean) =
     CourseTemplateForGroupDao.insert(CourseTemplateForGroup(0, groupId, templateAlias, forceStart))
 
 
-  def addCourseTemplateToGroup(templateAlias: String, groupId: Long, forceStart: Boolean) =
+  def addCourseTemplateToGroup(templateAlias: String, groupId: Int, forceStart: Boolean) =
     for {
       _ <- addCourseToGroupQuery(templateAlias, groupId, forceStart)
       toStartUsersIds <-
@@ -49,7 +49,7 @@ object GroupOps {
       _ <- ZIO.foreach(toStartUsersIds)(userId => CourseOps.startCourseForUser(templateAlias, userId))
     } yield ()
 
-  def removeCourseTemplateFromGroup(templateAlias: String, groupId: Long, forceRemoval: Boolean) =
+  def removeCourseTemplateFromGroup(templateAlias: String, groupId: Int, forceRemoval: Boolean) =
     for {
       _ <- CourseTemplateForGroupDao.removeCourseFromGroup(templateAlias, groupId)
       toRemoveUserIds <-

@@ -19,17 +19,17 @@ import java.time.Instant
 
 object AnswerDao extends AbstractDao[Answer]
   with ById[Answer] {
-  case class Answer(id: Long, problemId: Long, answer: String, status: String, answeredAt: Instant)
+  case class Answer(id: Int, problemId: Int, answer: String, status: String, answeredAt: Instant)
 
   override val schema: Schema[Answer] = DeriveSchema.gen[Answer]
   override val tableName: String = "Problem"
   override val jsonbFields: Seq[String] = Seq("status")
 
 
-  def problemAnswers(problemId: Long): TranzactIO[List[Answer]] =
+  def problemAnswers(problemId: Int): TranzactIO[List[Answer]] =
     selectWhereList(fr"WHERE problemId = $problemId")
 
-  def deleteProblemAnswers(problemId: Long): TranzactIO[Int] = 
+  def deleteProblemAnswers(problemId: Int): TranzactIO[Int] =
     deleteWhere(fr"problemId = $problemId")
 
 }

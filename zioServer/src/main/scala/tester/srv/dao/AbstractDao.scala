@@ -11,6 +11,8 @@ import io.github.gaelrenoux.tranzactio.{DbException, doobie}
 import zio.*
 import zio.schema.{DeriveSchema, Schema}
 
+import java.time.Instant
+
 
 trait AbstractDao[T: Read : Write] {
   val schema: Schema[T]
@@ -21,7 +23,9 @@ trait AbstractDao[T: Read : Write] {
 
   lazy val fieldNames: Seq[String] = schema.asInstanceOf[zio.schema.Schema.Record[T]].fields.map(_.name)
   lazy val fieldString: String = fieldNames.mkString(", ")
+  //  schema.asInstanceOf[zio.schema.Schema.Record[T]].fields.head.get
 
+  lazy val insertString = s"""INSERT INTO $tableName ($fieldString) VALUES $valuesString"""
 
   lazy val valuesString: String = fieldNames.map(name =>
     if (jsonFields.contains(name)) "?::json"
@@ -31,13 +35,12 @@ trait AbstractDao[T: Read : Write] {
 
   lazy val selectFragment: Fragment = Fragment.const(s"""SELECT $fieldString FROM $tableName""")
   lazy val deleteFragment: Fragment = Fragment.const(s"""DELETE FROM $tableName""")
-  lazy val insertString = s"""INSERT INTO $tableName ($fieldString) VALUES $valuesString"""
   lazy val updateFragment = Fragment.const(s"""UPDATE $tableName SET""")
 
-
-  def insert(t: T): TranzactIO[Int] = tzio {
+  def insert(t: T): TranzactIO[Boolean] = tzio {
     Update[T](insertString).toUpdate0(t).run
-  }
+  }.map(_ == 1)
+
 
   def updateWhere(set: Fragment, where: Fragment): TranzactIO[Int] = tzio {
     (updateFragment ++ set ++ fr"WHERE" ++ where).update.run
@@ -54,7 +57,7 @@ trait AbstractDao[T: Read : Write] {
   def updateWhereOrOpt(set: Fragment, where: Option[Fragment]*): TranzactIO[Int] = tzio {
     (updateFragment ++ set ++ Fragments.whereOrOpt(where: _ *)).update.run
   }
-  
+
   def all: TranzactIO[List[T]] = tzio(selectFragment.query[T].to[List])
 
   def selectWhereOption(fr: Fragment): TranzactIO[Option[T]] = tzio((selectFragment ++ fr"WHERE" ++ fr).query[T].option)
@@ -99,13 +102,63 @@ trait AbstractDao[T: Read : Write] {
 
 object AbstractDao {
 
-  trait ById[T: Read] extends AbstractDao[T] {
-    def byIdOption(id: Long): TranzactIO[Option[T]] = selectWhereAndOption(fr"id = $id")
-    def byId(id: Long): TranzactIO[T] = selectWhereAnd(fr"id = $id")
+  trait ById[T: Read : Write] extends AbstractDao[T] {
+    def byIdOption(id: Int): TranzactIO[Option[T]] = selectWhereAndOption(fr"id = $id")
+    def byId(id: Int): TranzactIO[T] = selectWhereAnd(fr"id = $id")
 
-    def deleteById(id: Long): TranzactIO[Int] = deleteWhere(fr"id = $id")
-    
-    def updateById(id: Long, set: Fragment): TranzactIO[Int] = updateWhere(set, fr"id = $id")
+    def deleteById(id: Int): TranzactIO[Int] = deleteWhere(fr"id = $id")
+
+    def updateById(id: Int, set: Fragment): TranzactIO[Int] = updateWhere(set, fr"id = $id")
+
+    def insertReturnId(t: T): TranzactIO[Int] = tzio {
+      //      Update(insertString).toUpdate0(t).withUniqueGeneratedKeys[Int]("id")
+      val update = (Fragment.const(s"INSERT INTO $tableName") ++
+        Fragment.const(s"($fieldString)") ++ fr"VALUES"
+        ++ valuesStringDefaultIdFr(t))
+        .update
+      println(update.sql)
+      update.withUniqueGeneratedKeys[Int]("id")
+    }
+
+    //    lazy val fieldNamesWoId: Seq[String] = schema.asInstanceOf[zio.schema.Schema.Record[T]]
+    //      .fields.map(_.name).filter(!_.equalsIgnoreCase("id"))
+    //    lazy val fieldStringWoId: String = fieldNamesWoId.mkString(", ")
+
+    //    private def valuesStringDefaultId(t: T): String = fieldNames.zipWithIndex.map((name, id) =>
+    //      val valStr = schema.asInstanceOf[zio.schema.Schema.Record[T]].fields.toSeq(id).get(t).toString
+    //      if (jsonFields.contains(name)) valStr + "::json" //todo
+    //      else if (jsonbFields.contains(name)) valStr + "::jsonb" //todo
+    //      else if (name.equalsIgnoreCase("id")) "DEFAULT"
+    //      else valStr //todo экранировать всяое
+    //    ).mkString("(", ", ", ")")
+
+    def toFragment(any: Any): Fragment = any match
+      case i: java.time.Instant => fr"${i}" //doesnt compile without cast ???
+      case i: Int => fr"${i}"
+      case i: Long => fr"${i}"
+      case i: String => fr"${i}"
+      case i: Boolean => fr"${i}"
+      case i@Some(x) if x.isInstanceOf[Instant] => fr"${i.asInstanceOf[Option[Instant]]}"
+      case i@Some(x) if x.isInstanceOf[Int] => fr"${i.asInstanceOf[Option[Int]]}"
+      case i@Some(x) if x.isInstanceOf[Long] => fr"${i.asInstanceOf[Option[Long]]}"
+      case i@Some(x) if x.isInstanceOf[String] => fr"${i.asInstanceOf[Option[String]]}"
+      case i@Some(x) if x.isInstanceOf[Boolean] => fr"${i.asInstanceOf[Option[Boolean]]}"
+      case i@None => fr"NULL"
+      case i => throw new Exception(s"Field type not supported $i")
+
+    private def valuesStringDefaultIdFr(t: T): Fragment =
+      val inner = fieldNames.zipWithIndex.map { (name, id) =>
+        val value = schema.asInstanceOf[Schema.Record[T]].fields.toSeq(id).get(t)
+        //      val valStr = value.toString
+        //      val fr = fr"$value"
+        val fr: Fragment = toFragment(value)
+        if (jsonFields.contains(name)) fr ++ fr0"::json"
+        else if (jsonbFields.contains(name)) fr ++ fr0"::jsonb"
+        else if (name.equalsIgnoreCase("id")) fr"DEFAULT"
+        else fr
+      }.reduceLeft(_ ++ fr", " ++ _)
+      fr"(" ++ inner ++ fr")"
+    end valuesStringDefaultIdFr
   }
 
   trait ByAlias[T: Read] extends AbstractDao[T] {

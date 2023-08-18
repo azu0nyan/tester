@@ -14,12 +14,13 @@ import tester.srv.dao.ProblemDao.Problem
 
 object ProblemOps {
 
-  def startProblem(courseId: Long, templateAlias: String): TranzactIO[Int] = {
-    val toInsert = Problem(0, courseId, templateAlias, scala.util.Random.nextLong(), "{}")
-    ProblemDao.insert(toInsert)
+  /**Returns problem id*/
+  def startProblem(courseId: Int, templateAlias: String): TranzactIO[Int] = {
+    val toInsert = Problem(0, courseId, templateAlias, scala.util.Random.nextInt(), "{}")
+    ProblemDao.insertReturnId(toInsert)
   }
 
-  def removeProblem(courseId: Long, templateAlias: String): TranzactIO[Unit] =
+  def removeProblem(courseId: Int, templateAlias: String): TranzactIO[Unit] =
     for {
       problem <- ProblemDao.byCourseAndTemplate(courseId, templateAlias)
       _ <- ZIO.when(problem.nonEmpty)(ProblemDao.deleteById(problem.get.id))

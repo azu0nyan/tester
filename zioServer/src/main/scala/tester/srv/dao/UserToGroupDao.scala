@@ -15,7 +15,7 @@ import java.time.Instant
 
 object UserToGroupDao extends AbstractDao[UserToGroup]
   with ById[UserToGroup] {
-  case class UserToGroup(id: Long, userId: Long, groupId: Long, enteredAt: Instant, leavedAt: Option[Instant])
+  case class UserToGroup(id: Int, userId: Int, groupId: Int, enteredAt: Instant, leavedAt: Option[Instant])
 
   override val schema: Schema[UserToGroup] = DeriveSchema.gen[UserToGroup]
   override val tableName: String = "UserToGroup"
@@ -23,12 +23,12 @@ object UserToGroupDao extends AbstractDao[UserToGroup]
 
   val groupMembershipActive = fr"enteredAt < NOW()::TIMESTAMP AND (leavedAt = NULL OR leavedAt < NOW::TIMESTAMP)"
 
-  def activeUserGroups(userId: Long): TranzactIO[List[UserToGroup]] =
+  def activeUserGroups(userId: Int): TranzactIO[List[UserToGroup]] =
     selectWhereAndList(groupMembershipActive, fr"userId = $userId")
 
-  def usersInGroup(groupId: Long): TranzactIO[List[Long]] = tzio {
+  def usersInGroup(groupId: Int): TranzactIO[List[Int]] = tzio {
     sql"""SELECT userId FROM $tableName
-           WHERE groupId = $groupId AND $groupMembershipActive""".query[Long].to[List]
+           WHERE groupId = $groupId AND $groupMembershipActive""".query[Int].to[List]
   }
 }
 

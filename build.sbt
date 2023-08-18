@@ -115,4 +115,5 @@ val zioServer = (project in file("zioServer"))
     resolvers ++= Resolver.sonatypeOssRepos("snapshots"),
     testFrameworks += new TestFramework("zio.test.sbt.ZTestFramework"),
 //    envVars in Test ++= Map("LC_ALL" -> "en_US.UTF-8" , "LC_CTYPE" -> "en_US.UTF-8")
+    //LC_ALL=en_US.UTF-8;LC_CTYPE=en_US.UTF-8
   )

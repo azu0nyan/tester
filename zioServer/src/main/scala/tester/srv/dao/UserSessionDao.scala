@@ -20,7 +20,7 @@ import java.time.Instant
 object UserSessionDao extends AbstractDao[UserSession]
   with ById[UserSession] {
 
-  case class UserSession(id: Long, userId: Long, token: String,
+  case class UserSession(id: Int, userId: Int, token: String,
                          ip: Option[String], userAgent: Option[String], platform: Option[String], locale: Option[String],
                          start: Instant, end: Instant, valid: Boolean = true)
 
@@ -28,10 +28,10 @@ object UserSessionDao extends AbstractDao[UserSession]
   override val tableName: String = "UserSession"
 
 
-  def getValidUserSessions(id: Long): TranzactIO[List[UserSession]] =
+  def getValidUserSessions(id: Int): TranzactIO[List[UserSession]] =
     selectWhereAndList(fr"VALID = TRUE", fr"userId = $id")
 
-  def invalidateSessionBySessionId(sessionId: Long): TranzactIO[Int] =
+  def invalidateSessionBySessionId(sessionId: Int): TranzactIO[Int] =
     updateWhere(fr"valid=false", fr"id = $sessionId")
 
   def invalidateSessionByToken(token: String): TranzactIO[Int] =

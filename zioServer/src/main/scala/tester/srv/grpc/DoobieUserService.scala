@@ -31,7 +31,7 @@ object DoobieUserService extends ZUserService[DoobieCtx] {
     import RegistrationResult.*
     import RegistrationResponse.*
     r match
-      case Success =>
+      case Success(id) =>
         RegistrationResponse(Result.Success(com.google.protobuf.empty.Empty()))
       case AlreadyExists(login) =>
         RegistrationResponse(Result.Failure(RegistrationFailure(UserAlreadyExists(login))))

@@ -18,18 +18,18 @@ import java.time.Instant
 object CourseOps {
 
   /** Returns courseId */
-  def startCourseForUser(alias: String, userId: Long): TranzactIO[Long] =
+  def startCourseForUser(alias: String, userId: Int): TranzactIO[Int] =
     for {
       courseTemplate <- CourseTemplateDao.byAliasOption(alias).map(_.get)
       course = CourseDao.Course(0, userId, courseTemplate.alias,
-        scala.util.Random.nextLong(), Some(java.time.Clock.systemUTC().instant()), None)
-      courseId <- CourseDao.insert(course)
+        scala.util.Random.nextInt(), Some(java.time.Clock.systemUTC().instant()), None)
+      courseId <- CourseDao.insertReturnId(course)
       aliases <- CourseTemplateProblemDao.templateProblemAliases(courseTemplate.alias)
       _ <- ZIO.foreach(aliases)(a => ProblemOps.startProblem(courseId, a.problemAlias))
     } yield courseId
 
   /** Так же удаляет все ответы пользователя */
-  def removeCourseFromUser(alias: String, userId: Long) =
+  def removeCourseFromUser(alias: String, userId: Int) =
     for {
       c <- CourseDao.byAliasAndUserId(alias, userId)
       _ <- ZIO.when(c.nonEmpty)(CourseDao.deleteById(c.get.id))
