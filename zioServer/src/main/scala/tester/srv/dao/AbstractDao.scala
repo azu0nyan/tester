@@ -111,7 +111,6 @@ object AbstractDao {
     def updateById(id: Int, set: Fragment): TranzactIO[Int] = updateWhere(set, fr"id = $id")
 
     def insertReturnId(t: T): TranzactIO[Int] = tzio {
-      //      Update(insertString).toUpdate0(t).withUniqueGeneratedKeys[Int]("id")
       val update = (Fragment.const(s"INSERT INTO $tableName") ++
         Fragment.const(s"($fieldString)") ++ fr"VALUES"
         ++ valuesStringDefaultIdFr(t))
@@ -120,20 +119,8 @@ object AbstractDao {
       update.withUniqueGeneratedKeys[Int]("id")
     }
 
-    //    lazy val fieldNamesWoId: Seq[String] = schema.asInstanceOf[zio.schema.Schema.Record[T]]
-    //      .fields.map(_.name).filter(!_.equalsIgnoreCase("id"))
-    //    lazy val fieldStringWoId: String = fieldNamesWoId.mkString(", ")
-
-    //    private def valuesStringDefaultId(t: T): String = fieldNames.zipWithIndex.map((name, id) =>
-    //      val valStr = schema.asInstanceOf[zio.schema.Schema.Record[T]].fields.toSeq(id).get(t).toString
-    //      if (jsonFields.contains(name)) valStr + "::json" //todo
-    //      else if (jsonbFields.contains(name)) valStr + "::jsonb" //todo
-    //      else if (name.equalsIgnoreCase("id")) "DEFAULT"
-    //      else valStr //todo экранировать всяое
-    //    ).mkString("(", ", ", ")")
-
     def toFragment(any: Any): Fragment = any match
-      case i: java.time.Instant => fr"${i}" //doesnt compile without cast ???
+      case i: java.time.Instant => fr"${i}" 
       case i: Int => fr"${i}"
       case i: Long => fr"${i}"
       case i: String => fr"${i}"

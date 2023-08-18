@@ -25,12 +25,19 @@ object CourseTest extends ZIOSpecDefault {
       _ <- CourseTemplateOps.addProblemToTemplateAndUpdateCourses("alias", "problemAlias1")
       _ <- CourseTemplateOps.addProblemToTemplateAndUpdateCourses("alias", "problemAlias2")
       courseId <- CourseOps.startCourseForUser("alias", userId)
+      course <- CourseDao.byId(courseId)
       problems <- ProblemDao.courseProblems(courseId)
+      allCourses <- CourseDao.all
       courses <- CourseDao.activeUserCourses(userId)
+      _ <- Console.printLine(course)
+      _ <- Console.printLine(problems)
+      _ <- Console.printLine(allCourses)
+      _ <- Console.printLine(courses)
     } yield assertTrue(
       problems.size == 2,
       problems.exists(_.templateAlias == "problemAlias1"),
       problems.exists(_.templateAlias == "problemAlias2"),
+      allCourses.size == 1,
       courses.size == 1,
       courses.head.templateAlias == "alias",
       courses.head.startedAt.nonEmpty,

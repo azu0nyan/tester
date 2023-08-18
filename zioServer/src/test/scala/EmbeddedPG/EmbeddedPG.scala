@@ -59,7 +59,7 @@ object EmbeddedPG {
 
   val connectionLayer: ZLayer[Any, Throwable, Connection] = ZLayer.fromZIO(connection)
 
-  //    val transactor = Transactor.fromDriverManager(
+//      val transactor = Transactor.fromDriverManager(
   //      "org.postgresql.Driver",
   //      postgres.getJdbcUrl("postgres", "postgres"),
   //      "postgres",

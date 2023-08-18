@@ -25,15 +25,15 @@ object CourseDao extends AbstractDao[Course]
     selectWhereAndOption(fr"userId = $userId", fr"templateAlias = $alias")
 
   def activeUserCourses(userId: Int): TranzactIO[List[Course]] =
-    selectWhereList(fr"""userID = $userId AND (startedAt = NULL OR startedAt < NOW()::TIMESTAMP) AND
-         (endedAt = NULL OR NOW()::TIMESTAMP < endedAt)""")
+    selectWhereList(fr"""userId = $userId AND (startedAt IS NULL OR startedAt <=  NOW()::TIMESTAMP) AND
+         (endedAt IS NULL OR NOW()::TIMESTAMP < endedAt)""")
   
 
   def previousUserCourses(userId: Int): TranzactIO[List[Course]] =
-    selectWhereList(fr"""userID = $userId AND (endedAt != NULL AND endedAt < NOW()::TIMESTAMP)""")
+    selectWhereList(fr"""userID = $userId AND (endedAt IS NOT NULL AND endedAt < NOW()::TIMESTAMP)""")
 
   def futureUserCourses(userId: Int): TranzactIO[List[Course]] =
-    selectWhereList(fr"""userID = $userId AND (startedAt != NULL AND  NOW()::TIMESTAMP < statedAt)""")
+    selectWhereList(fr"""userID = $userId AND (startedAt IS NOT NULL AND  NOW()::TIMESTAMP < statedAt)""")
   
   def linkedToTemplateCourses(templateAlias: String): TranzactIO[Seq[Course]] =
     selectWhereList(fr"templateAlias = $templateAlias")
