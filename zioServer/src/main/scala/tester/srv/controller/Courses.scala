@@ -14,8 +14,17 @@ import tester.srv.dao.{CourseDao, CourseTemplateDao, CourseTemplateProblemDao, U
 import java.time.Instant
 
 
-/** Курс, который проходит ученик */
-object CourseOps {
+/** Курс, который проходит пользователь */
+trait Courses[F[_]]{
+  def startCourseForUser(alias: String, userId: Int): F[Int]
+
+  def stopCourse(alias: String, userId: Int): F[Unit]
+
+  /** Так же удаляет все ответы пользователя */
+  def removeCourseFromUser(alias: String, userId: Int): F[Unit]
+}
+
+object Courses extends Courses[TranzactIO] {
 
   /** Returns courseId */
   def startCourseForUser(alias: String, userId: Int): TranzactIO[Int] =
@@ -28,8 +37,15 @@ object CourseOps {
       _ <- ZIO.foreach(aliases)(a => ProblemOps.startProblem(courseId, a.problemAlias))
     } yield courseId
 
+
+  def stopCourse(alias: String, userId: Int): TranzactIO[Unit] =
+    for{
+      c <- CourseDao.byAliasAndUserId(alias, userId)
+      _ <- ZIO.when(c.nonEmpty)(CourseDao.setStopped(c.get.id))
+    } yield ()
+
   /** Так же удаляет все ответы пользователя */
-  def removeCourseFromUser(alias: String, userId: Int) =
+  def removeCourseFromUser(alias: String, userId: Int):TranzactIO[Unit] =
     for {
       c <- CourseDao.byAliasAndUserId(alias, userId)
       _ <- ZIO.when(c.nonEmpty)(CourseDao.deleteById(c.get.id))

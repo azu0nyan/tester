@@ -24,18 +24,23 @@ object CourseDao extends AbstractDao[Course]
   def byAliasAndUserId(alias: String, userId: Int): TranzactIO[Option[Course]] =
     selectWhereAndOption(fr"userId = $userId", fr"templateAlias = $alias")
 
+  def userCourses(userId: Int): TranzactIO[List[Course]] =
+    selectWhereList(fr"""userId = $userId""")
+
   def activeUserCourses(userId: Int): TranzactIO[List[Course]] =
-    selectWhereList(fr"""userId = $userId AND (startedAt IS NULL OR startedAt <=  NOW()::TIMESTAMP) AND
+    selectWhereList(
+      fr"""userId = $userId AND (startedAt IS NULL OR startedAt <=  NOW()::TIMESTAMP) AND
          (endedAt IS NULL OR NOW()::TIMESTAMP < endedAt)""")
-  
 
   def previousUserCourses(userId: Int): TranzactIO[List[Course]] =
-    selectWhereList(fr"""userID = $userId AND (endedAt IS NOT NULL AND endedAt < NOW()::TIMESTAMP)""")
+    selectWhereList(fr"""userID = $userId AND (endedAt IS NOT NULL AND endedAt <= NOW()::TIMESTAMP)""")
 
   def futureUserCourses(userId: Int): TranzactIO[List[Course]] =
-    selectWhereList(fr"""userID = $userId AND (startedAt IS NOT NULL AND  NOW()::TIMESTAMP < statedAt)""")
-  
+    selectWhereList(fr"""userID = $userId AND (startedAt IS NOT NULL AND  NOW()::TIMESTAMP < startedAt)""")
+
   def linkedToTemplateCourses(templateAlias: String): TranzactIO[Seq[Course]] =
     selectWhereList(fr"templateAlias = $templateAlias")
 
+  def setStopped(courseId: Int): TranzactIO[Boolean] =
+    updateById(courseId, fr"endedAt = NOW()::TIMESTAMP")
 }

@@ -108,7 +108,8 @@ object AbstractDao {
 
     def deleteById(id: Int): TranzactIO[Int] = deleteWhere(fr"id = $id")
 
-    def updateById(id: Int, set: Fragment): TranzactIO[Int] = updateWhere(set, fr"id = $id")
+    def updateById(id: Int, set: Fragment): TranzactIO[Boolean] =
+      updateWhere(set, fr"id = $id").map(_ == 1)
 
     def insertReturnId(t: T): TranzactIO[Int] = tzio {
       val update = (Fragment.const(s"INSERT INTO $tableName") ++
@@ -120,7 +121,7 @@ object AbstractDao {
     }
 
     def toFragment(any: Any): Fragment = any match
-      case i: java.time.Instant => fr"${i}" 
+      case i: java.time.Instant => fr"${i}"
       case i: Int => fr"${i}"
       case i: Long => fr"${i}"
       case i: String => fr"${i}"
