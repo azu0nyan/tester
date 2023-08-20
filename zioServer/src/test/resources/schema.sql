@@ -5,7 +5,7 @@
 -- Dumped from database version 15.3 (Ubuntu 15.3-0ubuntu0.23.04.1)
 -- Dumped by pg_dump version 15.3 (Ubuntu 15.3-0ubuntu0.23.04.1)
 
--- Started on 2023-08-20 22:07:22 MSK
+-- Started on 2023-08-20 23:24:29 MSK
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -685,57 +685,57 @@ ALTER TABLE ONLY tester.session
 
 
 --
--- TOC entry 3346 (class 2606 OID 32825)
+-- TOC entry 3346 (class 2606 OID 32864)
 -- Name: answerrejection answerrejection_answerid_fkey; Type: FK CONSTRAINT; Schema: tester; Owner: postgres
 --
 
 ALTER TABLE ONLY tester.answerrejection
-    ADD CONSTRAINT answerrejection_answerid_fkey FOREIGN KEY (answerid) REFERENCES tester.answer(id) NOT VALID;
+    ADD CONSTRAINT answerrejection_answerid_fkey FOREIGN KEY (answerid) REFERENCES tester.answer(id) ON DELETE CASCADE NOT VALID;
 
 
 --
--- TOC entry 3347 (class 2606 OID 32837)
+-- TOC entry 3347 (class 2606 OID 32869)
 -- Name: answerreview answerreview_answerid_fkey; Type: FK CONSTRAINT; Schema: tester; Owner: postgres
 --
 
 ALTER TABLE ONLY tester.answerreview
-    ADD CONSTRAINT answerreview_answerid_fkey FOREIGN KEY (answerid) REFERENCES tester.answer(id);
+    ADD CONSTRAINT answerreview_answerid_fkey FOREIGN KEY (answerid) REFERENCES tester.answer(id) ON UPDATE CASCADE NOT VALID;
 
 
 --
--- TOC entry 3348 (class 2606 OID 32842)
+-- TOC entry 3348 (class 2606 OID 32874)
 -- Name: answerreview answerreview_reviewerid_fkey; Type: FK CONSTRAINT; Schema: tester; Owner: postgres
 --
 
 ALTER TABLE ONLY tester.answerreview
-    ADD CONSTRAINT answerreview_reviewerid_fkey FOREIGN KEY (reviewerid) REFERENCES tester.registereduser(id) NOT VALID;
+    ADD CONSTRAINT answerreview_reviewerid_fkey FOREIGN KEY (reviewerid) REFERENCES tester.registereduser(id) ON DELETE SET NULL NOT VALID;
 
 
 --
--- TOC entry 3349 (class 2606 OID 32859)
+-- TOC entry 3349 (class 2606 OID 32879)
 -- Name: answerverifiactionconfirmation answerverifiactionconfirmation_answerid_fkey; Type: FK CONSTRAINT; Schema: tester; Owner: postgres
 --
 
 ALTER TABLE ONLY tester.answerverifiactionconfirmation
-    ADD CONSTRAINT answerverifiactionconfirmation_answerid_fkey FOREIGN KEY (answerid) REFERENCES tester.answer(id);
+    ADD CONSTRAINT answerverifiactionconfirmation_answerid_fkey FOREIGN KEY (answerid) REFERENCES tester.answer(id) ON DELETE CASCADE NOT VALID;
 
 
 --
--- TOC entry 3350 (class 2606 OID 32854)
+-- TOC entry 3350 (class 2606 OID 32884)
 -- Name: answerverifiactionconfirmation answerverifiactionconfirmation_confirmedbyid_fkey; Type: FK CONSTRAINT; Schema: tester; Owner: postgres
 --
 
 ALTER TABLE ONLY tester.answerverifiactionconfirmation
-    ADD CONSTRAINT answerverifiactionconfirmation_confirmedbyid_fkey FOREIGN KEY (confirmedbyid) REFERENCES tester.registereduser(id);
+    ADD CONSTRAINT answerverifiactionconfirmation_confirmedbyid_fkey FOREIGN KEY (confirmedbyid) REFERENCES tester.registereduser(id) ON DELETE SET NULL NOT VALID;
 
 
 --
--- TOC entry 3345 (class 2606 OID 32820)
+-- TOC entry 3345 (class 2606 OID 32889)
 -- Name: answerverification answerverification_answerid_fkey; Type: FK CONSTRAINT; Schema: tester; Owner: postgres
 --
 
 ALTER TABLE ONLY tester.answerverification
-    ADD CONSTRAINT answerverification_answerid_fkey FOREIGN KEY (answerid) REFERENCES tester.answer(id) NOT VALID;
+    ADD CONSTRAINT answerverification_answerid_fkey FOREIGN KEY (answerid) REFERENCES tester.answer(id) ON DELETE CASCADE NOT VALID;
 
 
 --
@@ -792,7 +792,7 @@ ALTER TABLE ONLY tester.usertogroup
     ADD CONSTRAINT user_fk FOREIGN KEY (userid) REFERENCES tester.registereduser(id);
 
 
--- Completed on 2023-08-20 22:07:22 MSK
+-- Completed on 2023-08-20 23:24:29 MSK
 
 --
 -- PostgreSQL database dump complete

@@ -21,7 +21,7 @@ object AnswerVerificationDao extends AbstractDao[AnswerVerification]{
   override val schema: Schema[AnswerVerification] = DeriveSchema.gen[AnswerVerification]
   override val tableName: String = "AnswerVerification"
 
-  def answerRejection(answerId: Int): TranzactIO[AnswerRejection] =
+  def answerVerification(answerId: Int): TranzactIO[AnswerVerification] =
     selectWhereOption(fr"answerId=$answerId")
 }
 
