@@ -14,7 +14,9 @@ object CourseTest extends ZIOSpecDefault {
   def spec = suite("UserOps test")(
     startCourse,
     stopCourse,
-    removeCourse
+    removeCourse,
+    addingProblemToTemplate,
+    removingProblemToTemplate
   ).provideLayer(EmbeddedPG.connectionLayer) @@
     timeout(60.seconds) @@
     withLiveClock
@@ -85,5 +87,31 @@ object CourseTest extends ZIOSpecDefault {
       finishedCourses.isEmpty,
     )
   }
+
+  val addingProblemToTemplate = test("Adding problem to template adds problem to user"){
+    for {
+      userId <- createUserMakeTemplate
+      courseId <- Courses.startCourseForUser("alias", userId)
+      _ <- CourseTemplateOps.addProblemToTemplateAndUpdateCourses("alias", "problemAlias3")
+      ps <- ProblemDao.courseProblems(courseId)
+    } yield assertTrue(
+      ps.size == 3,
+      ps.exists(_.templateAlias == "problemAlias3")
+    )
+  }
+
+  val removingProblemToTemplate = test("Removing problem from template removes problem from user") {
+    for {
+      userId <- createUserMakeTemplate
+      courseId <- Courses.startCourseForUser("alias", userId)
+      _ <- CourseTemplateOps.addProblemToTemplateAndUpdateCourses("alias", "problemAlias3")
+      _ <- CourseTemplateOps.removeProblemFromTemplateAndUpdateCourses("alias", "problemAlias3")
+      ps <- ProblemDao.courseProblems(courseId)
+    } yield assertTrue(
+      ps.size == 2,
+      !ps.exists(_.templateAlias == "problemAlias3")
+    )
+  }
+
 
 }
