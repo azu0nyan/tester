@@ -20,7 +20,6 @@ object AnswerRejectionDao extends AbstractDao[AnswerRejection]{
   override val schema: Schema[AnswerRejection] = DeriveSchema.gen[AnswerRejection]
   override val tableName: String = "AnswerRejection"
 
-
   def answerRejection(answerId: Int): TranzactIO[AnswerRejection] =
     selectWhereOption(fr"answerId=$answerId")
 }
