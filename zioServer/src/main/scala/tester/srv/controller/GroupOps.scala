@@ -9,6 +9,7 @@ import doobie.postgres.implicits.*
 import doobie.postgres.pgisimplicits.*
 import io.github.gaelrenoux.tranzactio.{DbException, doobie}
 import doobie.{Connection, Database, TranzactIO, tzio}
+import tester.srv.controller.impl.CoursesTranzactIO
 import tester.srv.dao.CourseTemplateForGroupDao.CourseTemplateForGroup
 import tester.srv.dao.{CourseTemplateForGroupDao, UserToGroupDao}
 import tester.srv.dao.UserToGroupDao.UserToGroup
@@ -22,7 +23,7 @@ object GroupOps {
     for {
       _ <- addUserToGroupQuery(userId, groupId)
       courses <- CourseTemplateForGroupDao.forcedCourses(groupId)
-      _ <- ZIO.foreach(courses)(course => Courses.startCourseForUser(course.templateAlias, userId))
+      _ <- ZIO.foreach(courses)(course => CoursesTranzactIO.startCourseForUser(course.templateAlias, userId))
     } yield ()
 
   private def addUserToGroupQuery(userId: Int, groupId: Int) =
@@ -46,7 +47,7 @@ object GroupOps {
       toStartUsersIds <-
         if (forceStart) UserToGroupDao.usersInGroup(groupId)
         else ZIO.succeed(Seq())
-      _ <- ZIO.foreach(toStartUsersIds)(userId => Courses.startCourseForUser(templateAlias, userId))
+      _ <- ZIO.foreach(toStartUsersIds)(userId => CoursesTranzactIO.startCourseForUser(templateAlias, userId))
     } yield ()
 
   def removeCourseTemplateFromGroup(templateAlias: String, groupId: Int, forceRemoval: Boolean) =
@@ -55,6 +56,6 @@ object GroupOps {
       toRemoveUserIds <-
         if (forceRemoval) UserToGroupDao.usersInGroup(groupId)
         else ZIO.succeed(Seq())
-      _ <- ZIO.foreach(toRemoveUserIds)(userId => Courses.removeCourseFromUser(templateAlias, userId))
+      _ <- ZIO.foreach(toRemoveUserIds)(userId => CoursesTranzactIO.removeCourseFromUser(templateAlias, userId))
     } yield ()
 }

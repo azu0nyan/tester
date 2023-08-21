@@ -3,6 +3,7 @@ package tester.srv.controller
 import EmbeddedPG.EmbeddedPG
 import io.github.gaelrenoux.tranzactio.doobie.TranzactIO
 import tester.srv.controller.UserOps.{RegistrationData, RegistrationResult}
+import tester.srv.controller.impl.CoursesTranzactIO
 import tester.srv.dao.{CourseDao, CourseTemplateDao, ProblemDao}
 import tester.srv.dao.CourseTemplateDao.CourseTemplate
 import zio.*
@@ -35,7 +36,7 @@ object CourseTest extends ZIOSpecDefault {
     val userData = RegistrationData("user", "password", "Aliecbob", "Joens", "a@a.com")
     for {
       userId <- createUserMakeTemplate
-      courseId <- Courses.startCourseForUser("alias", userId)
+      courseId <- CoursesTranzactIO.startCourseForUser("alias", userId)
       course <- CourseDao.byId(courseId)
       problems <- ProblemDao.courseProblems(courseId)
       allCourses <- CourseDao.all
@@ -59,8 +60,8 @@ object CourseTest extends ZIOSpecDefault {
   val stopCourse = test("Stopping course") {
     for{
       userId <- createUserMakeTemplate
-      courseId <- Courses.startCourseForUser("alias", userId)
-      _ <- Courses.stopCourse("alias", userId)
+      courseId <- CoursesTranzactIO.startCourseForUser("alias", userId)
+      _ <- CoursesTranzactIO.stopCourse("alias", userId)
       active <- CourseDao.activeUserCourses(userId)
       previous <- CourseDao.previousUserCourses(userId)
       courses <- CourseDao.previousUserCourses(userId)
@@ -76,8 +77,8 @@ object CourseTest extends ZIOSpecDefault {
   val removeCourse = test("Removing course") {
     for {
       userId <- createUserMakeTemplate
-      courseId <- Courses.startCourseForUser("alias", userId)
-      _ <- Courses.removeCourseFromUser("alias", userId)
+      courseId <- CoursesTranzactIO.startCourseForUser("alias", userId)
+      _ <- CoursesTranzactIO.removeCourseFromUser("alias", userId)
       problems <- ProblemDao.courseProblems(courseId)
       courses <- CourseDao.activeUserCourses(userId)
       finishedCourses <- CourseDao.previousUserCourses(userId)
@@ -91,7 +92,7 @@ object CourseTest extends ZIOSpecDefault {
   val addingProblemToTemplate = test("Adding problem to template adds problem to user"){
     for {
       userId <- createUserMakeTemplate
-      courseId <- Courses.startCourseForUser("alias", userId)
+      courseId <- CoursesTranzactIO.startCourseForUser("alias", userId)
       _ <- CourseTemplateOps.addProblemToTemplateAndUpdateCourses("alias", "problemAlias3")
       ps <- ProblemDao.courseProblems(courseId)
     } yield assertTrue(
@@ -103,7 +104,7 @@ object CourseTest extends ZIOSpecDefault {
   val removingProblemToTemplate = test("Removing problem from template removes problem from user") {
     for {
       userId <- createUserMakeTemplate
-      courseId <- Courses.startCourseForUser("alias", userId)
+      courseId <- CoursesTranzactIO.startCourseForUser("alias", userId)
       _ <- CourseTemplateOps.addProblemToTemplateAndUpdateCourses("alias", "problemAlias3")
       _ <- CourseTemplateOps.removeProblemFromTemplateAndUpdateCourses("alias", "problemAlias3")
       ps <- ProblemDao.courseProblems(courseId)

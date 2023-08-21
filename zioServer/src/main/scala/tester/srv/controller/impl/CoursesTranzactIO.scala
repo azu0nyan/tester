@@ -1,30 +1,11 @@
-package tester.srv.controller
+package tester.srv.controller.impl
 
-import zio.*
-import doobie.*
-import doobie.implicits.*
-import doobie.implicits.javasql.*
-import doobie.postgres.*
-import doobie.postgres.implicits.*
-import doobie.postgres.pgisimplicits.*
-import io.github.gaelrenoux.tranzactio.{DbException, doobie}
-import doobie.{Connection, Database, TranzactIO, tzio}
-import tester.srv.dao.{CourseDao, CourseTemplateDao, CourseTemplateProblemDao, UserSessionDao}
+import io.github.gaelrenoux.tranzactio.doobie.TranzactIO
+import tester.srv.controller.{Courses, ProblemOps}
+import tester.srv.dao.{CourseDao, CourseTemplateDao, CourseTemplateProblemDao}
+import zio.ZIO
 
-import java.time.Instant
-
-
-/** Курс, который проходит пользователь */
-trait Courses[F[_]]{
-  def startCourseForUser(alias: String, userId: Int): F[Int]
-
-  def stopCourse(alias: String, userId: Int): F[Unit]
-
-  /** Так же удаляет все ответы пользователя */
-  def removeCourseFromUser(alias: String, userId: Int): F[Unit]
-}
-
-object Courses extends Courses[TranzactIO] {
+object CoursesTranzactIO extends Courses[TranzactIO] {
 
   /** Returns courseId */
   def startCourseForUser(alias: String, userId: Int): TranzactIO[Int] =
@@ -39,16 +20,15 @@ object Courses extends Courses[TranzactIO] {
 
 
   def stopCourse(alias: String, userId: Int): TranzactIO[Unit] =
-    for{
+    for {
       c <- CourseDao.byAliasAndUserId(alias, userId)
       _ <- ZIO.when(c.nonEmpty)(CourseDao.setStopped(c.get.id))
     } yield ()
 
   /** Так же удаляет все ответы пользователя */
-  def removeCourseFromUser(alias: String, userId: Int):TranzactIO[Unit] =
+  def removeCourseFromUser(alias: String, userId: Int): TranzactIO[Unit] =
     for {
       c <- CourseDao.byAliasAndUserId(alias, userId)
       _ <- ZIO.when(c.nonEmpty)(CourseDao.deleteById(c.get.id))
     } yield ()
 }
-

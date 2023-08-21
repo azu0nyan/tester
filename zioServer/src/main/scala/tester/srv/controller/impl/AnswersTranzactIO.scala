@@ -1,47 +1,47 @@
-package tester.srv.controller
+package tester.srv.controller.impl
 
-import zio.*
 import doobie.*
 import doobie.implicits.*
 import doobie.implicits.javasql.*
 import doobie.postgres.*
 import doobie.postgres.implicits.*
 import doobie.postgres.pgisimplicits.*
+import io.github.gaelrenoux.tranzactio.doobie.{Connection, Database, TranzactIO, tzio}
 import io.github.gaelrenoux.tranzactio.{DbException, doobie}
-import doobie.{Connection, Database, TranzactIO, tzio}
-import tester.srv.controller.Answers.{AlreadyVerifyingAnswer, AnswerStatus, AnswerSubmitted, MaximumAttemptsLimitExceeded, ProblemNotFound, SubmitAnswerResult}
-import tester.srv.dao.{AnswerRejectionDao, AnswerReviewDao, AnswerVerificationConfirmationDao, AnswerVerificationDao, ProblemDao}
+import tester.srv.controller.Answers
+import tester.srv.controller.Answers.*
 import tester.srv.dao.AnswerRejectionDao.AnswerRejection
 import tester.srv.dao.AnswerReviewDao.AnswerReview
 import tester.srv.dao.AnswerVerificationConfirmationDao.AnswerVerificationConfirmation
 import tester.srv.dao.AnswerVerificationDao.AnswerVerification
 import tester.srv.dao.tester.srv.dao.AnswerDao
+import tester.srv.dao.*
+import zio.*
 
-object AnswersTranz extends Answers[TranzactIO] {
+object AnswersTranzactIO extends Answers[TranzactIO] {
   override def deleteAnswer(id: Int): TranzactIO[Boolean] =
     AnswerDao.deleteById(id)
 
   override def submitAnswer(problemId: Int, answerRaw: String): TranzactIO[SubmitAnswerResult] =
     val checkMaxAttempts: TranzactIO[Boolean] =
       problem.maxAttempts match
-        case Some(maxAttempts) => 
+        case Some(maxAttempts) =>
           AnswerDao.currentUnrejectedAnswerCount(problemId)
             .map(_ < maxAttempts)
         case None => ZIO.succeed(true)
-    
+
     val checkNoVerifying: TranzactIO[Boolean] =
       AnswerDao.unverifiedAnswers(problemId).map(_.isEmpty) //todo cache locally
-    
+
     def submit(p: ProblemDao.Problem): TranzactIO[Boolean] = for{
       id <- AnswerDao.insertReturnId(AnswerDao.Answer(0, problemId, answerRaw, "{}", java.time.Clock.systemUTC().instant()))
-      _ <- validator.stopValidation(problemId)
-      _ <- validator.validate(problemId, answerRaw, p.seed)
+      _ <- vereficator.verify(problemId,p.templateAlias, id,  answerRaw, p.seed)
       _ <- rejectNotConfirmed
     } yield AnswerSubmitted(id)
-    
+
     val rejectNotConfirmed: TranzactIO[Unit] = ZIO.succeed(())
-//      for(answs <- AnswerDao.unconfirmedAnswers())
-    
+//      for(answs <- AnswerDao.unconfirmedAnswers()) todo
+
     ProblemDao.byIdOption(problemId).map {
       case Some(problem) =>
         ZIO.ifZIO(checkMaxAttempts)(
@@ -50,7 +50,7 @@ object AnswersTranz extends Answers[TranzactIO] {
             onFalse = ZIO.succeed(AlreadyVerifyingAnswer())
           ),
           onFalse = ZIO.succeed(MaximumAttemptsLimitExceeded(problem.maxAttempts.get))
-        )         
+        )
       case None => ProblemNotFound()
     }
 
