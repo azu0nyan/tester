@@ -1,4 +1,5 @@
-package tester.srv.controller
+package tester.srv.controller.impl
+
 
 import zio.*
 import doobie.*
@@ -9,12 +10,13 @@ import doobie.postgres.implicits.*
 import doobie.postgres.pgisimplicits.*
 import io.github.gaelrenoux.tranzactio.{DbException, doobie}
 import doobie.{Connection, Database, TranzactIO, tzio}
+import tester.srv.controller.ProblemService
 import tester.srv.dao.ProblemDao
 import tester.srv.dao.ProblemDao.Problem
 
-object ProblemOps {
 
-  /**Returns problem id*/
+object ProblemServiceTranzactIO extends ProblemService[TranzactIO]{
+
   def startProblem(courseId: Int, templateAlias: String): TranzactIO[Int] = {
     val toInsert = Problem(0, courseId, templateAlias, scala.util.Random.nextInt(), "{}", None, None )
     ProblemDao.insertReturnId(toInsert)
@@ -28,3 +30,4 @@ object ProblemOps {
 
 
 }
+

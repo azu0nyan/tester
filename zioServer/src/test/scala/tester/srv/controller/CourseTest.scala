@@ -2,9 +2,8 @@ package tester.srv.controller
 
 import EmbeddedPG.EmbeddedPG
 import io.github.gaelrenoux.tranzactio.doobie.TranzactIO
-import tester.srv.controller.UserOps.{RegistrationData, RegistrationResult}
-import tester.srv.controller.impl.CoursesTranzactIO
-import tester.srv.controller.impl.CourseTemplateTranzactIO
+import tester.srv.controller.UserService.{RegistrationData, RegistrationResult}
+import tester.srv.controller.impl.{CourseTemplateTranzactIO, CoursesTranzactIO, UserServiceTranzactIO}
 import tester.srv.dao.{CourseDao, CourseTemplateDao, ProblemDao}
 import tester.srv.dao.CourseTemplateDao.CourseTemplate
 import zio.*
@@ -26,7 +25,7 @@ object CourseTest extends ZIOSpecDefault {
   val createUserMakeTemplate: TranzactIO[Int] =
     val userData = RegistrationData("user", "password", "Aliecbob", "Joens", "a@a.com")
     for {
-      userId <- UserOps.registerUser(userData).map(_.asInstanceOf[RegistrationResult.Success].userId)
+      userId <- UserServiceTranzactIO.registerUser(userData).map(_.asInstanceOf[RegistrationResult.Success].userId)
       _ <- CourseTemplateDao.insert(CourseTemplate("alias", "description", "{}"))
       _ <- CourseTemplateTranzactIO.addProblemToTemplateAndUpdateCourses("alias", "problemAlias1")
       _ <- CourseTemplateTranzactIO.addProblemToTemplateAndUpdateCourses("alias", "problemAlias2")

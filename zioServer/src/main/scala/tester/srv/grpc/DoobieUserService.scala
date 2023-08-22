@@ -13,9 +13,10 @@ import grpc_api.user_api.RegistrationFailure.Failure.UserAlreadyExists
 import io.github.gaelrenoux.tranzactio.doobie
 import io.github.gaelrenoux.tranzactio.doobie.{Connection, Database, TranzactIO, tzio}
 import io.grpc.{Status, StatusException}
-import tester.srv.controller.{PasswordHashingSalting, UserOps}
+import tester.srv.controller.{PasswordHashingSalting, UserService}
 import tester.srv.controller.PasswordHashingSalting.HashAndSalt
-import tester.srv.controller.UserOps.{RegistrationData, RegistrationResult}
+import tester.srv.controller.UserService.{RegistrationData, RegistrationResult}
+import tester.srv.controller.impl.UserServiceTranzactIO
 import tester.srv.dao.RegisteredUserDao
 import zio.*
 
@@ -56,7 +57,7 @@ object DoobieUserService extends ZUserService[DoobieCtx] {
       db <- ZIO.service[Database]
       res <-
         db
-        .transactionOrWiden(UserOps.registerUser(RegistrationData(req.login, req.password, req.firstName, req.lastName, req.email)))
+        .transactionOrWiden(UserServiceTranzactIO.registerUser(RegistrationData(req.login, req.password, req.firstName, req.lastName, req.email)))
         .map(mapRegistrationResults)
     } yield res
     trans

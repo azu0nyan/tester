@@ -18,8 +18,8 @@ object CourseTemplateForGroupDao extends AbstractDao[CourseTemplateForGroup] {
   override val schema: Schema[CourseTemplateForGroup] = DeriveSchema.gen[CourseTemplateForGroup]
   override val tableName: String = "CourseTemplateForGroup"
 
-  def removeCourseFromGroup(templateAlias: String, groupId: Int): TranzactIO[Int] =
-    deleteWhere(fr"templateAlias = $templateAlias AND groupId = $groupId")
+  def removeCourseFromGroup(templateAlias: String, groupId: Int): TranzactIO[Boolean] =
+    deleteWhere(fr"templateAlias = $templateAlias AND groupId = $groupId").map(_ == 1)
 
   /** Курсы, которые должны стартовать для всех участников группы автоматически */
   def forcedCourses(groupId: Int): TranzactIO[List[CourseTemplateForGroup]] =

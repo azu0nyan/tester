@@ -12,8 +12,6 @@ object PasswordHashingSalting {
 
   private val HEX_ARRAY = "0123456789ABCDEF".map(c => c.asInstanceOf[Byte])
 
-
-
   def bytesToHex(bytes: Array[Byte]): String = {
     val hexChars = new Array[Byte](bytes.length * 2)
     for (j <- bytes.indices) {

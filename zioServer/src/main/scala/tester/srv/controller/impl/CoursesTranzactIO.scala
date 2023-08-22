@@ -1,7 +1,7 @@
 package tester.srv.controller.impl
 
 import io.github.gaelrenoux.tranzactio.doobie.TranzactIO
-import tester.srv.controller.{Courses, ProblemOps}
+import tester.srv.controller.{Courses, ProblemService}
 import tester.srv.dao.{CourseDao, CourseTemplateDao, CourseTemplateProblemDao}
 import zio.ZIO
 
@@ -15,7 +15,7 @@ object CoursesTranzactIO extends Courses[TranzactIO] {
         scala.util.Random.nextInt(), Some(java.time.Clock.systemUTC().instant()), None)
       courseId <- CourseDao.insertReturnId(course)
       aliases <- CourseTemplateProblemDao.templateProblemAliases(courseTemplate.alias)
-      _ <- ZIO.foreach(aliases)(a => ProblemOps.startProblem(courseId, a.problemAlias))
+      _ <- ZIO.foreach(aliases)(a => ProblemServiceTranzactIO.startProblem(courseId, a.problemAlias))//todo add problem service as dependency
     } yield courseId
 
 

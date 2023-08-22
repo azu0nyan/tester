@@ -1,4 +1,5 @@
-package tester.srv.controller
+package tester.srv.controller.impl
+
 
 import doobie.Update
 import grpc_api.user_api.RegistrationRequest
@@ -12,7 +13,9 @@ import doobie.postgres.implicits.*
 import doobie.postgres.pgisimplicits.*
 import io.github.gaelrenoux.tranzactio.{DbException, doobie}
 import doobie.{Connection, Database, TranzactIO, tzio}
-import tester.srv.controller.UserOps.LoginResult.{LoggedIn, UserNotFound, WrongPassword}
+import tester.srv.controller.{PasswordHashingSalting, TokenOps, UserService}
+import tester.srv.controller.UserService.LoginResult.*
+import tester.srv.controller.UserService.{LoginData, LoginResult, RegistrationData, RegistrationResult}
 import tester.srv.dao.RegisteredUserDao.RegisteredUser
 import tester.srv.dao.{RegisteredUserDao, UserSessionDao}
 import tester.srv.dao.UserSessionDao.UserSession
@@ -20,10 +23,12 @@ import tester.srv.dao.UserSessionDao.UserSession
 import java.time.Instant
 
 
-object UserOps {
-  case class UserFromList(login: String, firstName: String, lastName: String)
 
 
+object UserServiceTranzactIO extends UserService[TranzactIO]{
+
+  val minLoginLength = 3
+  val minPassowdLength = 4
 
   //todo assign role to new users
   /**Returns userId*/
@@ -33,23 +38,6 @@ object UserOps {
       java.time.Clock.systemUTC().instant(), "{ \"Student\": {}}")
     RegisteredUserDao.insertReturnId(user)
   end registerUserQuery
-
-
-  val minLoginLength = 3
-  val minPassowdLength = 4
-
-  sealed trait RegistrationResult
-  object RegistrationResult {
-    case class Success(userId: Int) extends RegistrationResult
-    sealed trait Fail extends RegistrationResult
-    case class AlreadyExists(login: String) extends Fail
-    case class LoginToShort(min: Int) extends Fail
-    case class PasswordToShort(min: Int) extends Fail
-    case object WrongCharsInLogin extends Fail
-    case object ZeroRowsUpdated extends Fail
-    case class UnknownError(t: Option[Throwable] = None, msg: Option[String] = None) extends Fail
-  }
-  case class RegistrationData(login: String, password: String, firstName: String, lastName: String, email: String)
 
   def registerUser(req: RegistrationData): TranzactIO[RegistrationResult] =
     if (req.login.length < minLoginLength)
@@ -69,16 +57,6 @@ object UserOps {
       } yield res
 
 
-  case class LoginData(login: String, password: String, sessionLengthSec: Int = 24 * 60 * 60,
-                       ip: Option[String] = None, userAgent: Option[String] = None, platform: Option[String] = None, locale: Option[String] = None,
-                      )
-
-  sealed trait LoginResult
-  object LoginResult {
-    final case class LoggedIn(token: String) extends LoginResult
-    final case class UserNotFound(login: String) extends LoginResult
-    final case class WrongPassword(login: String, password: String) extends LoginResult
-  }
   def loginUser(data: LoginData): TranzactIO[LoginResult] =
     for {
       u <- RegisteredUserDao.byLogin(data.login)
@@ -95,7 +73,7 @@ object UserOps {
             } yield LoggedIn(token)
           else ZIO.succeed(WrongPassword(data.login, data.password))
         case None => ZIO.succeed(UserNotFound(data.login))
-    } yield res
+    } yield res.asInstanceOf[LoginResult]
 
   def validateToken(token: String): TranzactIO[TokenOps.ValidationResult] = {
     TokenOps.decodeAndValidateUserToken(token) match
@@ -106,4 +84,5 @@ object UserOps {
       case other => ZIO.succeed(other)
   }
 }
+
 

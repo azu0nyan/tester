@@ -1,7 +1,7 @@
 package tester.srv.controller
 
-import tester.srv.controller.Answers.AnswerStatus
-import tester.srv.controller.Answers.SubmitAnswerResult
+import tester.srv.controller.AnswerService.AnswerStatus
+import tester.srv.controller.AnswerService.SubmitAnswerResult
 import tester.srv.dao.AnswerRejectionDao.AnswerRejection
 import tester.srv.dao.AnswerReviewDao.AnswerReview
 import tester.srv.dao.AnswerVerificationConfirmationDao.AnswerVerificationConfirmation
@@ -9,7 +9,7 @@ import tester.srv.dao.AnswerVerificationDao.AnswerVerification
 
 import java.time.Instant
 
-trait Answers[F[_]]{
+trait AnswerService[F[_]]{
   def deleteAnswer(id: Int): F[Boolean]
 
   def submitAnswer(problemId: Int, answerRaw: String):F[SubmitAnswerResult]
@@ -23,7 +23,7 @@ trait Answers[F[_]]{
   def rejectAnswer(answerId: Int, userId: Int, message: Option[String]): F[Boolean]
 }
 
-object Answers {
+object AnswerService {
 
   case class AnswerStatus(
                            verified: Option[AnswerVerification],

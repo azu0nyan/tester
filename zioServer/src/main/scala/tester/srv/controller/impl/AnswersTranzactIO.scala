@@ -8,8 +8,8 @@ import doobie.postgres.implicits.*
 import doobie.postgres.pgisimplicits.*
 import io.github.gaelrenoux.tranzactio.doobie.{Connection, Database, TranzactIO, tzio}
 import io.github.gaelrenoux.tranzactio.{DbException, doobie}
-import tester.srv.controller.Answers
-import tester.srv.controller.Answers.*
+import tester.srv.controller.AnswerService
+import tester.srv.controller.AnswerService.*
 import tester.srv.controller.VerificationService
 import tester.srv.dao.AnswerRejectionDao.AnswerRejection
 import tester.srv.dao.AnswerReviewDao.AnswerReview
@@ -19,7 +19,7 @@ import tester.srv.dao.*
 import zio.*
 import ProblemDao.Problem
 
-object AnswersTranzactIO extends Answers[TranzactIO] {
+object AnswersTranzactIO extends AnswerService[TranzactIO] {
   override def deleteAnswer(id: Int): TranzactIO[Boolean] =
     AnswerDao.deleteById(id)
 
