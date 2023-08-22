@@ -1,5 +1,9 @@
 package tester.srv.controller
 
-trait ProblemVerificatorRegistry {
+trait ProblemVerificatorRegistry[F[_]] {
+    
+}
 
+object ProblemVerificatorRegistry{
+  
 }

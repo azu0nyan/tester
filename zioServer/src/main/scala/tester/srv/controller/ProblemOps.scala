@@ -16,7 +16,7 @@ object ProblemOps {
 
   /**Returns problem id*/
   def startProblem(courseId: Int, templateAlias: String): TranzactIO[Int] = {
-    val toInsert = Problem(0, courseId, templateAlias, scala.util.Random.nextInt(), "{}")
+    val toInsert = Problem(0, courseId, templateAlias, scala.util.Random.nextInt(), "{}", None, None )
     ProblemDao.insertReturnId(toInsert)
   }
 

@@ -4,6 +4,7 @@ import EmbeddedPG.EmbeddedPG
 import io.github.gaelrenoux.tranzactio.doobie.TranzactIO
 import tester.srv.controller.UserOps.{RegistrationData, RegistrationResult}
 import tester.srv.controller.impl.CoursesTranzactIO
+import tester.srv.controller.impl.CourseTemplateTranzactIO
 import tester.srv.dao.{CourseDao, CourseTemplateDao, ProblemDao}
 import tester.srv.dao.CourseTemplateDao.CourseTemplate
 import zio.*
@@ -27,8 +28,8 @@ object CourseTest extends ZIOSpecDefault {
     for {
       userId <- UserOps.registerUser(userData).map(_.asInstanceOf[RegistrationResult.Success].userId)
       _ <- CourseTemplateDao.insert(CourseTemplate("alias", "description", "{}"))
-      _ <- CourseTemplateOps.addProblemToTemplateAndUpdateCourses("alias", "problemAlias1")
-      _ <- CourseTemplateOps.addProblemToTemplateAndUpdateCourses("alias", "problemAlias2")
+      _ <- CourseTemplateTranzactIO.addProblemToTemplateAndUpdateCourses("alias", "problemAlias1")
+      _ <- CourseTemplateTranzactIO.addProblemToTemplateAndUpdateCourses("alias", "problemAlias2")
     } yield userId
 
 
@@ -93,7 +94,7 @@ object CourseTest extends ZIOSpecDefault {
     for {
       userId <- createUserMakeTemplate
       courseId <- CoursesTranzactIO.startCourseForUser("alias", userId)
-      _ <- CourseTemplateOps.addProblemToTemplateAndUpdateCourses("alias", "problemAlias3")
+      _ <- CourseTemplateTranzactIO.addProblemToTemplateAndUpdateCourses("alias", "problemAlias3")
       ps <- ProblemDao.courseProblems(courseId)
     } yield assertTrue(
       ps.size == 3,
@@ -105,8 +106,8 @@ object CourseTest extends ZIOSpecDefault {
     for {
       userId <- createUserMakeTemplate
       courseId <- CoursesTranzactIO.startCourseForUser("alias", userId)
-      _ <- CourseTemplateOps.addProblemToTemplateAndUpdateCourses("alias", "problemAlias3")
-      _ <- CourseTemplateOps.removeProblemFromTemplateAndUpdateCourses("alias", "problemAlias3")
+      _ <- CourseTemplateTranzactIO.addProblemToTemplateAndUpdateCourses("alias", "problemAlias3")
+      _ <- CourseTemplateTranzactIO.removeProblemFromTemplateAndUpdateCourses("alias", "problemAlias3")
       ps <- ProblemDao.courseProblems(courseId)
     } yield assertTrue(
       ps.size == 2,

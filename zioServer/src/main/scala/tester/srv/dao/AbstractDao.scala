@@ -106,7 +106,8 @@ object AbstractDao {
     def byIdOption(id: Int): TranzactIO[Option[T]] = selectWhereAndOption(fr"id = $id")
     def byId(id: Int): TranzactIO[T] = selectWhereAnd(fr"id = $id")
 
-    def deleteById(id: Int): TranzactIO[Int] = deleteWhere(fr"id = $id")
+    def deleteById(id: Int): TranzactIO[Boolean] = 
+      deleteWhere(fr"id = $id").map(_ == 1)
 
     def updateById(id: Int, set: Fragment): TranzactIO[Boolean] =
       updateWhere(set, fr"id = $id").map(_ == 1)

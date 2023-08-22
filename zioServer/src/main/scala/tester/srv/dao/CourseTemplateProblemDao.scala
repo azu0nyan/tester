@@ -20,7 +20,8 @@ object CourseTemplateProblemDao extends AbstractDao [CourseTemplateProblem]{
   def templateProblemAliases(alias: String): TranzactIO[Seq[CourseTemplateProblem]] =
     selectWhereAndList(fr"courseAlias = $alias")
 
-  def removeProblemFromTemplate(courseAlias: String, problemAlias: String): TranzactIO[Int] =
+  def removeProblemFromTemplate(courseAlias: String, problemAlias: String): TranzactIO[Boolean] =
     deleteWhere(fr"courseAlias = $courseAlias AND problemAlias = $problemAlias")
+      .map(_ == 1)
 
 }

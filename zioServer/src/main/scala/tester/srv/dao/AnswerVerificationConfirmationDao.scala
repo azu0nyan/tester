@@ -11,6 +11,7 @@ import doobie.postgres.implicits.*
 import doobie.postgres.pgisimplicits.*
 import AbstractDao.ById
 import tester.srv.dao.AnswerDao.Answer
+import AnswerVerificationConfirmationDao.AnswerVerificationConfirmation
 
 import java.time.Instant
 
@@ -20,7 +21,7 @@ object AnswerVerificationConfirmationDao extends AbstractDao[AnswerVerificationC
   override val schema: Schema[AnswerVerificationConfirmation] = DeriveSchema.gen[AnswerVerificationConfirmation]
   override val tableName: String = "AnswerVerificationConfirmation"
 
-  def answerConfirmation(answerId: Int): TranzactIO[AnswerVerificationConfirmation] =
+  def answerConfirmation(answerId: Int): TranzactIO[Option[AnswerVerificationConfirmation]] =
     selectWhereOption(fr"answerId=$answerId")
 }
 

@@ -12,6 +12,7 @@ import doobie.postgres.implicits.*
 import doobie.postgres.pgisimplicits.*
 import AbstractDao.ById
 import tester.srv.dao.AnswerDao.Answer
+import AnswerVerificationDao.AnswerVerification
 
 import java.time.Instant
 
@@ -21,7 +22,7 @@ object AnswerVerificationDao extends AbstractDao[AnswerVerification]{
   override val schema: Schema[AnswerVerification] = DeriveSchema.gen[AnswerVerification]
   override val tableName: String = "AnswerVerification"
 
-  def answerVerification(answerId: Int): TranzactIO[AnswerVerification] =
+  def answerVerification(answerId: Int): TranzactIO[Option[AnswerVerification]] =
     selectWhereOption(fr"answerId=$answerId")
 }
 

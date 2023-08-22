@@ -11,6 +11,7 @@ import doobie.postgres.implicits.*
 import doobie.postgres.pgisimplicits.*
 import AbstractDao.ById
 import tester.srv.dao.AnswerDao.Answer
+import AnswerRejectionDao.AnswerRejection
 
 import java.time.Instant
 
@@ -20,7 +21,7 @@ object AnswerRejectionDao extends AbstractDao[AnswerRejection]{
   override val schema: Schema[AnswerRejection] = DeriveSchema.gen[AnswerRejection]
   override val tableName: String = "AnswerRejection"
 
-  def answerRejection(answerId: Int): TranzactIO[AnswerRejection] =
+  def answerRejection(answerId: Int): TranzactIO[Option[AnswerRejection]] =
     selectWhereOption(fr"answerId=$answerId")
 }
 

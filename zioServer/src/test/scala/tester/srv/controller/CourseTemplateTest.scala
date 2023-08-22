@@ -1,6 +1,7 @@
 package tester.srv.controller
 
 import EmbeddedPG.EmbeddedPG
+import tester.srv.controller.impl.CourseTemplateTranzactIO
 import tester.srv.dao.CourseTemplateDao.CourseTemplate
 import tester.srv.dao.{CourseTemplateDao, CourseTemplateProblemDao, UserSessionDao}
 import tester.srv.dao.CourseTemplateProblemDao.CourseTemplateProblem
@@ -30,9 +31,9 @@ object CourseTemplateTest extends ZIOSpecDefault {
   val courseTemplateAddRemoveProblem = test("Course template add problem"){
     for{
       _ <- CourseTemplateDao.insert(CourseTemplate("alias", "description", "{}"))
-      _ <- CourseTemplateOps.addProblemToTemplateAndUpdateCourses("alias", "problemAlias")
+      _ <- CourseTemplateTranzactIO.addProblemToTemplateAndUpdateCourses("alias", "problemAlias")
       listOne <- CourseTemplateProblemDao.templateProblemAliases("alias")
-      _ <- CourseTemplateOps.removeProblemFromTemplateAndUpdateCourses("alias", "problemAlias")
+      _ <- CourseTemplateTranzactIO.removeProblemFromTemplateAndUpdateCourses("alias", "problemAlias")
       listTwo <- CourseTemplateProblemDao.templateProblemAliases("alias")
     } yield assertTrue(
       listOne.size == 1,
