@@ -1,5 +1,8 @@
 package tester.srv.controller
 
-trait AnswerVerificator {
+import otsbridge.{AnswerVerificationResult, ProblemTemplate}
 
+
+trait AnswerVerificator {
+  def verifyAnswer(seed: Int, answer: String): AnswerVerificationResult
 }

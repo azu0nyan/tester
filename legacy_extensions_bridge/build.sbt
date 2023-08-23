@@ -4,9 +4,9 @@ name := "otsExtensionsBridge"
 
 version := "0.1"
 
-val circeVersion = "0.13.0"
+val circeVersion = "0.14.5"
 
-ThisBuild / scalaVersion := "2.13.3"
+ThisBuild / scalaVersion := "3.3.0"
 
 scalacOptions ++= Seq(
   "-encoding", "utf8", // Option and arguments on same  line

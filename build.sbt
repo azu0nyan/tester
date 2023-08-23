@@ -78,6 +78,13 @@ lazy val dbFromMongoMigration = (project in file("dbFromMongoMigration"))
 //    scalacOptions += "-Xignore-scala2-macros"
   ).dependsOn(legacyOts, dbGenerated)
 */
+
+
+
+lazy val legacyExtensionBridge = ProjectRef(file("legacy_extensions_bridge"), "fooJVM")
+
+
+
 /**Protobuff gRPC api */
 lazy val protos = crossProject(JSPlatform, JVMPlatform)
   .in(file("protos"))
@@ -99,7 +106,7 @@ lazy val protos = crossProject(JSPlatform, JVMPlatform)
   )
 
 val zioServer = (project in file("zioServer"))
-  .dependsOn(/**jvmToJsApi,*/ /*zioDockerRunner,*/ protos.jvm /**, dbGenerated*/)
+  .dependsOn(/**jvmToJsApi,*/ /*zioDockerRunner,*/ protos.jvm, legacyExtensionBridge)
   .settings(
     version := "0.0.1",
     scalaVersion := scalaVer,
