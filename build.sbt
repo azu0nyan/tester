@@ -80,7 +80,7 @@ lazy val dbFromMongoMigration = (project in file("dbFromMongoMigration"))
 */
 
 
-
+lazy val jvmToJsApi = RootProject(file("jvmToJsApi"))
 lazy val legacyExtensionBridge = ProjectRef(file("legacy_extensions_bridge"), "fooJVM")
 
 
@@ -106,9 +106,9 @@ lazy val protos = crossProject(JSPlatform, JVMPlatform)
   )
 
 val zioServer = (project in file("zioServer"))
-  .dependsOn(/**jvmToJsApi,*/ /*zioDockerRunner,*/ protos.jvm, legacyExtensionBridge)
+  .dependsOn(jvmToJsApi, /*zioDockerRunner,*/ protos.jvm, legacyExtensionBridge)
   .settings(
-    version := "0.0.1",
+    version := "0.0.2",
     scalaVersion := scalaVer,
     name := "zioServer",
     fork := true,
