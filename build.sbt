@@ -21,6 +21,10 @@ val zioSchema = Seq(
   "dev.zio" %% "zio-schema-derivation" % "0.4.13"
 )
 
+val zioHTTP = Seq(
+  "dev.zio" %% "zio-http" % "3.0.0-RC2"
+)
+
 val zioTestDependencies = Seq(
   "dev.zio" %% "zio-test"          % zioVersion % Test,
   "dev.zio" %% "zio-test-sbt"      % zioVersion % Test,
@@ -119,6 +123,7 @@ val zioServer = (project in file("zioServer"))
     libraryDependencies ++= doobieDependencies,
     libraryDependencies ++= grpcJvmDependencies,
     libraryDependencies ++= jwtDependencies,
+    libraryDependencies ++= zioHTTP,
     resolvers ++= Resolver.sonatypeOssRepos("snapshots"),
     testFrameworks += new TestFramework("zio.test.sbt.ZTestFramework"),
 //    envVars in Test ++= Map("LC_ALL" -> "en_US.UTF-8" , "LC_CTYPE" -> "en_US.UTF-8")
