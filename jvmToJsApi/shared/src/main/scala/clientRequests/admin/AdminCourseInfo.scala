@@ -10,28 +10,28 @@ object AdminCourseInfoJson{
   import viewData.*
   import io.circe.syntax.*, io.circe.*, io.circe.generic.semiauto.*
 
-  implicit val reqDec: Decoder[CourseInfoRequest] = deriveDecoder[CourseInfoRequest]
-  implicit val reqEnc: Encoder[CourseInfoRequest] = deriveEncoder[CourseInfoRequest]
-  implicit val resDec: Decoder[CourseInfoResponse] = deriveDecoder[CourseInfoResponse]
-  implicit val resEnc: Encoder[CourseInfoResponse] = deriveEncoder[CourseInfoResponse]
+  implicit val reqDec: Decoder[AdminCourseInfoRequest] = deriveDecoder[AdminCourseInfoRequest]
+  implicit val reqEnc: Encoder[AdminCourseInfoRequest] = deriveEncoder[AdminCourseInfoRequest]
+  implicit val resDec: Decoder[AdminCourseInfoResponse] = deriveDecoder[AdminCourseInfoResponse]
+  implicit val resEnc: Encoder[AdminCourseInfoResponse] = deriveEncoder[AdminCourseInfoResponse]
 
 }
 
 import AdminCourseInfoJson.* 
 
-object AdminCourseInfo extends Route[CourseInfoRequest, CourseInfoResponse] {
+object AdminCourseInfo extends Route[AdminCourseInfoRequest, AdminCourseInfoResponse] {
   override val route: String = "requestAdminCourseInfo"
 
 
 }
 
 //REQ
-case class CourseInfoRequest(token:String, alias:String) extends WithToken
+case class AdminCourseInfoRequest(token:String, alias:String) extends WithToken
 
 //RES
-sealed trait CourseInfoResponse
-case class CourseInfoSuccess(courseInfo:AdminCourseViewData) extends CourseInfoResponse
+sealed trait AdminCourseInfoResponse
+case class AdminCourseInfoSuccess(courseInfo:AdminCourseViewData) extends AdminCourseInfoResponse
 
-sealed trait CourseInfoFailure extends CourseInfoResponse
-case class UnknownCourseInfoFailure() extends CourseInfoFailure
+sealed trait AdminCourseInfoFailure extends AdminCourseInfoResponse
+case class UnknownAdminCourseInfoFailure() extends AdminCourseInfoFailure
 
