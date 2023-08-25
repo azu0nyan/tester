@@ -1,9 +1,26 @@
 package clientRequests.teacher
 
-import clientRequests.{Route, WithToken}
-import io.circe.generic.auto._
+import clientRequests.{ProblemDataRequest, ProblemDataResponse, Route, WithToken}
 import viewData.AnswerFullViewData
+import AnswersList.*
 
+
+object AnswerListJson{
+
+  import viewData.*
+  import io.circe.syntax.*, io.circe.*, io.circe.generic.semiauto.*
+
+  implicit val reqDec: Decoder[AnswersListRequest] = deriveDecoder[AnswersListRequest]
+  implicit val reqEnc: Encoder[AnswersListRequest] = deriveEncoder[AnswersListRequest]
+  implicit val resDec: Decoder[AnswersListResponse] = deriveDecoder[AnswersListResponse]
+  implicit val resEnc: Encoder[AnswersListResponse] = deriveEncoder[AnswersListResponse]
+
+  implicit val reqDec2: Decoder[AnswersListFilter] = deriveDecoder[AnswersListFilter]
+  implicit val reqEnc2: Encoder[AnswersListFilter] = deriveEncoder[AnswersListFilter]
+
+}
+
+import AnswerListJson.*
 
 object AnswersList extends Route[AnswersListRequest, AnswersListResponse] {
   override val route: String = "requestAnswersList"

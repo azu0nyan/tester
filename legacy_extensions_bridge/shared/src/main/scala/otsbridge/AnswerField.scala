@@ -7,6 +7,13 @@ import io.circe.syntax._
 import otsbridge.ProgrammingLanguage.ProgrammingLanguage
 //case class ProgramAnswer(program: String, language: ProgrammingLanguage)
 object AnswerField{
+
+  import io.circe.syntax.*, io.circe.*, io.circe.generic.semiauto.*
+
+  implicit val resDec: Decoder[AnswerField] = deriveDecoder[AnswerField]
+  implicit val resEnc: Encoder[AnswerField] = deriveEncoder[AnswerField]
+
+
   sealed trait AnswerField {
     type Answer
     val questionText: String

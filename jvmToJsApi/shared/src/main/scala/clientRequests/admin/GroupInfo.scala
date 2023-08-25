@@ -1,11 +1,26 @@
 package clientRequests.admin
 
-import io.circe.generic.auto._
 import clientRequests.{Route, WithToken}
 import viewData.GroupDetailedInfoViewData
+import GroupInfo.*
+
+object GroupInfoJson{
+
+  import viewData.*
+  import io.circe.syntax.*, io.circe.*, io.circe.generic.semiauto.*
+
+  implicit val reqDec: Decoder[GroupInfoRequest] = deriveDecoder[GroupInfoRequest]
+  implicit val reqEnc: Encoder[GroupInfoRequest] = deriveEncoder[GroupInfoRequest]
+  implicit val resDec: Decoder[GroupInfoResponse] = deriveDecoder[GroupInfoResponse]
+  implicit val resEnc: Encoder[GroupInfoResponse] = deriveEncoder[GroupInfoResponse]
+
+
+}
+import GroupInfoJson.* 
 
 object GroupInfo extends Route[GroupInfoRequest, GroupInfoResponse] {
   override val route: String = "adminGetGroupInfo"
+
 }
 
 //REQ

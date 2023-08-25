@@ -3,8 +3,13 @@ package otsbridge
 import otsbridge.DisplayMe.{Inline, OwnPage}
 
 object CoursePiece {
-  val emptyCourse: CourseRoot = CourseRoot("", "", Seq())
 
+  import io.circe.syntax.*, io.circe.*, io.circe.generic.semiauto.*
+  implicit val reqDec: Decoder[CoursePiece] = deriveDecoder[CoursePiece]
+  implicit val resEnc: Encoder[CoursePiece] = deriveEncoder[CoursePiece]
+
+
+  val emptyCourse: CourseRoot = CourseRoot("", "", Seq())
 
   val pathDelimiter = "#"
   type PiecePath = Seq[String]

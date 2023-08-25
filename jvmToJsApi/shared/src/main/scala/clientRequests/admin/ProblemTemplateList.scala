@@ -1,12 +1,29 @@
 package clientRequests.admin
 
 import clientRequests.{GenericRequestFailure, Route, WithToken}
-import io.circe.generic.auto._
 import viewData.ProblemTemplateExampleViewData
+import ProblemTemplateList.*
 
+object ProblemTemplateListJson{
+
+  import viewData.*
+  import io.circe.syntax.*, io.circe.*, io.circe.generic.semiauto.*
+
+  implicit val reqDec1: Decoder[ProblemTemplateFilter] = deriveDecoder[ProblemTemplateFilter]
+  implicit val reqEnc1: Encoder[ProblemTemplateFilter] = deriveEncoder[ProblemTemplateFilter]
+
+  implicit val reqDec: Decoder[ProblemTemplateListRequest] = deriveDecoder[ProblemTemplateListRequest]
+  implicit val reqEnc: Encoder[ProblemTemplateListRequest] = deriveEncoder[ProblemTemplateListRequest]
+  implicit val resDec: Decoder[ProblemTemplateListResponse] = deriveDecoder[ProblemTemplateListResponse]
+  implicit val resEnc: Encoder[ProblemTemplateListResponse] = deriveEncoder[ProblemTemplateListResponse]
+
+}
+import ProblemTemplateListJson.* 
 
 object ProblemTemplateList extends Route[ProblemTemplateListRequest, ProblemTemplateListResponse] {
   override val route: String = "requestProblemTemplateList"
+
+
 }
 
 sealed trait ProblemTemplateFilter

@@ -1,12 +1,29 @@
 package clientRequests.admin
 
 import clientRequests.{GenericRequestFailure, Route, WithToken}
-import io.circe.generic.auto._
 import otsbridge.CoursePiece.CourseRoot
+import UpdateCustomCourse.*
+
+object UpdateCustomCourseJson {
+
+  import viewData.*
+  import io.circe.syntax.*, io.circe.*, io.circe.generic.semiauto.*
+
+  implicit val reqDec: Decoder[UpdateCustomCourseRequest] = deriveDecoder[UpdateCustomCourseRequest]
+  implicit val reqEnc: Encoder[UpdateCustomCourseRequest] = deriveEncoder[UpdateCustomCourseRequest]
+  implicit val resDec: Decoder[UpdateCustomCourseResponse] = deriveDecoder[UpdateCustomCourseResponse]
+  implicit val resEnc: Encoder[UpdateCustomCourseResponse] = deriveEncoder[UpdateCustomCourseResponse]
+
+}
+
+import UpdateCustomCourseJson.* 
 
 
 object UpdateCustomCourse extends Route[UpdateCustomCourseRequest, UpdateCustomCourseResponse] {
   override val route: String = "requestUpdateCustomCourse"
+
+
+  
 }
 
 case class CustomCourseUpdateData(

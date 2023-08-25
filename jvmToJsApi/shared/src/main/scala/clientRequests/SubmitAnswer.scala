@@ -1,7 +1,26 @@
 package clientRequests
 
-import io.circe.generic.auto._
+import SubmitAnswer.*
 import viewData.AnswerViewData
+
+
+object SubmitAnswerJson{
+
+  import viewData.*
+  import io.circe.syntax.*, io.circe.*, io.circe.generic.semiauto.*
+
+  implicit val reqDec12: Decoder[otsbridge.ProgramRunResult.ProgramRunResult] = deriveDecoder[otsbridge.ProgramRunResult.ProgramRunResult]
+  implicit val resEnc12: Encoder[otsbridge.ProgramRunResult.ProgramRunResult] = deriveEncoder[otsbridge.ProgramRunResult.ProgramRunResult]
+
+
+  implicit val reqDec: Decoder[SubmitAnswerRequest] = deriveDecoder[SubmitAnswerRequest]
+  implicit val reqEnc: Encoder[SubmitAnswerRequest] = deriveEncoder[SubmitAnswerRequest]
+  implicit val resDec: Decoder[SubmitAnswerResponse] = deriveDecoder[SubmitAnswerResponse]
+  implicit val resEnc: Encoder[SubmitAnswerResponse] = deriveEncoder[SubmitAnswerResponse]
+
+}
+
+import SubmitAnswerJson.*
 
 object SubmitAnswer extends Route[SubmitAnswerRequest , SubmitAnswerResponse] {
   override val route: String = "submitAnswer"

@@ -1,11 +1,25 @@
 package clientRequests.admin
 
 import clientRequests.{GenericRequestFailure, Route, WithToken}
-import io.circe.generic.auto._
+import AddProblemToCourseTemplate.*
+
+object AddProblemToCourseTemplateJson{
+
+  import viewData.*
+  import io.circe.syntax.*, io.circe.*, io.circe.generic.semiauto.*
+
+  implicit val reqDec: Decoder[AddProblemToCourseTemplateRequest] = deriveDecoder[AddProblemToCourseTemplateRequest]
+  implicit val reqEnc: Encoder[AddProblemToCourseTemplateRequest] = deriveEncoder[AddProblemToCourseTemplateRequest]
+  implicit val resDec: Decoder[AddProblemToCourseTemplateResponse] = deriveDecoder[AddProblemToCourseTemplateResponse]
+  implicit val resEnc: Encoder[AddProblemToCourseTemplateResponse] = deriveEncoder[AddProblemToCourseTemplateResponse]
+}
+import AddProblemToCourseTemplateJson.*
 
 
 object AddProblemToCourseTemplate extends Route[AddProblemToCourseTemplateRequest, AddProblemToCourseTemplateResponse] {
   override val route: String = "requestAddProblemToCourse"
+
+
 }
 
 //REQ

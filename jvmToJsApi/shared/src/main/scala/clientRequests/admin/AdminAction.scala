@@ -2,12 +2,28 @@ package clientRequests.admin
 
 import clientRequests.admin.AdminAction.NameConsumerSecret
 import clientRequests.{GenericRequestFailure, Route, WithToken}
-import io.circe.generic.auto._
+import AdminAction.*
 
+object AdminActionJson{
+
+  import viewData.*
+  import io.circe.syntax.*, io.circe.*, io.circe.generic.semiauto.*
+
+  implicit val reqDec: Decoder[AdminActionRequest] = deriveDecoder[AdminActionRequest]
+  implicit val reqEnc: Encoder[AdminActionRequest] = deriveEncoder[AdminActionRequest]
+  implicit val resDec: Decoder[AdminActionResponse] = deriveDecoder[AdminActionResponse]
+  implicit val resEnc: Encoder[AdminActionResponse] = deriveEncoder[AdminActionResponse]
+
+}
+
+import AdminActionJson.* 
 
 object AdminAction extends Route[AdminActionRequest, AdminActionResponse] {
   override val route: String = "requestAdminAction"
   type NameConsumerSecret = (String, String, String)
+
+
+ 
 }
 
 //REQ

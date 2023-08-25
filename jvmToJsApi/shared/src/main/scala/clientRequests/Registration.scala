@@ -1,11 +1,24 @@
 package clientRequests
 
-import io.circe.generic.auto._
+import Registration.* 
+
+
+object RegistrationJson{
+
+  import viewData.*
+  import io.circe.syntax.*, io.circe.*, io.circe.generic.semiauto.*
+
+  implicit val reqDec: Decoder[RegistrationRequest] = deriveDecoder[RegistrationRequest]
+  implicit val reqEnc: Encoder[RegistrationRequest] = deriveEncoder[RegistrationRequest]
+  implicit val resDec: Decoder[RegistrationResponse] = deriveDecoder[RegistrationResponse]
+  implicit val resEnc: Encoder[RegistrationResponse] = deriveEncoder[RegistrationResponse]
+
+}
+
+import RegistrationJson.*
 
 object Registration extends Route[RegistrationRequest, RegistrationResponse] {
   override val route: String = "register"
-
-
 }
 
 

@@ -1,11 +1,34 @@
 package clientRequests.admin
 
 import clientRequests.{GenericRequestFailure, Route, WithToken}
-import io.circe.generic.auto._
+import AddCourseToGroup.*
+
+object AddCourseToGroupJson{
+
+  import viewData.*
+  import io.circe.syntax.*, io.circe.*, io.circe.generic.semiauto.*
+
+  implicit val reqDec: Decoder[AddCourseToGroupRequest] = deriveDecoder[AddCourseToGroupRequest]
+  implicit val reqEnc: Encoder[AddCourseToGroupRequest] = deriveEncoder[AddCourseToGroupRequest]
+  implicit val resDec: Decoder[AddCourseToGroupResponse] = deriveDecoder[AddCourseToGroupResponse]
+  implicit val resEnc: Encoder[AddCourseToGroupResponse] = deriveEncoder[AddCourseToGroupResponse]
+
+}
+import AddCourseToGroupJson.*
 
 
 object AddCourseToGroup extends Route[AddCourseToGroupRequest, AddCourseToGroupResponse] {
   override val route: String = "requestAddCourseToGroup"
+
+
+  import viewData.*
+  import io.circe.syntax.*, io.circe.*, io.circe.generic.semiauto.*
+
+  implicit val reqDec: Decoder[AddCourseToGroupRequest] = deriveDecoder[AddCourseToGroupRequest]
+  implicit val reqEnc: Encoder[AddCourseToGroupRequest] = deriveEncoder[AddCourseToGroupRequest]
+  implicit val resDec: Decoder[AddCourseToGroupResponse] = deriveDecoder[AddCourseToGroupResponse]
+  implicit val resEnc: Encoder[AddCourseToGroupResponse] = deriveEncoder[AddCourseToGroupResponse]
+
 }
 
 //REQ

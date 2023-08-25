@@ -1,9 +1,21 @@
 package clientRequests
 
 import clientRequests.{GenericRequestFailure, Route}
-import io.circe.generic.auto._
+import UpdateUserData.* 
 
+object UpdateUserDataJson{
 
+  import viewData.*
+  import io.circe.syntax.*, io.circe.*, io.circe.generic.semiauto.*
+
+  implicit val reqDec: Decoder[UpdateUserDataRequest] = deriveDecoder[UpdateUserDataRequest]
+  implicit val reqEnc: Encoder[UpdateUserDataRequest] = deriveEncoder[UpdateUserDataRequest]
+  implicit val resDec: Decoder[UpdateUserDataResponse] = deriveDecoder[UpdateUserDataResponse]
+  implicit val resEnc: Encoder[UpdateUserDataResponse] = deriveEncoder[UpdateUserDataResponse]
+
+}
+
+import UpdateUserDataJson.*
 object UpdateUserData extends Route[UpdateUserDataRequest, UpdateUserDataResponse] {
   override val route: String = "requestUpdateUserData"
 }

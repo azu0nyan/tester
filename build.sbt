@@ -57,6 +57,14 @@ val loginRegisterHashing = Seq(
   libraryDependencies += "com.outr" %% "hasher" % "1.2.2",
 )
 
+val circeVersion = "0.14.5"
+val circe =  Seq(
+    "io.circe" %% "circe-core",
+    "io.circe" %% "circe-generic",
+    "io.circe" %% "circe-parser"
+  ).map(_ % circeVersion)
+
+
 
 //lazy val zioDockerRunner = RootProject(file("zioDockerRunner"))
 /*lazy val jvmToJsApi = (project in file("jvmToJsApi"))
@@ -84,7 +92,7 @@ lazy val dbFromMongoMigration = (project in file("dbFromMongoMigration"))
 */
 
 
-lazy val jvmToJsApi = RootProject(file("jvmToJsApi"))
+lazy val jvmToJsApi = ProjectRef(file("jvmToJsApi"), "fooJVM")
 lazy val legacyExtensionBridge = ProjectRef(file("legacy_extensions_bridge"), "fooJVM")
 
 
@@ -112,7 +120,7 @@ lazy val protos = crossProject(JSPlatform, JVMPlatform)
 val zioServer = (project in file("zioServer"))
   .dependsOn(jvmToJsApi, /*zioDockerRunner,*/ protos.jvm, legacyExtensionBridge)
   .settings(
-    version := "0.0.2",
+    version := "0.0.4",
     scalaVersion := scalaVer,
     name := "zioServer",
     fork := true,
@@ -124,6 +132,14 @@ val zioServer = (project in file("zioServer"))
     libraryDependencies ++= grpcJvmDependencies,
     libraryDependencies ++= jwtDependencies,
     libraryDependencies ++= zioHTTP,
+//    libraryDependencies += "org.typelevel" %% "cats-kernel" % "2.10.0",
+//    libraryDependencies += "org.typelevel" %% "cats-core" % "2.10.0",
+//    excludeDependencies += "org.typelevel" % "cats-kernel_2.13",
+//    excludeDependencies += "org.typelevel" % "cats-core_2.13",
+//    excludeDependencies += "io.circe" % "circe-core_2.13",
+//    excludeDependencies += "io.circe" % "circe-generic_2.13",
+//    excludeDependencies +=   "io.circe" % "circe-parse_2.13",
+//    libraryDependencies ++= circe,
     resolvers ++= Resolver.sonatypeOssRepos("snapshots"),
     testFrameworks += new TestFramework("zio.test.sbt.ZTestFramework"),
 //    envVars in Test ++= Map("LC_ALL" -> "en_US.UTF-8" , "LC_CTYPE" -> "en_US.UTF-8")

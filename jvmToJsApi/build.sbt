@@ -36,7 +36,7 @@ lazy val foo = crossProject(JSPlatform, JVMPlatform).in(file("."))
     version := "0.2-SNAPSHOT",
     libraryDependencies ++= Seq(
       "io.circe" %% "circe-core",
-      "io.circe" %% "circe-generic",
+//      "io.circe" %% "circe-generic",
       "io.circe" %% "circe-parser"
     ).map(_ % circeVersion)
   )

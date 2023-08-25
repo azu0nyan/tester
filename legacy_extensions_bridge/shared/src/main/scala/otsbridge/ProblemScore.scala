@@ -3,6 +3,12 @@ package otsbridge
 import otsbridge.ProgramRunResult._
 
 object ProblemScore {
+  import io.circe.syntax.*, io.circe.*, io.circe.generic.semiauto.*
+
+  implicit val reqDec: Decoder[ProblemScore] = deriveDecoder[ProblemScore]
+  implicit val reqEnc: Encoder[ProblemScore] = deriveEncoder[ProblemScore]
+
+
   sealed trait ProblemScore {
     def toPrettyString: String
 

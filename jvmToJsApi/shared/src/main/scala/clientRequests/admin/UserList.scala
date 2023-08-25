@@ -1,11 +1,27 @@
 package clientRequests.admin
 
 import clientRequests.{Route, WithToken}
-import io.circe.generic.auto._
 import viewData.UserViewData
+import UserList.*
 
 import java.time.Instant
 
+object UserListJson{
+
+  import viewData.*
+  import io.circe.syntax.*, io.circe.*, io.circe.generic.semiauto.*
+
+  implicit val reqDec: Decoder[UserListRequest] = deriveDecoder[UserListRequest]
+  implicit val reqEnc: Encoder[UserListRequest] = deriveEncoder[UserListRequest]
+  implicit val resDec: Decoder[UserListResponse] = deriveDecoder[UserListResponse]
+  implicit val resEnc: Encoder[UserListResponse] = deriveEncoder[UserListResponse]
+
+  implicit val reqDec1: Decoder[clientRequests.admin.UserListFilter] = deriveDecoder[clientRequests.admin.UserListFilter]
+  implicit val reqEnc1: Encoder[clientRequests.admin.UserListFilter] = deriveEncoder[clientRequests.admin.UserListFilter]
+
+}
+
+import UserListJson.* 
 
 object UserList extends Route[UserListRequest, UserListResponse] {
   override val route: String = "adminGetUserList"

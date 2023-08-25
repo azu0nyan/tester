@@ -2,10 +2,22 @@ package clientRequests.watcher
 
 import clientRequests.watcher.LightGroupScores.UserScores
 import clientRequests.{GenericRequestFailure, Route, WithToken}
-import io.circe.generic.auto._
 import otsbridge.ProblemScore.ProblemScore
+import LightGroupScores.*
 
+object LightGroupScoresJson{
 
+  import viewData.*
+  import io.circe.syntax.*, io.circe.*, io.circe.generic.semiauto.*
+
+  implicit val reqDec: Decoder[LightGroupScoresRequest] = deriveDecoder[LightGroupScoresRequest]
+  implicit val reqEnc: Encoder[LightGroupScoresRequest] = deriveEncoder[LightGroupScoresRequest]
+  implicit val resDec: Decoder[LightGroupScoresResponse] = deriveDecoder[LightGroupScoresResponse]
+  implicit val resEnc: Encoder[LightGroupScoresResponse] = deriveEncoder[LightGroupScoresResponse]
+
+}
+
+import LightGroupScoresJson.*
 
 object LightGroupScores extends Route[LightGroupScoresRequest, LightGroupScoresResponse] {
   type ProblemScores = Map[String, ProblemScore]
