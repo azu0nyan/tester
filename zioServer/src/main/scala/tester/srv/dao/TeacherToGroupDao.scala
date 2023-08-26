@@ -1,7 +1,8 @@
 package tester.srv.dao
 
+
 import io.github.gaelrenoux.tranzactio.doobie.{TranzactIO, tzio}
-import GroupDao.Group
+import TeacherToGroupDao.TeacherToGroup
 import zio.schema.{DeriveSchema, Schema}
 import doobie.*
 import doobie.implicits.*
@@ -11,16 +12,14 @@ import doobie.postgres.implicits.*
 import doobie.postgres.pgisimplicits.*
 import AbstractDao.ById
 
-object GroupDao extends AbstractDao [Group]
-  with ById[Group]{
+object TeacherToGroupDao extends AbstractDao [TeacherToGroup] {
 
-  case class Group(id: Int, title: String, description: String)
+  case class TeacherToGroup(userId: Int)
 
-  override val schema: Schema[Group] = DeriveSchema.gen[Group]
-  override val tableName: String = "UserGroup"//group - reserved by postgres
-
-
-
+  override val schema: Schema[TeacherToGroup] = DeriveSchema.gen[TeacherToGroup]
+  override val tableName: String = "TeacherToGroup"
 
 }
+
+
 

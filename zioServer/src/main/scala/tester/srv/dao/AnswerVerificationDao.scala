@@ -13,11 +13,12 @@ import doobie.postgres.pgisimplicits.*
 import AbstractDao.ById
 import tester.srv.dao.AnswerDao.Answer
 import AnswerVerificationDao.AnswerVerification
+import tester.srv.dao.ProblemDao.Score
 
 import java.time.Instant
 
 object AnswerVerificationDao extends AbstractDao[AnswerVerification]{
-  case class AnswerVerification(answerId: Int,  verifiedAt: Instant, systemMessage: Option[String])
+  case class AnswerVerification(answerId: Int,  verifiedAt: Instant, systemMessage: Option[String], score: Score, scoreNormalized: Double)
 
   override val schema: Schema[AnswerVerification] = DeriveSchema.gen[AnswerVerification]
   override val tableName: String = "AnswerVerification"
