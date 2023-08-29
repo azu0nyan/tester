@@ -32,7 +32,6 @@ import AnswerForConfirmationListJson.*
 
 object AnswerForConfirmationList extends Route[AnswerForConfirmationListRequest, AnswerForConfirmationListResponse] {
   override val route: String = "requestAnswerForConfirmationList"
-  
 }
 
 case class ShortCourseInfo(id: String, templateAlias: String, problemIds: Seq[String])

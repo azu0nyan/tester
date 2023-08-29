@@ -23,6 +23,11 @@ object AnswersTranzactIO extends AnswerService[TranzactIO] {
   override def deleteAnswer(id: Int): TranzactIO[Boolean] =
     AnswerDao.deleteById(id)
 
+  def unconfirmedAnswers(problemId: Option[Int], teacherId: Option[Int],
+                         courseAlias: Option[String], groupId: Option[Int],
+                         userId: Option[Int]): F[Seq[Answer]] =
+    AnswerDao.unconfirmedAnswers(problemId, teacherId, courseAlias, groupId, userId)
+  
   override def submitAnswer(problemId: Int, answerRaw: String): TranzactIO[SubmitAnswerResult] =
     val verificator: VerificationService[TranzactIO] = ???
 

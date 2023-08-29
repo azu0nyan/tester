@@ -38,24 +38,41 @@ object AnswerDao extends AbstractDao[Answer]
 
   def verifiedAnswers(problemId: Int): TranzactIO[List[Answer]] = tzio {
     (selectFragment ++
-      fr"""INNER JOIN AnswerVerification V ON V.answerId = id
+      fr"""INNER JOIN AnswerVerification as V ON V.answerId = id
           WHERE problemId = $problemId""").query[Answer].to[List]
   }
 
   def confirmedAnswers(problemId: Int): TranzactIO[List[Answer]] = tzio {
     (selectFragment ++
-      fr"""INNER JOIN AnswerVerificationConfirmation V ON V.answerId = id
+      fr"""INNER JOIN AnswerVerificationConfirmation as V ON V.answerId = id
           WHERE problemId = $problemId""").query[Answer].to[List]
   }
 
   /** Успешно оцененные ответы, ожидающие подтверждения вручную */
-  def unconfirmedAnswers(problemId: Int): TranzactIO[List[Answer]] = tzio {
+  def unconfirmedAnswers(problemId: Option[Int], teacherId: Option[Int],
+                         courseAlias: Option[String], groupId: Option[Int],
+                         userId: Option[Int]): TranzactIO[List[Answer]] = tzio {
     (selectFragment ++
       fr"""INNER JOIN AnswerVerification R ON R.answerId = id
-           LEFT JOIN AnswerVerificationConfirmation C ON C.answerId = id
-            WHERE problemId = $problemId
-            AND C.answerId IS NULL""").query[Answer].to[List]
+           LEFT JOIN AnswerVerificationConfirmation as Ver ON Ver.answerId = id
+           LEFT JOIN Problem as P ON P.problemId = problemId
+           LEFT JOIN Course ON P.courseId = Course.id
+           LEFT JOIN CourseTemplate as CT ON CT.alias = Course.templateAlias
+           LEFT JOIN RegisteredUser as U ON U.id = Course.userId
+           LEFT JOIN UserToGroup as UTG ON UTG.userId = U.id
+           LEFT JOIN UserGroup as G ON UTG.groupID = G.id
+           LEFT JOIN TeacherToGroup as TTG ON TTG.groupId = G.id
+           WHERE Ver.answerId IS NULL""" ++
+      Fragments.whereAndOpt(
+        problemId.map(pid => fr"problemId = $problemId"),
+        teachedId.map(tid => fr"TTG.teacherID = $tid"),
+        courseAlias.map(a => fr"CT.alias = $a"),
+        groupId.map(gid => fr"G.id = $gid"),
+        userId.map(uid => fr"U.id = $userId")
+      )
+      ).query[Answer].to[List]
   }
+
 
   /** Ответы о результатох проверки которых нет информации в бд */
   def unverifiedAnswers(problemId: Int): TranzactIO[List[Answer]] = tzio {

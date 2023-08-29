@@ -2,6 +2,7 @@ package tester.srv.controller
 
 import tester.srv.controller.AnswerService.AnswerStatus
 import tester.srv.controller.AnswerService.SubmitAnswerResult
+import tester.srv.dao.AnswerDao.Answer
 import tester.srv.dao.AnswerRejectionDao.AnswerRejection
 import tester.srv.dao.AnswerReviewDao.AnswerReview
 import tester.srv.dao.AnswerVerificationConfirmationDao.AnswerVerificationConfirmation
@@ -9,10 +10,14 @@ import tester.srv.dao.AnswerVerificationDao.AnswerVerification
 
 import java.time.Instant
 
-trait AnswerService[F[_]]{
+trait AnswerService[F[_]] {
   def deleteAnswer(id: Int): F[Boolean]
 
-  def submitAnswer(problemId: Int, answerRaw: String):F[SubmitAnswerResult]
+  def unconfirmedAnswers(problemId: Option[Int], teacherId: Option[Int],
+                         courseAlias: Option[String], groupId: Option[Int],
+                         userId: Option[Int]):F[Seq[Answer]]
+
+  def submitAnswer(problemId: Int, answerRaw: String): F[SubmitAnswerResult]
 
   def pollAnswerStatus(answerId: Int): F[AnswerStatus]
 

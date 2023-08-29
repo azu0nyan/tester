@@ -5,13 +5,16 @@ import clientRequests.admin.{AddCourseToGroupRequest, AddCourseToGroupResponse, 
 import clientRequests.teacher.{AnswerForConfirmationListRequest, AnswerForConfirmationListResponse, AnswersListRequest, AnswersListResponse, ModifyProblemRequest, ModifyProblemResponse, TeacherConfirmAnswerRequest, TeacherConfirmAnswerResponse}
 import clientRequests.watcher.{GroupScoresRequest, GroupScoresResponse, LightGroupScoresRequest, LightGroupScoresResponse}
 import io.github.gaelrenoux.tranzactio.doobie.Database
-import tester.srv.controller.Application
+import tester.srv.controller.{AnswerService, Application}
 import zio.*
 
 case class ApplicationImpl(
-                            db: Database
+                            db: Database,
+                            answ: AnswerService[TranzactIO]
                           ) extends Application {
-  override def answerForConfirmationList(req: AnswerForConfirmationListRequest): Task[AnswerForConfirmationListResponse] = ???
+  override def answerForConfirmationList(req: AnswerForConfirmationListRequest): Task[AnswerForConfirmationListResponse] =
+    answ.unconfirmedAnswers(None, ???, None, None, None, None)
+    
   override def answersList(req: AnswersListRequest): Task[AnswersListResponse] = ???
   override def modifyProblem(req: ModifyProblemRequest): Task[ModifyProblemResponse] = ???
   override def teacherConfirmAnswer(req: TeacherConfirmAnswerRequest): Task[TeacherConfirmAnswerResponse] = ???
