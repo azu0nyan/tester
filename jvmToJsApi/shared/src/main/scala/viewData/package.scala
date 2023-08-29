@@ -1,6 +1,6 @@
 import java.time.Instant
-import DbViewsShared.{CourseShared}
-import DbViewsShared.CourseShared.{AnswerStatus, CourseStatus}
+import DbViewsShared.AnswerStatus
+import DbViewsShared.AnswerStatus.{ CourseStatus}
 import otsbridge.{AnswerField, ProblemScore}
 import io.circe.generic.auto._
 import otsbridge.CoursePiece.{CoursePiece, CourseRoot}
@@ -75,8 +75,8 @@ package object viewData {
                              status: AnswerStatus
                            ) {
     def score: Option[ProblemScore] = status match {
-      case CourseShared.Verified(score, review, systemMessage, verifiedAt, _) => Some(score)
-      case CourseShared.VerifiedAwaitingConfirmation(score, _, _) => Some(score)
+      case AnswerStatus.Verified(score, review, systemMessage, verifiedAt, _) => Some(score)
+      case AnswerStatus.VerifiedAwaitingConfirmation(score, _, _) => Some(score)
       case _ => None
     }
   }

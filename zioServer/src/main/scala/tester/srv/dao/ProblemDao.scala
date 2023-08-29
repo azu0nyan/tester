@@ -11,6 +11,7 @@ import doobie.postgres.implicits.*
 import doobie.postgres.pgisimplicits.*
 import AbstractDao.*
 import ProblemDao.Problem
+import otsbridge.ProblemScore.ProblemScore
 
 import java.time.Instant
 
@@ -18,7 +19,7 @@ import java.time.Instant
 object ProblemDao extends AbstractDao[Problem]
   with ById[Problem] {
 
-  type Score = String //todo
+  type Score = ProblemScore
   case class Problem(id: Int, courseId: Int, templateAlias: String, seed: Int, score: Score, scoreNormalized: Double, maxAttempts: Option[Int], deadline: Option[Instant])
 
   override val schema: Schema[Problem] = DeriveSchema.gen[Problem]

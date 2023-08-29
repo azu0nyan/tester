@@ -1,8 +1,9 @@
 package tester.srv.controller
 
-import tester.srv.controller.AnswerService.AnswerStatus
-import tester.srv.controller.AnswerService.SubmitAnswerResult
-import tester.srv.dao.AnswerDao.Answer
+import DbViewsShared.AnswerStatus
+import DbViewsShared.AnswerStatus.{BeingVerified, Rejected, Verified, VerifiedAwaitingConfirmation}
+import tester.srv.controller.AnswerService.{AnswerFilterParams, AnswerStatusUnion, SubmitAnswerResult}
+import tester.srv.dao.AnswerDao.{Answer, AnswerMeta}
 import tester.srv.dao.AnswerRejectionDao.AnswerRejection
 import tester.srv.dao.AnswerReviewDao.AnswerReview
 import tester.srv.dao.AnswerVerificationConfirmationDao.AnswerVerificationConfirmation
@@ -13,13 +14,11 @@ import java.time.Instant
 trait AnswerService[F[_]] {
   def deleteAnswer(id: Int): F[Boolean]
 
-  def unconfirmedAnswers(problemId: Option[Int], teacherId: Option[Int],
-                         courseAlias: Option[String], groupId: Option[Int],
-                         userId: Option[Int]):F[Seq[Answer]]
+  def unconfirmedAnswers(filter: AnswerFilterParams): F[Seq[(Answer, AnswerMeta, AnswerStatus)]]
 
   def submitAnswer(problemId: Int, answerRaw: String): F[SubmitAnswerResult]
 
-  def pollAnswerStatus(answerId: Int): F[AnswerStatus]
+  def pollAnswerStatus(answerId: Int): F[AnswerStatusUnion]
 
   def confirmAnswer(answerId: Int, userId: Option[Int]): F[Boolean]
 
@@ -30,12 +29,33 @@ trait AnswerService[F[_]] {
 
 object AnswerService {
 
-  case class AnswerStatus(
-                           verified: Option[AnswerVerification],
-                           verificationConfirmed: Option[AnswerVerificationConfirmation],
-                           rejected: Option[AnswerRejection],
-                           reviewed: Option[AnswerReview]
-                         )
+  case class AnswerFilterParams(problemId: Option[Int] = None,
+                                problemAlias: Option[String] = None,
+                                teacherId: Option[Int] = None,
+                                courseAlias: Option[String] = None,
+                                groupId: Option[Int] = None,
+                                userId: Option[Int] = None)
+
+  case class AnswerStatusUnion(
+                                verified: Option[AnswerVerification],
+                                verificationConfirmed: Option[AnswerVerificationConfirmation],
+                                rejected: Option[AnswerRejection],
+                                reviewed: Option[AnswerReview]
+                              ) {
+    def toStatus: AnswerStatus = rejected match
+      case Some(rejection) =>
+        Rejected(rejection.message, rejection.rejectedAt)
+      case None =>
+        verified match
+          case Some(verification) =>
+            verificationConfirmed match
+              case Some(confirmation) =>
+                Verified(verification.score, reviewed.map(_.text), verification.systemMessage, verification.verifiedAt, confirmation.confirmedAt)
+              case None => VerifiedAwaitingConfirmation(verification.score, verification.systemMessage, verification.verifiedAt)
+          case None =>
+            BeingVerified()
+  }
+
 
   sealed trait SubmitAnswerResult
   case class AnswerSubmitted(id: Int) extends SubmitAnswerResult

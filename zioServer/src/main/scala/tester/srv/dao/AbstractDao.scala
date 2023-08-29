@@ -21,7 +21,7 @@ trait AbstractDao[T: Read : Write] {
   def jsonbFields: Seq[String] = Seq()
 
 
-  lazy val fieldNames: Seq[String] = schema.asInstanceOf[zio.schema.Schema.Record[T]].fields.map(_.name)
+  lazy val fieldNames: Seq[String] = schema.asInstanceOf[zio.schema.Schema.Record[T]].fields.map(tableName + "." + _.name)
   lazy val fieldString: String = fieldNames.mkString(", ")
   //  schema.asInstanceOf[zio.schema.Schema.Record[T]].fields.head.get
 

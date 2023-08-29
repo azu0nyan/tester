@@ -2,10 +2,13 @@ package tester.srv.controller.impl
 
 import clientRequests.{CourseDataRequest, CourseDataResponse, CoursesListRequest, CoursesListResponse, LoginRequest, LoginResponse, PartialCourseDataRequest, PartialCourseDataResponse, ProblemDataRequest, ProblemDataResponse, RegistrationRequest, RegistrationResponse, StartCourseRequest, StartCourseResponse, SubmitAnswerRequest, SubmitAnswerResponse, UpdateUserDataRequest, UpdateUserDataResponse, UserDataRequest, UserDataResponse}
 import clientRequests.admin.{AddCourseToGroupRequest, AddCourseToGroupResponse, AddCustomProblemTemplateRequest, AddCustomProblemTemplateResponse, AddProblemToCourseTemplateRequest, AddProblemToCourseTemplateResponse, AddUserToGroupFailure, AddUserToGroupRequest, AddUserToGroupResponse, AddUserToGroupSuccess, AdminActionRequest, AdminActionResponse, AdminCourseInfoRequest, AdminCourseInfoResponse, AdminCourseListRequest, AdminCourseListResponse, GroupInfoRequest, GroupInfoResponse, GroupListRequest, GroupListResponse, NewCourseTemplateRequest, NewCourseTemplateResponse, NewGroupRequest, NewGroupResponse, ProblemTemplateListRequest, ProblemTemplateListResponse, RemoveCustomProblemTemplateRequest, RemoveCustomProblemTemplateResponse, RemoveProblemFromCourseTemplateRequest, RemoveProblemFromCourseTemplateResponse, RemoveUserFromGroupRequest, RemoveUserFromGroupResponse, UpdateCustomCourseRequest, UpdateCustomCourseResponse, UpdateCustomProblemTemplateRequest, UpdateCustomProblemTemplateResponse, UserListRequest, UserListResponse}
-import clientRequests.teacher.{AnswerForConfirmationListRequest, AnswerForConfirmationListResponse, AnswersListRequest, AnswersListResponse, ModifyProblemRequest, ModifyProblemResponse, TeacherConfirmAnswerRequest, TeacherConfirmAnswerResponse}
+import clientRequests.teacher.{AnswerForConfirmationListRequest, AnswerForConfirmationListResponse, AnswerForConfirmationListSuccess, AnswersListRequest, AnswersListResponse, CourseAnswersConfirmationInfo, ModifyProblemRequest, ModifyProblemResponse, ShortCourseInfo, TeacherConfirmAnswerRequest, TeacherConfirmAnswerResponse, UserConfirmationInfo}
 import clientRequests.watcher.{GroupScoresRequest, GroupScoresResponse, LightGroupScoresRequest, LightGroupScoresResponse}
-import io.github.gaelrenoux.tranzactio.doobie.Database
+import io.github.gaelrenoux.tranzactio.doobie.{Database, TranzactIO}
+import tester.srv.controller.AnswerService.AnswerFilterParams
 import tester.srv.controller.{AnswerService, Application}
+import tester.srv.dao.AnswerDao
+import viewData.AnswerViewData
 import zio.*
 
 case class ApplicationImpl(
@@ -13,8 +16,17 @@ case class ApplicationImpl(
                             answ: AnswerService[TranzactIO]
                           ) extends Application {
   override def answerForConfirmationList(req: AnswerForConfirmationListRequest): Task[AnswerForConfirmationListResponse] =
-    answ.unconfirmedAnswers(None, ???, None, None, None, None)
-    
+    db.transactionOrWiden(
+      answ.unconfirmedAnswers(AnswerFilterParams(groupId = req.groupId, teacherId = req.teacherId))
+    ).map(list =>
+      list.groupBy(_._2.userId).toSeq.map((userId, answs) => UserConfirmationInfo(userId.toString,
+        answs.groupBy(_._2.courseAlias).toSeq.map((alias, answs) => CourseAnswersConfirmationInfo(
+          ShortCourseInfo(answs.headOption.map(_._2.courseId.toString).getOrElse(""), alias, answs.map(_._2.problemId.toString).distinct),
+          answs.map( (a, meta, status) => AnswerViewData(a.id.toString, meta.problemId.toString, a.answer, a.answeredAt, status))
+        ))
+      ))
+    ).map(AnswerForConfirmationListSuccess.apply)
+
   override def answersList(req: AnswersListRequest): Task[AnswersListResponse] = ???
   override def modifyProblem(req: ModifyProblemRequest): Task[ModifyProblemResponse] = ???
   override def teacherConfirmAnswer(req: TeacherConfirmAnswerRequest): Task[TeacherConfirmAnswerResponse] = ???

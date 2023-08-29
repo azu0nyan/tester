@@ -1,5 +1,6 @@
 package tester.srv.controller.impl
 
+import DbViewsShared.AnswerStatus
 import doobie.*
 import doobie.implicits.*
 import doobie.implicits.javasql.*
@@ -18,15 +19,14 @@ import tester.srv.dao.AnswerVerificationDao.AnswerVerification
 import tester.srv.dao.*
 import zio.*
 import ProblemDao.Problem
+import tester.srv.dao.AnswerDao.{Answer, AnswerMeta}
 
 object AnswersTranzactIO extends AnswerService[TranzactIO] {
   override def deleteAnswer(id: Int): TranzactIO[Boolean] =
     AnswerDao.deleteById(id)
 
-  def unconfirmedAnswers(problemId: Option[Int], teacherId: Option[Int],
-                         courseAlias: Option[String], groupId: Option[Int],
-                         userId: Option[Int]): F[Seq[Answer]] =
-    AnswerDao.unconfirmedAnswers(problemId, teacherId, courseAlias, groupId, userId)
+  def unconfirmedAnswers(filterParams: AnswerFilterParams): TranzactIO[Seq[(Answer, AnswerMeta, AnswerStatus)]] =
+    AnswerDao.unconfirmedAnswers(filterParams).map( l => l.map{case (a, b, c):(Answer, AnswerMeta, AnswerStatusUnion)  => (a, b, c.toStatus)})
   
   override def submitAnswer(problemId: Int, answerRaw: String): TranzactIO[SubmitAnswerResult] =
     val verificator: VerificationService[TranzactIO] = ???
@@ -62,13 +62,13 @@ object AnswersTranzactIO extends AnswerService[TranzactIO] {
       case None => ZIO.succeed(ProblemNotFound())
     }
 
-  override def pollAnswerStatus(answerId: Int): TranzactIO[AnswerStatus] =
+  override def pollAnswerStatus(answerId: Int): TranzactIO[AnswerStatusUnion] = //todo do single joined select in answerDao
     for {
       rej <- AnswerRejectionDao.answerRejection(answerId)
       rev <- AnswerReviewDao.answerReview(answerId)
       conf <- AnswerVerificationConfirmationDao.answerConfirmation(answerId)
       ver <- AnswerVerificationDao.answerVerification(answerId)
-    } yield AnswerStatus(ver, conf, rej, rev)
+    } yield AnswerStatusUnion(ver, conf, rej, rev)
 
   override def confirmAnswer(answerId: Int, userId: Option[Int]): TranzactIO[Boolean] =
     AnswerVerificationConfirmationDao.insert(

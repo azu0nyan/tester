@@ -2,7 +2,6 @@ package tester.srv.controller.impl
 
 
 import doobie.Update
-import grpc_api.user_api.RegistrationRequest
 import tester.srv.controller.PasswordHashingSalting.HashAndSalt
 import zio.*
 import doobie.*

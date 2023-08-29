@@ -11,6 +11,7 @@ import doobie.postgres.implicits.*
 import doobie.postgres.pgisimplicits.*
 import AbstractDao.ById
 import AnswerDao.Answer
+import tester.srv.controller.AnswerService.{AnswerFilterParams, AnswerStatusUnion}
 
 import java.time.Instant
 
@@ -48,30 +49,37 @@ object AnswerDao extends AbstractDao[Answer]
           WHERE problemId = $problemId""").query[Answer].to[List]
   }
 
-  /** Успешно оцененные ответы, ожидающие подтверждения вручную */
-  def unconfirmedAnswers(problemId: Option[Int], teacherId: Option[Int],
-                         courseAlias: Option[String], groupId: Option[Int],
-                         userId: Option[Int]): TranzactIO[List[Answer]] = tzio {
-    (selectFragment ++
-      fr"""INNER JOIN AnswerVerification R ON R.answerId = id
-           LEFT JOIN AnswerVerificationConfirmation as Ver ON Ver.answerId = id
-           LEFT JOIN Problem as P ON P.problemId = problemId
+  case class AnswerMeta(userId: Int, courseAlias: String, courseId: Int, problemId: Int)
+  val answerMetaFields = "U.id, Course.templateAlias, Course.id, P.id FROM"
+  //todo correct status
+  def queryAnswers(filter: AnswerFilterParams)(andFrag: Fragment, addJoins: Fragment = fr""): TranzactIO[List[(Answer, AnswerMeta, AnswerStatusUnion)]] = tzio {
+    (fr"SELECT " ++ Fragment.const(fieldString + ", " + answerMetaFields +  " " +  tableName) ++
+      fr"""LEFT JOIN Problem as P ON P.id = problemId
            LEFT JOIN Course ON P.courseId = Course.id
            LEFT JOIN CourseTemplate as CT ON CT.alias = Course.templateAlias
            LEFT JOIN RegisteredUser as U ON U.id = Course.userId
            LEFT JOIN UserToGroup as UTG ON UTG.userId = U.id
            LEFT JOIN UserGroup as G ON UTG.groupID = G.id
-           LEFT JOIN TeacherToGroup as TTG ON TTG.groupId = G.id
-           WHERE Ver.answerId IS NULL""" ++
-      Fragments.whereAndOpt(
-        problemId.map(pid => fr"problemId = $problemId"),
-        teachedId.map(tid => fr"TTG.teacherID = $tid"),
-        courseAlias.map(a => fr"CT.alias = $a"),
-        groupId.map(gid => fr"G.id = $gid"),
-        userId.map(uid => fr"U.id = $userId")
+           LEFT JOIN TeacherToGroup as TTG ON TTG.groupId = G.id""" ++
+           addJoins ++
+           fr"""WHERE """ ++
+      Fragments.andOpt(
+        filter.problemId.map(pid => fr"problemId = $pid"),
+        filter.problemAlias.map(a=> fr"P.templateAlias = $a"),
+        filter.teacherId.map(tid => fr"TTG.teacherID = $tid"),
+        filter.courseAlias.map(a => fr"CT.alias = $a"),
+        filter.groupId.map(gid => fr"G.id = $gid"),
+        filter.userId.map(uid => fr"U.id = $uid"),
+        Some(andFrag)
       )
-      ).query[Answer].to[List]
+      ).query[(Answer, AnswerMeta)].to[List].map( l => l.map{case (a, b):(Answer, AnswerMeta) => (a, b, AnswerStatusUnion(None, None, None, None))})
   }
+
+  /** Успешно оцененные ответы, ожидающие подтверждения вручную */
+  def unconfirmedAnswers(filter: AnswerFilterParams): TranzactIO[List[(Answer, AnswerMeta, AnswerStatusUnion)]] =
+    queryAnswers(filter)(fr"Conf.answerId IS NULL AND R.answerId IS NOT NULL AND P.scoreNormalized = 1.0",
+      fr"""LEFT JOIN AnswerVerification R ON R.answerId = id
+          LEFT JOIN AnswerVerificationConfirmation as Conf ON Conf.answerId = id""")
 
 
   /** Ответы о результатох проверки которых нет информации в бд */
