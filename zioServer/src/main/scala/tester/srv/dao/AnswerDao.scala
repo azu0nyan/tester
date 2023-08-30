@@ -21,7 +21,7 @@ object AnswerDao extends AbstractDao[Answer]
   case class Answer(id: Int, problemId: Int, answer: String, status: String, answeredAt: Instant)
 
   override val schema: Schema[Answer] = DeriveSchema.gen[Answer]
-  override val tableName: String = "Problem"
+  override val tableName: String = "Answer"
   override val jsonbFields: Seq[String] = Seq("status")
 
 
@@ -97,7 +97,7 @@ object AnswerDao extends AbstractDao[Answer]
     queryAnswers(filter)(fr"Conf.answerId IS NULL AND R.answerId IS NOT NULL AND P.scoreNormalized = 1.0",
       fr"""LEFT JOIN AnswerVerification R ON R.answerId = id
         LEFT JOIN AnswerVerificationConfirmation as Conf ON Conf.answerId = id""")
-  
-  
+
+
 }
   

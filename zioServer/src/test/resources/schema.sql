@@ -5,7 +5,7 @@
 -- Dumped from database version 15.4 (Ubuntu 15.4-0ubuntu0.23.04.1)
 -- Dumped by pg_dump version 15.4 (Ubuntu 15.4-0ubuntu0.23.04.1)
 
--- Started on 2023-08-26 20:40:12 MSK
+-- Started on 2023-08-30 23:44:54 MSK
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -65,7 +65,7 @@ CREATE SEQUENCE tester."Answer_id_seq"
 ALTER TABLE tester."Answer_id_seq" OWNER TO postgres;
 
 --
--- TOC entry 3523 (class 0 OID 0)
+-- TOC entry 3526 (class 0 OID 0)
 -- Dependencies: 216
 -- Name: Answer_id_seq; Type: SEQUENCE OWNED BY; Schema: tester; Owner: postgres
 --
@@ -105,7 +105,7 @@ CREATE SEQUENCE tester."CourseTemplateForGroup_id_seq"
 ALTER TABLE tester."CourseTemplateForGroup_id_seq" OWNER TO postgres;
 
 --
--- TOC entry 3524 (class 0 OID 0)
+-- TOC entry 3527 (class 0 OID 0)
 -- Dependencies: 219
 -- Name: CourseTemplateForGroup_id_seq; Type: SEQUENCE OWNED BY; Schema: tester; Owner: postgres
 --
@@ -147,7 +147,7 @@ CREATE SEQUENCE tester."Course_id_seq"
 ALTER TABLE tester."Course_id_seq" OWNER TO postgres;
 
 --
--- TOC entry 3525 (class 0 OID 0)
+-- TOC entry 3528 (class 0 OID 0)
 -- Dependencies: 220
 -- Name: Course_id_seq; Type: SEQUENCE OWNED BY; Schema: tester; Owner: postgres
 --
@@ -166,9 +166,10 @@ CREATE TABLE tester.problem (
     templatealias character varying(256) NOT NULL,
     seed integer NOT NULL,
     score jsonb NOT NULL,
-    maxAttempts integer,
+    maxattempts integer,
     deadline timestamp without time zone,
-    scorenormalized double precision
+    scorenormalized double precision,
+    requireconfirmation boolean DEFAULT false NOT NULL
 );
 
 
@@ -191,7 +192,7 @@ CREATE SEQUENCE tester."Problem_id_seq"
 ALTER TABLE tester."Problem_id_seq" OWNER TO postgres;
 
 --
--- TOC entry 3526 (class 0 OID 0)
+-- TOC entry 3529 (class 0 OID 0)
 -- Dependencies: 225
 -- Name: Problem_id_seq; Type: SEQUENCE OWNED BY; Schema: tester; Owner: postgres
 --
@@ -236,7 +237,7 @@ CREATE SEQUENCE tester."RegisteredUser_id_seq"
 ALTER TABLE tester."RegisteredUser_id_seq" OWNER TO postgres;
 
 --
--- TOC entry 3527 (class 0 OID 0)
+-- TOC entry 3530 (class 0 OID 0)
 -- Dependencies: 227
 -- Name: RegisteredUser_id_seq; Type: SEQUENCE OWNED BY; Schema: tester; Owner: postgres
 --
@@ -282,7 +283,7 @@ CREATE SEQUENCE tester."Session_id_seq"
 ALTER TABLE tester."Session_id_seq" OWNER TO postgres;
 
 --
--- TOC entry 3528 (class 0 OID 0)
+-- TOC entry 3531 (class 0 OID 0)
 -- Dependencies: 232
 -- Name: Session_id_seq; Type: SEQUENCE OWNED BY; Schema: tester; Owner: postgres
 --
@@ -321,7 +322,7 @@ CREATE SEQUENCE tester."UserGroup_id_seq"
 ALTER TABLE tester."UserGroup_id_seq" OWNER TO postgres;
 
 --
--- TOC entry 3529 (class 0 OID 0)
+-- TOC entry 3532 (class 0 OID 0)
 -- Dependencies: 229
 -- Name: UserGroup_id_seq; Type: SEQUENCE OWNED BY; Schema: tester; Owner: postgres
 --
@@ -362,7 +363,7 @@ CREATE SEQUENCE tester."UserToGroup_id_seq"
 ALTER TABLE tester."UserToGroup_id_seq" OWNER TO postgres;
 
 --
--- TOC entry 3530 (class 0 OID 0)
+-- TOC entry 3533 (class 0 OID 0)
 -- Dependencies: 231
 -- Name: UserToGroup_id_seq; Type: SEQUENCE OWNED BY; Schema: tester; Owner: postgres
 --
@@ -378,7 +379,8 @@ ALTER SEQUENCE tester."UserToGroup_id_seq" OWNED BY tester.usertogroup.id;
 CREATE TABLE tester.answerrejection (
     answerid integer NOT NULL,
     rejectedat timestamp without time zone NOT NULL,
-    message text
+    message text,
+    rejectedBy integer
 );
 
 
@@ -465,7 +467,9 @@ CREATE TABLE tester.problemtemplate (
     title text NOT NULL,
     html text NOT NULL,
     answerfield jsonb NOT NULL,
-    initialscore jsonb NOT NULL
+    initialscore jsonb NOT NULL,
+    requireconfirmation boolean DEFAULT false NOT NULL,
+    maxattempts integer
 );
 
 
@@ -547,7 +551,7 @@ ALTER TABLE ONLY tester.coursetemplateforgroup ALTER COLUMN id SET DEFAULT nextv
 
 
 --
--- TOC entry 3317 (class 2604 OID 16444)
+-- TOC entry 3318 (class 2604 OID 16444)
 -- Name: problem id; Type: DEFAULT; Schema: tester; Owner: postgres
 --
 
@@ -555,7 +559,7 @@ ALTER TABLE ONLY tester.problem ALTER COLUMN id SET DEFAULT nextval('tester."Pro
 
 
 --
--- TOC entry 3318 (class 2604 OID 16445)
+-- TOC entry 3320 (class 2604 OID 16445)
 -- Name: registereduser id; Type: DEFAULT; Schema: tester; Owner: postgres
 --
 
@@ -563,7 +567,7 @@ ALTER TABLE ONLY tester.registereduser ALTER COLUMN id SET DEFAULT nextval('test
 
 
 --
--- TOC entry 3321 (class 2604 OID 32780)
+-- TOC entry 3323 (class 2604 OID 32780)
 -- Name: session id; Type: DEFAULT; Schema: tester; Owner: postgres
 --
 
@@ -571,7 +575,7 @@ ALTER TABLE ONLY tester.session ALTER COLUMN id SET DEFAULT nextval('tester."Ses
 
 
 --
--- TOC entry 3319 (class 2604 OID 16446)
+-- TOC entry 3321 (class 2604 OID 16446)
 -- Name: usergroup id; Type: DEFAULT; Schema: tester; Owner: postgres
 --
 
@@ -579,7 +583,7 @@ ALTER TABLE ONLY tester.usergroup ALTER COLUMN id SET DEFAULT nextval('tester."U
 
 
 --
--- TOC entry 3320 (class 2604 OID 16447)
+-- TOC entry 3322 (class 2604 OID 16447)
 -- Name: usertogroup id; Type: DEFAULT; Schema: tester; Owner: postgres
 --
 
@@ -587,7 +591,7 @@ ALTER TABLE ONLY tester.usertogroup ALTER COLUMN id SET DEFAULT nextval('tester.
 
 
 --
--- TOC entry 3323 (class 2606 OID 16507)
+-- TOC entry 3325 (class 2606 OID 16507)
 -- Name: answer Answer_pk; Type: CONSTRAINT; Schema: tester; Owner: postgres
 --
 
@@ -596,7 +600,7 @@ ALTER TABLE ONLY tester.answer
 
 
 --
--- TOC entry 3327 (class 2606 OID 16509)
+-- TOC entry 3329 (class 2606 OID 16509)
 -- Name: coursetemplateforgroup CourseTemplateForGroup_pk; Type: CONSTRAINT; Schema: tester; Owner: postgres
 --
 
@@ -605,7 +609,7 @@ ALTER TABLE ONLY tester.coursetemplateforgroup
 
 
 --
--- TOC entry 3331 (class 2606 OID 16513)
+-- TOC entry 3333 (class 2606 OID 16513)
 -- Name: problemtemplate CustomProblemTemplate_pk; Type: CONSTRAINT; Schema: tester; Owner: postgres
 --
 
@@ -614,7 +618,7 @@ ALTER TABLE ONLY tester.problemtemplate
 
 
 --
--- TOC entry 3333 (class 2606 OID 16515)
+-- TOC entry 3335 (class 2606 OID 16515)
 -- Name: problem Problem_pk; Type: CONSTRAINT; Schema: tester; Owner: postgres
 --
 
@@ -623,7 +627,7 @@ ALTER TABLE ONLY tester.problem
 
 
 --
--- TOC entry 3343 (class 2606 OID 32784)
+-- TOC entry 3345 (class 2606 OID 32784)
 -- Name: session Session_pkey; Type: CONSTRAINT; Schema: tester; Owner: postgres
 --
 
@@ -632,7 +636,7 @@ ALTER TABLE ONLY tester.session
 
 
 --
--- TOC entry 3339 (class 2606 OID 16517)
+-- TOC entry 3341 (class 2606 OID 16517)
 -- Name: usertogroup UserToGroup_pk; Type: CONSTRAINT; Schema: tester; Owner: postgres
 --
 
@@ -641,7 +645,7 @@ ALTER TABLE ONLY tester.usertogroup
 
 
 --
--- TOC entry 3347 (class 2606 OID 32819)
+-- TOC entry 3349 (class 2606 OID 32819)
 -- Name: answerrejection answerrejection_pkey; Type: CONSTRAINT; Schema: tester; Owner: postgres
 --
 
@@ -650,7 +654,7 @@ ALTER TABLE ONLY tester.answerrejection
 
 
 --
--- TOC entry 3349 (class 2606 OID 32848)
+-- TOC entry 3351 (class 2606 OID 32848)
 -- Name: answerreview answerreview_answerid_reviewerid_key; Type: CONSTRAINT; Schema: tester; Owner: postgres
 --
 
@@ -659,7 +663,7 @@ ALTER TABLE ONLY tester.answerreview
 
 
 --
--- TOC entry 3351 (class 2606 OID 32836)
+-- TOC entry 3353 (class 2606 OID 32836)
 -- Name: answerreview answerreview_pkey; Type: CONSTRAINT; Schema: tester; Owner: postgres
 --
 
@@ -668,7 +672,7 @@ ALTER TABLE ONLY tester.answerreview
 
 
 --
--- TOC entry 3353 (class 2606 OID 32853)
+-- TOC entry 3355 (class 2606 OID 32853)
 -- Name: answerverifiactionconfirmation answerverifiactionconfirmation_pkey; Type: CONSTRAINT; Schema: tester; Owner: postgres
 --
 
@@ -677,7 +681,7 @@ ALTER TABLE ONLY tester.answerverifiactionconfirmation
 
 
 --
--- TOC entry 3345 (class 2606 OID 32812)
+-- TOC entry 3347 (class 2606 OID 32812)
 -- Name: answerverification answerverification_pkey; Type: CONSTRAINT; Schema: tester; Owner: postgres
 --
 
@@ -686,7 +690,7 @@ ALTER TABLE ONLY tester.answerverification
 
 
 --
--- TOC entry 3325 (class 2606 OID 16519)
+-- TOC entry 3327 (class 2606 OID 16519)
 -- Name: course course_pk; Type: CONSTRAINT; Schema: tester; Owner: postgres
 --
 
@@ -695,7 +699,7 @@ ALTER TABLE ONLY tester.course
 
 
 --
--- TOC entry 3329 (class 2606 OID 32795)
+-- TOC entry 3331 (class 2606 OID 32795)
 -- Name: coursetemplate coursetemplate_pkey; Type: CONSTRAINT; Schema: tester; Owner: postgres
 --
 
@@ -704,7 +708,7 @@ ALTER TABLE ONLY tester.coursetemplate
 
 
 --
--- TOC entry 3337 (class 2606 OID 16521)
+-- TOC entry 3339 (class 2606 OID 16521)
 -- Name: usergroup group_pk; Type: CONSTRAINT; Schema: tester; Owner: postgres
 --
 
@@ -713,7 +717,7 @@ ALTER TABLE ONLY tester.usergroup
 
 
 --
--- TOC entry 3355 (class 2606 OID 32898)
+-- TOC entry 3357 (class 2606 OID 32898)
 -- Name: teacher teacher_pkey; Type: CONSTRAINT; Schema: tester; Owner: postgres
 --
 
@@ -722,7 +726,7 @@ ALTER TABLE ONLY tester.teacher
 
 
 --
--- TOC entry 3341 (class 2606 OID 16525)
+-- TOC entry 3343 (class 2606 OID 16525)
 -- Name: usertogroup unique_pair_co; Type: CONSTRAINT; Schema: tester; Owner: postgres
 --
 
@@ -731,7 +735,7 @@ ALTER TABLE ONLY tester.usertogroup
 
 
 --
--- TOC entry 3335 (class 2606 OID 16527)
+-- TOC entry 3337 (class 2606 OID 16527)
 -- Name: registereduser user_pk; Type: CONSTRAINT; Schema: tester; Owner: postgres
 --
 
@@ -740,7 +744,7 @@ ALTER TABLE ONLY tester.registereduser
 
 
 --
--- TOC entry 3362 (class 2606 OID 32785)
+-- TOC entry 3364 (class 2606 OID 32785)
 -- Name: session SessionToUserID; Type: FK CONSTRAINT; Schema: tester; Owner: postgres
 --
 
@@ -749,7 +753,7 @@ ALTER TABLE ONLY tester.session
 
 
 --
--- TOC entry 3364 (class 2606 OID 32864)
+-- TOC entry 3366 (class 2606 OID 32864)
 -- Name: answerrejection answerrejection_answerid_fkey; Type: FK CONSTRAINT; Schema: tester; Owner: postgres
 --
 
@@ -758,7 +762,16 @@ ALTER TABLE ONLY tester.answerrejection
 
 
 --
--- TOC entry 3365 (class 2606 OID 32869)
+-- TOC entry 3367 (class 2606 OID 32957)
+-- Name: answerrejection answerrejection_rejectedBy_fkey; Type: FK CONSTRAINT; Schema: tester; Owner: postgres
+--
+
+ALTER TABLE ONLY tester.answerrejection
+    ADD CONSTRAINT "answerrejection_rejectedBy_fkey" FOREIGN KEY (rejectedBy) REFERENCES tester.teacher(userid) ON DELETE SET NULL NOT VALID;
+
+
+--
+-- TOC entry 3368 (class 2606 OID 32869)
 -- Name: answerreview answerreview_answerid_fkey; Type: FK CONSTRAINT; Schema: tester; Owner: postgres
 --
 
@@ -767,7 +780,7 @@ ALTER TABLE ONLY tester.answerreview
 
 
 --
--- TOC entry 3366 (class 2606 OID 32874)
+-- TOC entry 3369 (class 2606 OID 32874)
 -- Name: answerreview answerreview_reviewerid_fkey; Type: FK CONSTRAINT; Schema: tester; Owner: postgres
 --
 
@@ -776,7 +789,7 @@ ALTER TABLE ONLY tester.answerreview
 
 
 --
--- TOC entry 3367 (class 2606 OID 32879)
+-- TOC entry 3370 (class 2606 OID 32879)
 -- Name: answerverifiactionconfirmation answerverifiactionconfirmation_answerid_fkey; Type: FK CONSTRAINT; Schema: tester; Owner: postgres
 --
 
@@ -785,7 +798,7 @@ ALTER TABLE ONLY tester.answerverifiactionconfirmation
 
 
 --
--- TOC entry 3368 (class 2606 OID 32884)
+-- TOC entry 3371 (class 2606 OID 32884)
 -- Name: answerverifiactionconfirmation answerverifiactionconfirmation_confirmedbyid_fkey; Type: FK CONSTRAINT; Schema: tester; Owner: postgres
 --
 
@@ -794,7 +807,7 @@ ALTER TABLE ONLY tester.answerverifiactionconfirmation
 
 
 --
--- TOC entry 3363 (class 2606 OID 32889)
+-- TOC entry 3365 (class 2606 OID 32889)
 -- Name: answerverification answerverification_answerid_fkey; Type: FK CONSTRAINT; Schema: tester; Owner: postgres
 --
 
@@ -803,7 +816,7 @@ ALTER TABLE ONLY tester.answerverification
 
 
 --
--- TOC entry 3359 (class 2606 OID 32801)
+-- TOC entry 3361 (class 2606 OID 32801)
 -- Name: problem course_fk; Type: FK CONSTRAINT; Schema: tester; Owner: postgres
 --
 
@@ -812,7 +825,7 @@ ALTER TABLE ONLY tester.problem
 
 
 --
--- TOC entry 3360 (class 2606 OID 16538)
+-- TOC entry 3362 (class 2606 OID 16538)
 -- Name: usertogroup group_fk; Type: FK CONSTRAINT; Schema: tester; Owner: postgres
 --
 
@@ -821,7 +834,7 @@ ALTER TABLE ONLY tester.usertogroup
 
 
 --
--- TOC entry 3358 (class 2606 OID 16543)
+-- TOC entry 3360 (class 2606 OID 16543)
 -- Name: coursetemplateforgroup group_fk; Type: FK CONSTRAINT; Schema: tester; Owner: postgres
 --
 
@@ -830,7 +843,7 @@ ALTER TABLE ONLY tester.coursetemplateforgroup
 
 
 --
--- TOC entry 3356 (class 2606 OID 32796)
+-- TOC entry 3358 (class 2606 OID 32796)
 -- Name: answer problem_fk; Type: FK CONSTRAINT; Schema: tester; Owner: postgres
 --
 
@@ -839,7 +852,7 @@ ALTER TABLE ONLY tester.answer
 
 
 --
--- TOC entry 3369 (class 2606 OID 32899)
+-- TOC entry 3372 (class 2606 OID 32899)
 -- Name: teacher teacher_userid_fkey; Type: FK CONSTRAINT; Schema: tester; Owner: postgres
 --
 
@@ -848,7 +861,7 @@ ALTER TABLE ONLY tester.teacher
 
 
 --
--- TOC entry 3370 (class 2606 OID 32952)
+-- TOC entry 3373 (class 2606 OID 32952)
 -- Name: teachercoursetemplate teachercoursetemplate_coursetemplatealias_fkey; Type: FK CONSTRAINT; Schema: tester; Owner: postgres
 --
 
@@ -857,7 +870,7 @@ ALTER TABLE ONLY tester.teachercoursetemplate
 
 
 --
--- TOC entry 3371 (class 2606 OID 32947)
+-- TOC entry 3374 (class 2606 OID 32947)
 -- Name: teachercoursetemplate teachercoursetemplate_teacherid_fkey; Type: FK CONSTRAINT; Schema: tester; Owner: postgres
 --
 
@@ -866,7 +879,7 @@ ALTER TABLE ONLY tester.teachercoursetemplate
 
 
 --
--- TOC entry 3374 (class 2606 OID 32937)
+-- TOC entry 3377 (class 2606 OID 32937)
 -- Name: teacherproblemtemplate teacherproblemtemplate_teacherid_fkey; Type: FK CONSTRAINT; Schema: tester; Owner: postgres
 --
 
@@ -875,7 +888,7 @@ ALTER TABLE ONLY tester.teacherproblemtemplate
 
 
 --
--- TOC entry 3375 (class 2606 OID 32942)
+-- TOC entry 3378 (class 2606 OID 32942)
 -- Name: teacherproblemtemplate teacherproblemtemplate_templatealias_fkey; Type: FK CONSTRAINT; Schema: tester; Owner: postgres
 --
 
@@ -884,7 +897,7 @@ ALTER TABLE ONLY tester.teacherproblemtemplate
 
 
 --
--- TOC entry 3372 (class 2606 OID 32927)
+-- TOC entry 3375 (class 2606 OID 32927)
 -- Name: teachertogroup teachertogroup_groupid_fkey; Type: FK CONSTRAINT; Schema: tester; Owner: postgres
 --
 
@@ -893,7 +906,7 @@ ALTER TABLE ONLY tester.teachertogroup
 
 
 --
--- TOC entry 3373 (class 2606 OID 32922)
+-- TOC entry 3376 (class 2606 OID 32922)
 -- Name: teachertogroup teachertogroup_teacherid_fkey; Type: FK CONSTRAINT; Schema: tester; Owner: postgres
 --
 
@@ -902,7 +915,7 @@ ALTER TABLE ONLY tester.teachertogroup
 
 
 --
--- TOC entry 3357 (class 2606 OID 16553)
+-- TOC entry 3359 (class 2606 OID 16553)
 -- Name: course user_fk; Type: FK CONSTRAINT; Schema: tester; Owner: postgres
 --
 
@@ -911,7 +924,7 @@ ALTER TABLE ONLY tester.course
 
 
 --
--- TOC entry 3361 (class 2606 OID 16558)
+-- TOC entry 3363 (class 2606 OID 16558)
 -- Name: usertogroup user_fk; Type: FK CONSTRAINT; Schema: tester; Owner: postgres
 --
 
@@ -919,7 +932,7 @@ ALTER TABLE ONLY tester.usertogroup
     ADD CONSTRAINT user_fk FOREIGN KEY (userid) REFERENCES tester.registereduser(id);
 
 
--- Completed on 2023-08-26 20:40:12 MSK
+-- Completed on 2023-08-30 23:44:54 MSK
 
 --
 -- PostgreSQL database dump complete

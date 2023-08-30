@@ -3,6 +3,7 @@ package tester.srv.controller
 
 import EmbeddedPG.EmbeddedPG
 import io.github.gaelrenoux.tranzactio.doobie.TranzactIO
+import tester.srv.controller.AnswerService.{AnswerSubmitted, SubmitAnswerResult}
 import tester.srv.controller.UserService.{RegistrationData, RegistrationResult}
 import tester.srv.controller.impl.{AnswerServiceTranzactIO, CourseTemplateTranzactIO, CoursesTranzactIO, UserServiceTranzactIO, VerificationServiceTranzactIO}
 import tester.srv.dao.CourseTemplateDao.CourseTemplate
@@ -21,9 +22,9 @@ object AnswerServiceTest extends ZIOSpecDefault {
     timeout(60.seconds) @@
     withLiveClock
 
-  def makeService = AnswerServiceTranzactIO(
+  def makeService = ZIO.succeed(AnswerServiceTranzactIO(
     VerificationServiceTranzactIO(VerificatiorStubs.acceptAllRegistryStub)
-  )
+  ))
 
   val createUserAndCourse: TranzactIO[(Int, Int, Seq[Problem])] =
     val userData = RegistrationData("user", "password", "Aliecbob", "Joens", "a@a.com")
@@ -37,15 +38,18 @@ object AnswerServiceTest extends ZIOSpecDefault {
       problemIds <- CoursesTranzactIO.courseProblems(courseId)
     } yield (userId, courseId, problemIds)
 
+
+
   val answerSubmission = test("Answer submission"){
-    val srv = makeService
     for{
+      srv <- makeService
       res <- createUserAndCourse
       problemId = res._3.head.id
-      answerId <- srv.submitAnswer(problemId, "DUMMY ANSWER")
-        
+      submitResult <- srv.submitAnswer(problemId, "DUMMY ANSWER")
+      status <- srv.pollAnswerStatus(submitResult.asInstanceOf[AnswerSubmitted].id)
     } yield assertTrue(
-      true
+      status.verified.nonEmpty,
+      status.verificationConfirmed.nonEmpty
     )
   }
 
