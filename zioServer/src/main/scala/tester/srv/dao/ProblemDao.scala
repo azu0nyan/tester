@@ -19,7 +19,7 @@ import java.time.Instant
 object ProblemDao extends AbstractDao[Problem]
   with ById[Problem] {
 
-  type Score = ProblemScore
+  type Score = String
   case class Problem(id: Int, courseId: Int, templateAlias: String, seed: Int, score: Score, scoreNormalized: Double, maxAttempts: Option[Int], deadline: Option[Instant])
 
   override val schema: Schema[Problem] = DeriveSchema.gen[Problem]

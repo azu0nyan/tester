@@ -2,6 +2,7 @@ package tester.srv.controller
 
 import DbViewsShared.AnswerStatus
 import DbViewsShared.AnswerStatus.{BeingVerified, Rejected, Verified, VerifiedAwaitingConfirmation}
+import otsbridge.ProblemScore
 import tester.srv.controller.AnswerService.{AnswerFilterParams, AnswerStatusUnion, SubmitAnswerResult}
 import tester.srv.dao.AnswerDao.{Answer, AnswerMeta}
 import tester.srv.dao.AnswerRejectionDao.AnswerRejection
@@ -50,8 +51,8 @@ object AnswerService {
           case Some(verification) =>
             verificationConfirmed match
               case Some(confirmation) =>
-                Verified(verification.score, reviewed.map(_.text), verification.systemMessage, verification.verifiedAt, confirmation.confirmedAt)
-              case None => VerifiedAwaitingConfirmation(verification.score, verification.systemMessage, verification.verifiedAt)
+                Verified(ProblemScore.fromJson(verification.score), reviewed.map(_.text), verification.systemMessage, verification.verifiedAt, confirmation.confirmedAt)
+              case None => VerifiedAwaitingConfirmation(ProblemScore.fromJson(verification.score), verification.systemMessage, verification.verifiedAt)
           case None =>
             BeingVerified()
   }

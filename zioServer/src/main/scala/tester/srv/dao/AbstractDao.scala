@@ -21,7 +21,9 @@ trait AbstractDao[T: Read : Write] {
   def jsonbFields: Seq[String] = Seq()
 
 
-  lazy val fieldNames: Seq[String] = schema.asInstanceOf[zio.schema.Schema.Record[T]].fields.map(tableName + "." + _.name)
+  lazy val fieldNames: Seq[String] = schema.asInstanceOf[zio.schema.Schema.Record[T]].fields.map( _.name)
+  lazy val fieldNamesWithTable: Seq[String] = fieldNames.map(n => tableName + "." + n)
+  lazy val fieldStringWithTable: String = fieldNamesWithTable.mkString(", ")
   lazy val fieldString: String = fieldNames.mkString(", ")
   //  schema.asInstanceOf[zio.schema.Schema.Record[T]].fields.head.get
 
@@ -33,12 +35,14 @@ trait AbstractDao[T: Read : Write] {
     else "?"
   ).mkString("(", ", ", ")")
 
-  lazy val selectFragment: Fragment = Fragment.const(s"""SELECT $fieldString FROM $tableName""")
+  lazy val selectFragment: Fragment = Fragment.const(s"""SELECT $fieldStringWithTable FROM $tableName""")
   lazy val deleteFragment: Fragment = Fragment.const(s"""DELETE FROM $tableName""")
   lazy val updateFragment = Fragment.const(s"""UPDATE $tableName SET""")
 
   def insert(t: T): TranzactIO[Boolean] = tzio {
-    Update[T](insertString).toUpdate0(t).run
+    val up = Update[T](insertString).toUpdate0(t)
+    println(insertString)
+    up.run
   }.map(_ == 1)
 
 
@@ -106,7 +110,7 @@ object AbstractDao {
     def byIdOption(id: Int): TranzactIO[Option[T]] = selectWhereAndOption(fr"id = $id")
     def byId(id: Int): TranzactIO[T] = selectWhereAnd(fr"id = $id")
 
-    def deleteById(id: Int): TranzactIO[Boolean] = 
+    def deleteById(id: Int): TranzactIO[Boolean] =
       deleteWhere(fr"id = $id").map(_ == 1)
 
     def updateById(id: Int, set: Fragment): TranzactIO[Boolean] =
@@ -127,11 +131,15 @@ object AbstractDao {
       case i: Long => fr"${i}"
       case i: String => fr"${i}"
       case i: Boolean => fr"${i}"
+      case i: Double => fr"${i}"
+      case i: Short => fr"${i}"
       case i@Some(x) if x.isInstanceOf[Instant] => fr"${i.asInstanceOf[Option[Instant]]}"
       case i@Some(x) if x.isInstanceOf[Int] => fr"${i.asInstanceOf[Option[Int]]}"
       case i@Some(x) if x.isInstanceOf[Long] => fr"${i.asInstanceOf[Option[Long]]}"
       case i@Some(x) if x.isInstanceOf[String] => fr"${i.asInstanceOf[Option[String]]}"
-      case i@Some(x) if x.isInstanceOf[Boolean] => fr"${i.asInstanceOf[Option[Boolean]]}"
+      case i@Some(x) if x.isInstanceOf[Boolean] => fr"${i.asInstanceOf[Option[Double]]}"
+      case i@Some(x) if x.isInstanceOf[Double] => fr"${i.asInstanceOf[Option[Boolean]]}"
+      case i@Some(x) if x.isInstanceOf[Short] => fr"${i.asInstanceOf[Option[Short]]}"
       case i@None => fr"NULL"
       case i => throw new Exception(s"Field type not supported $i")
 

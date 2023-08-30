@@ -13,6 +13,7 @@ import doobie.postgres.pgisimplicits.*
 import AbstractDao.ById
 import tester.srv.dao.AnswerDao.Answer
 import AnswerVerificationDao.AnswerVerification
+import otsbridge.ProgramRunResult.ProgramRunResult
 import tester.srv.dao.ProblemDao.Score
 
 import java.time.Instant
@@ -20,8 +21,10 @@ import java.time.Instant
 object AnswerVerificationDao extends AbstractDao[AnswerVerification]{
   case class AnswerVerification(answerId: Int,  verifiedAt: Instant, systemMessage: Option[String], score: Score, scoreNormalized: Double)
 
+//  DeriveSchema.gen[Seq[ProgramRunResult]]
   override val schema: Schema[AnswerVerification] = DeriveSchema.gen[AnswerVerification]
   override val tableName: String = "AnswerVerification"
+  override val jsonbFields: Seq[String] = Seq("score")
 
   def answerVerification(answerId: Int): TranzactIO[Option[AnswerVerification]] =
     selectWhereOption(fr"answerId=$answerId")

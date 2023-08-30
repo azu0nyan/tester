@@ -34,7 +34,7 @@ object UserServiceTranzactIO extends UserService[TranzactIO]{
   private def registerUserQuery(req: RegistrationData): TranzactIO[Int] =
     val HashAndSalt(hash, salt) = PasswordHashingSalting.hashPassword(req.password)
     val user = RegisteredUser(0, req.login, req.firstName, req.lastName, req.email, hash, salt,
-      java.time.Clock.systemUTC().instant(), "{ \"Student\": {}}")
+      java.time.Clock.systemUTC().instant())
     RegisteredUserDao.insertReturnId(user)
   end registerUserQuery
 

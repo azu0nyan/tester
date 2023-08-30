@@ -19,11 +19,10 @@ import java.time.Instant
 object RegisteredUserDao extends AbstractDao [RegisteredUser]
  with ById[RegisteredUser]{
   case class RegisteredUser(id: Int, login: String, firstName: String, lastName: String, email: String,
-                            passwordHash: String, passwordSalt: String, registeredAt: Instant, role: String)
+                            passwordHash: String, passwordSalt: String, registeredAt: Instant)
 
   override val schema: Schema[RegisteredUser] = DeriveSchema.gen[RegisteredUser]
   override val tableName: String = "RegisteredUser"
-  override val jsonbFields: Seq[String] = Seq("role")
 
   def byLogin(login: String): TranzactIO[Option[RegisteredUser]] = 
     selectWhereOption(fr"login ILIKE ${login}")

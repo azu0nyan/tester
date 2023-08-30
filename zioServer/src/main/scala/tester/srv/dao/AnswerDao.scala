@@ -53,7 +53,7 @@ object AnswerDao extends AbstractDao[Answer]
   val answerMetaFields = "U.id, Course.templateAlias, Course.id, P.id FROM"
   //todo correct status
   def queryAnswers(filter: AnswerFilterParams)(andFrag: Fragment, addJoins: Fragment = fr""): TranzactIO[List[(Answer, AnswerMeta, AnswerStatusUnion)]] = tzio {
-    (fr"SELECT " ++ Fragment.const(fieldString + ", " + answerMetaFields +  " " +  tableName) ++
+    (fr"SELECT " ++ Fragment.const(fieldStringWithTable + ", " + answerMetaFields +  " " +  tableName) ++
       fr"""LEFT JOIN Problem as P ON P.id = problemId
            LEFT JOIN Course ON P.courseId = Course.id
            LEFT JOIN CourseTemplate as CT ON CT.alias = Course.templateAlias
@@ -72,7 +72,7 @@ object AnswerDao extends AbstractDao[Answer]
         filter.userId.map(uid => fr"U.id = $uid"),
         Some(andFrag)
       )
-      ).query[(Answer, AnswerMeta)].to[List].map( l => l.map{case (a, b):(Answer, AnswerMeta) => (a, b, AnswerStatusUnion(None, None, None, None))})
+      ).query[(Answer, AnswerMeta)].to[List].map( l => l.map{case (a, b) => (a, b, AnswerStatusUnion(None, None, None, None))})
   }
 
   /** Успешно оцененные ответы, ожидающие подтверждения вручную */

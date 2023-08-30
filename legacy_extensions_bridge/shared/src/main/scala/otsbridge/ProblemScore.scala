@@ -3,13 +3,22 @@ package otsbridge
 import otsbridge.ProgramRunResult._
 
 object ProblemScore {
+
   import io.circe.syntax.*, io.circe.*, io.circe.generic.semiauto.*
 
-  implicit val reqDec: Decoder[ProblemScore] = deriveDecoder[ProblemScore]
-  implicit val reqEnc: Encoder[ProblemScore] = deriveEncoder[ProblemScore]
+  implicit val scoreDec: Decoder[ProblemScore] = deriveDecoder[ProblemScore]
+  implicit val scoreEnc: Encoder[ProblemScore] = deriveEncoder[ProblemScore]
 
+  def fromJson(json: String): ProblemScore = {
+    import io.circe.parser.decode
+    decode[ProblemScore](json) match
+      case Left(value) => throw new Exception(s"Cant decode problem score $value $json")
+      case Right(value) => value
+  }
 
   sealed trait ProblemScore {
+    def toJson: String = scoreEnc(this).noSpaces
+
     def toPrettyString: String
 
     def toInt: Int

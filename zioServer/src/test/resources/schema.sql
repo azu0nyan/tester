@@ -166,7 +166,7 @@ CREATE TABLE tester.problem (
     templatealias character varying(256) NOT NULL,
     seed integer NOT NULL,
     score jsonb NOT NULL,
-    "maxAttempts" integer,
+    maxAttempts integer,
     deadline timestamp without time zone,
     scorenormalized double precision
 );
@@ -213,8 +213,7 @@ CREATE TABLE tester.registereduser (
     lastname character varying(256) NOT NULL,
     email character varying(256),
     registeredat timestamp without time zone NOT NULL,
-    lastlogin timestamp without time zone,
-    role jsonb NOT NULL
+    lastlogin timestamp without time zone
 );
 
 
