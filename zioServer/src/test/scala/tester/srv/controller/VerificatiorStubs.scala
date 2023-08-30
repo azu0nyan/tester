@@ -10,7 +10,7 @@ import zio.*
 
 
 object VerificatiorStubs {
-
+  
   val acceptAllVerificator = new AnswerVerificator[TranzactIO] {
     override def verifyAnswer(seed: Int, answer: String): TranzactIO[AnswerVerificationResult] =
       ZIO.succeed(AnswerVerificationResult.Verified(BinaryScore(true), None))
@@ -19,5 +19,15 @@ object VerificatiorStubs {
   val acceptAllRegistryStub = new AnswerVerificatorRegistry[TranzactIO] {
     override def getVerificator(verificatorAlias: String): TranzactIO[Option[AnswerVerificator[TranzactIO]]] =
       ZIO.succeed(Some(acceptAllVerificator))
+  }
+
+  val rejectAllVerificator = new AnswerVerificator[TranzactIO] {
+    override def verifyAnswer(seed: Int, answer: String): TranzactIO[AnswerVerificationResult] =
+      ZIO.succeed(AnswerVerificationResult.CantVerify(None))
+  }
+
+  val rejectAllRegistryStub = new AnswerVerificatorRegistry[TranzactIO] {
+    override def getVerificator(verificatorAlias: String): TranzactIO[Option[AnswerVerificator[TranzactIO]]] =
+      ZIO.succeed(Some(rejectAllVerificator))
   }
 }

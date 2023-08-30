@@ -29,8 +29,11 @@ case class AnswerServiceTranzactIO(
 
   def unconfirmedAnswers(filterParams: AnswerFilterParams): TranzactIO[Seq[(Answer, AnswerMeta, AnswerStatus)]] =
     AnswerDao.unconfirmedAnswers(filterParams).map( l => l.map{case (a, b, c):(Answer, AnswerMeta, AnswerStatusUnion)  => (a, b, c.toStatus)})
-  
-  override def submitAnswer(problemId: Int, answerRaw: String): TranzactIO[SubmitAnswerResult] =
+
+  def filterAnswers(filter: AnswerFilterParams): TranzactIO[Seq[(Answer, AnswerMeta, AnswerStatus)]] =
+     AnswerDao.queryAnswers(filter)().map( l => l.map{case (a, b, c):(Answer, AnswerMeta, AnswerStatusUnion)  => (a, b, c.toStatus)})
+
+  override def submitAnswer(problemId: Int, answerRaw: String): TranzactIO[SubmitAnswerResult] = {
     def checkMaxAttempts(problem: Problem): TranzactIO[Boolean] =
       problem.maxAttempts match
         case Some(maxAttempts) =>
@@ -41,19 +44,19 @@ case class AnswerServiceTranzactIO(
     val checkNoVerifying: TranzactIO[Boolean] =
       AnswerDao.unverifiedAnswers(problemId).map(_.isEmpty) //todo cache locally
 
-    def submit(p: ProblemDao.Problem): TranzactIO[SubmitAnswerResult] = for{
+    def submit(p: ProblemDao.Problem): TranzactIO[SubmitAnswerResult] = for {
       id <- AnswerDao.insertReturnId(AnswerDao.Answer(0, problemId, answerRaw, "{}", java.time.Clock.systemUTC().instant()))
-      _ <- verificator.verify(problemId,p.templateAlias, id,  answerRaw, p.seed, p.requireConfirmation)
+      _ <- verificator.verify(problemId, p.templateAlias, id, answerRaw, p.seed, p.requireConfirmation)
       _ <- rejectNotConfirmed(id)
     } yield AnswerSubmitted(id)
 
-    def rejectNotConfirmed(exeptId:Int): TranzactIO[Unit] = ZIO.succeed(())//todo
-//      for(answs <- AnswerDao.unconfirmedAnswers()) todo
+    def rejectNotConfirmed(exeptId: Int): TranzactIO[Unit] = ZIO.succeed(()) //todo
+    //      for(answs <- AnswerDao.unconfirmedAnswers()) todo
 
     ProblemDao.byIdOption(problemId).flatMap {
       case Some(problem) =>
-        ZIO.ifZIO[doobie.Connection,DbException](checkMaxAttempts(problem))(
-          onTrue = ZIO.ifZIO[doobie.Connection,DbException](checkNoVerifying)(
+        ZIO.ifZIO[doobie.Connection, DbException](checkMaxAttempts(problem))(
+          onTrue = ZIO.ifZIO[doobie.Connection, DbException](checkNoVerifying)(
             onTrue = submit(problem),
             onFalse = ZIO.succeed(AlreadyVerifyingAnswer())
           ),
@@ -61,6 +64,9 @@ case class AnswerServiceTranzactIO(
         )
       case None => ZIO.succeed(ProblemNotFound())
     }
+  }
+
+
 
   override def pollAnswerStatus(answerId: Int): TranzactIO[AnswerStatusUnion] = //todo do single joined select in answerDao
     for {

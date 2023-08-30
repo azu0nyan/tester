@@ -15,6 +15,8 @@ import java.time.Instant
 trait AnswerService[F[_]] {
   def deleteAnswer(id: Int): F[Boolean]
 
+  def filterAnswers(filter: AnswerFilterParams): F[Seq[(Answer, AnswerMeta, AnswerStatus)]]
+
   def unconfirmedAnswers(filter: AnswerFilterParams): F[Seq[(Answer, AnswerMeta, AnswerStatus)]]
 
   def submitAnswer(problemId: Int, answerRaw: String): F[SubmitAnswerResult]
@@ -26,6 +28,8 @@ trait AnswerService[F[_]] {
   def reviewAnswer(answerId: Int, userId: Int, review: String): F[Boolean]
 
   def rejectAnswer(answerId: Int, message: Option[String], rejectedBy: Option[Int]): F[Boolean]
+
+  def problemAnswers(pId: Int): F[Seq[(Answer, AnswerMeta, AnswerStatus)]] = filterAnswers(AnswerFilterParams(problemId = Some(pId)))
 }
 
 object AnswerService {
