@@ -38,7 +38,7 @@ object CourseTest extends ZIOSpecDefault {
       userId <- createUserMakeTemplate
       courseId <- CoursesTranzactIO.startCourseForUser("alias", userId)
       course <- CourseDao.byId(courseId)
-      problems <- ProblemDao.courseProblems(courseId)
+      problems <- CoursesTranzactIO.courseProblems(courseId)
       allCourses <- CourseDao.all
       courses <- CourseDao.activeUserCourses(userId)
       _ <- Console.printLine(course)

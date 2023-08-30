@@ -11,7 +11,7 @@ import zio.test.Assertion.*
 import zio.test.TestAspect.*
 
 object CourseTemplateTest extends ZIOSpecDefault {
-  def spec = suite("UserOps test")(
+  def spec = suite("Course template test")(
     courseTemplateCreation,
     courseTemplateAddRemoveProblem
   ).provideLayer(EmbeddedPG.connectionLayer) @@

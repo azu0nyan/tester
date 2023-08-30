@@ -19,8 +19,10 @@ import java.time.Instant
 object ProblemDao extends AbstractDao[Problem]
   with ById[Problem] {
 
-  type Score = String
-  case class Problem(id: Int, courseId: Int, templateAlias: String, seed: Int, score: Score, scoreNormalized: Double, maxAttempts: Option[Int], deadline: Option[Instant])
+  type ScoreJsonString = String
+  case class Problem(id: Int, courseId: Int, templateAlias: String, seed: Int,
+                     score: ScoreJsonString, scoreNormalized: Double,
+                     maxAttempts: Option[Int], deadline: Option[Instant], requireConfirmation: Boolean)
 
   override val schema: Schema[Problem] = DeriveSchema.gen[Problem]
   override val tableName: String = "Problem"

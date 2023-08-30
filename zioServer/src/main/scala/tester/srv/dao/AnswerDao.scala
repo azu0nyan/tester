@@ -49,39 +49,6 @@ object AnswerDao extends AbstractDao[Answer]
           WHERE problemId = $problemId""").query[Answer].to[List]
   }
 
-  case class AnswerMeta(userId: Int, courseAlias: String, courseId: Int, problemId: Int)
-  val answerMetaFields = "U.id, Course.templateAlias, Course.id, P.id FROM"
-  //todo correct status
-  def queryAnswers(filter: AnswerFilterParams)(andFrag: Fragment, addJoins: Fragment = fr""): TranzactIO[List[(Answer, AnswerMeta, AnswerStatusUnion)]] = tzio {
-    (fr"SELECT " ++ Fragment.const(fieldStringWithTable + ", " + answerMetaFields +  " " +  tableName) ++
-      fr"""LEFT JOIN Problem as P ON P.id = problemId
-           LEFT JOIN Course ON P.courseId = Course.id
-           LEFT JOIN CourseTemplate as CT ON CT.alias = Course.templateAlias
-           LEFT JOIN RegisteredUser as U ON U.id = Course.userId
-           LEFT JOIN UserToGroup as UTG ON UTG.userId = U.id
-           LEFT JOIN UserGroup as G ON UTG.groupID = G.id
-           LEFT JOIN TeacherToGroup as TTG ON TTG.groupId = G.id""" ++
-           addJoins ++
-           fr"""WHERE """ ++
-      Fragments.andOpt(
-        filter.problemId.map(pid => fr"problemId = $pid"),
-        filter.problemAlias.map(a=> fr"P.templateAlias = $a"),
-        filter.teacherId.map(tid => fr"TTG.teacherID = $tid"),
-        filter.courseAlias.map(a => fr"CT.alias = $a"),
-        filter.groupId.map(gid => fr"G.id = $gid"),
-        filter.userId.map(uid => fr"U.id = $uid"),
-        Some(andFrag)
-      )
-      ).query[(Answer, AnswerMeta)].to[List].map( l => l.map{case (a, b) => (a, b, AnswerStatusUnion(None, None, None, None))})
-  }
-
-  /** Успешно оцененные ответы, ожидающие подтверждения вручную */
-  def unconfirmedAnswers(filter: AnswerFilterParams): TranzactIO[List[(Answer, AnswerMeta, AnswerStatusUnion)]] =
-    queryAnswers(filter)(fr"Conf.answerId IS NULL AND R.answerId IS NOT NULL AND P.scoreNormalized = 1.0",
-      fr"""LEFT JOIN AnswerVerification R ON R.answerId = id
-          LEFT JOIN AnswerVerificationConfirmation as Conf ON Conf.answerId = id""")
-
-
   /** Ответы о результатох проверки которых нет информации в бд */
   def unverifiedAnswers(problemId: Int): TranzactIO[List[Answer]] = tzio {
     (selectFragment ++
@@ -99,6 +66,38 @@ object AnswerDao extends AbstractDao[Answer]
             AND R.answerId IS NULL""").query[Int].unique
   }
 
+  case class AnswerMeta(userId: Int, courseAlias: String, courseId: Int, problemId: Int)
+  val answerMetaFields = "U.id, Course.templateAlias, Course.id, P.id FROM"
+  //todo correct status
+  def queryAnswers(filter: AnswerFilterParams)(andFrag: Fragment, addJoins: Fragment = fr""): TranzactIO[List[(Answer, AnswerMeta, AnswerStatusUnion)]] = tzio {
+    (fr"SELECT " ++ Fragment.const(fieldStringWithTable + ", " + answerMetaFields + " " + tableName) ++
+      fr"""LEFT JOIN Problem as P ON P.id = problemId
+         LEFT JOIN Course ON P.courseId = Course.id
+         LEFT JOIN CourseTemplate as CT ON CT.alias = Course.templateAlias
+         LEFT JOIN RegisteredUser as U ON U.id = Course.userId
+         LEFT JOIN UserToGroup as UTG ON UTG.userId = U.id
+         LEFT JOIN UserGroup as G ON UTG.groupID = G.id
+         LEFT JOIN TeacherToGroup as TTG ON TTG.groupId = G.id""" ++
+      addJoins ++
+      fr"""WHERE """ ++
+      Fragments.andOpt(
+        filter.problemId.map(pid => fr"problemId = $pid"),
+        filter.problemAlias.map(a => fr"P.templateAlias = $a"),
+        filter.teacherId.map(tid => fr"TTG.teacherID = $tid"),
+        filter.courseAlias.map(a => fr"CT.alias = $a"),
+        filter.groupId.map(gid => fr"G.id = $gid"),
+        filter.userId.map(uid => fr"U.id = $uid"),
+        Some(andFrag)
+      )
+      ).query[(Answer, AnswerMeta)].to[List].map(l => l.map { case (a, b) => (a, b, AnswerStatusUnion(None, None, None, None)) })
+  }
 
+  /** Успешно оцененные ответы, ожидающие подтверждения вручную */
+  def unconfirmedAnswers(filter: AnswerFilterParams): TranzactIO[List[(Answer, AnswerMeta, AnswerStatusUnion)]] =
+    queryAnswers(filter)(fr"Conf.answerId IS NULL AND R.answerId IS NOT NULL AND P.scoreNormalized = 1.0",
+      fr"""LEFT JOIN AnswerVerification R ON R.answerId = id
+        LEFT JOIN AnswerVerificationConfirmation as Conf ON Conf.answerId = id""")
+  
+  
 }
   

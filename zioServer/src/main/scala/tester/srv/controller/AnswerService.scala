@@ -25,7 +25,7 @@ trait AnswerService[F[_]] {
 
   def reviewAnswer(answerId: Int, userId: Int, review: String): F[Boolean]
 
-  def rejectAnswer(answerId: Int, userId: Int, message: Option[String]): F[Boolean]
+  def rejectAnswer(answerId: Int, message: Option[String], rejectedBy: Option[Int]): F[Boolean]
 }
 
 object AnswerService {

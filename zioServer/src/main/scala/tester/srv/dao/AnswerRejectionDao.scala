@@ -16,7 +16,7 @@ import AnswerRejectionDao.AnswerRejection
 import java.time.Instant
 
 object AnswerRejectionDao extends AbstractDao[AnswerRejection]{
-  case class AnswerRejection(answerId: Int,  rejectedAt: Instant, message: Option[String])
+  case class AnswerRejection(answerId: Int,  rejectedAt: Instant, message: Option[String], rejectedBy: Option[Int])
 
   override val schema: Schema[AnswerRejection] = DeriveSchema.gen[AnswerRejection]
   override val tableName: String = "AnswerRejection"

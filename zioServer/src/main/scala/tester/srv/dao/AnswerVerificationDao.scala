@@ -14,12 +14,12 @@ import AbstractDao.ById
 import tester.srv.dao.AnswerDao.Answer
 import AnswerVerificationDao.AnswerVerification
 import otsbridge.ProgramRunResult.ProgramRunResult
-import tester.srv.dao.ProblemDao.Score
+import tester.srv.dao.ProblemDao.ScoreJsonString
 
 import java.time.Instant
 
 object AnswerVerificationDao extends AbstractDao[AnswerVerification]{
-  case class AnswerVerification(answerId: Int,  verifiedAt: Instant, systemMessage: Option[String], score: Score, scoreNormalized: Double)
+  case class AnswerVerification(answerId: Int, verifiedAt: Instant, systemMessage: Option[String], score: ScoreJsonString, scoreNormalized: Double)
 
 //  DeriveSchema.gen[Seq[ProgramRunResult]]
   override val schema: Schema[AnswerVerification] = DeriveSchema.gen[AnswerVerification]

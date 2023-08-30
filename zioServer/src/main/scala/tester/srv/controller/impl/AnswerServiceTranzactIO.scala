@@ -21,7 +21,9 @@ import zio.*
 import ProblemDao.Problem
 import tester.srv.dao.AnswerDao.{Answer, AnswerMeta}
 
-object AnswersTranzactIO extends AnswerService[TranzactIO] {
+case class AnswerServiceTranzactIO(
+                              verificator: VerificationService[TranzactIO]
+                            ) extends AnswerService[TranzactIO] {
   override def deleteAnswer(id: Int): TranzactIO[Boolean] =
     AnswerDao.deleteById(id)
 
@@ -29,8 +31,6 @@ object AnswersTranzactIO extends AnswerService[TranzactIO] {
     AnswerDao.unconfirmedAnswers(filterParams).map( l => l.map{case (a, b, c):(Answer, AnswerMeta, AnswerStatusUnion)  => (a, b, c.toStatus)})
   
   override def submitAnswer(problemId: Int, answerRaw: String): TranzactIO[SubmitAnswerResult] =
-    val verificator: VerificationService[TranzactIO] = ???
-
     def checkMaxAttempts(problem: Problem): TranzactIO[Boolean] =
       problem.maxAttempts match
         case Some(maxAttempts) =>
@@ -43,11 +43,11 @@ object AnswersTranzactIO extends AnswerService[TranzactIO] {
 
     def submit(p: ProblemDao.Problem): TranzactIO[SubmitAnswerResult] = for{
       id <- AnswerDao.insertReturnId(AnswerDao.Answer(0, problemId, answerRaw, "{}", java.time.Clock.systemUTC().instant()))
-      _ <- verificator.verify(problemId,p.templateAlias, id,  answerRaw, p.seed)
-      _ <- rejectNotConfirmed
+      _ <- verificator.verify(problemId,p.templateAlias, id,  answerRaw, p.seed, p.requireConfirmation)
+      _ <- rejectNotConfirmed(id)
     } yield AnswerSubmitted(id)
 
-    def rejectNotConfirmed: TranzactIO[Unit] = ZIO.succeed(())
+    def rejectNotConfirmed(exeptId:Int): TranzactIO[Unit] = ZIO.succeed(())//todo
 //      for(answs <- AnswerDao.unconfirmedAnswers()) todo
 
     ProblemDao.byIdOption(problemId).flatMap {
@@ -77,6 +77,6 @@ object AnswersTranzactIO extends AnswerService[TranzactIO] {
   override def reviewAnswer(answerId: Int, userId: Int, review: String): TranzactIO[Boolean] =
     AnswerReviewDao.insert(AnswerReview(answerId, review, userId))
 
-  override def rejectAnswer(answerId: Int, userId: Int, message: Option[String]): TranzactIO[Boolean] =
-    AnswerRejectionDao.insert(AnswerRejection(answerId, java.time.Clock.systemUTC().instant(), message))
+  override def rejectAnswer(answerId: Int, message: Option[String], rejectedBy: Option[Int]): TranzactIO[Boolean] =
+    AnswerRejectionDao.insert(AnswerRejection(answerId, java.time.Clock.systemUTC().instant(), message, rejectedBy))
 }

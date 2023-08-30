@@ -2,6 +2,7 @@ package otsbridge
 
 
 import otsbridge.AnswerField.AnswerField
+import otsbridge.AnswerVerificationResult.Verified
 import otsbridge.ProblemScore.ProblemScore
 
 import scala.concurrent.Future

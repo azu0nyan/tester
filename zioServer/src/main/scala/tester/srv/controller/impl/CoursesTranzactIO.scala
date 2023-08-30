@@ -2,7 +2,8 @@ package tester.srv.controller.impl
 
 import io.github.gaelrenoux.tranzactio.doobie.TranzactIO
 import tester.srv.controller.{Courses, ProblemService}
-import tester.srv.dao.{CourseDao, CourseTemplateDao, CourseTemplateProblemDao}
+import tester.srv.dao.ProblemDao.Problem
+import tester.srv.dao.{CourseDao, CourseTemplateDao, CourseTemplateProblemDao, ProblemDao}
 import zio.ZIO
 
 object CoursesTranzactIO extends Courses[TranzactIO] {
@@ -31,4 +32,8 @@ object CoursesTranzactIO extends Courses[TranzactIO] {
       c <- CourseDao.byAliasAndUserId(alias, userId)
       _ <- ZIO.when(c.nonEmpty)(CourseDao.deleteById(c.get.id))
     } yield ()
+
+
+  def courseProblems(courseId: Int): TranzactIO[Seq[Problem]] =
+    ProblemDao.courseProblems(courseId)
 }

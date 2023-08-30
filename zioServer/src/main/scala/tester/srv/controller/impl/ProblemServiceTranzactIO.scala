@@ -19,7 +19,8 @@ import tester.srv.dao.ProblemDao.Problem
 object ProblemServiceTranzactIO extends ProblemService[TranzactIO]{
 
   def startProblem(courseId: Int, templateAlias: String): TranzactIO[Int] = {
-    val toInsert = Problem(0, courseId, templateAlias, scala.util.Random.nextInt(), BinaryScore(false).toJson, 0d,  None, None )
+    //todo use temaplate alias to fill fields
+    val toInsert = Problem(0, courseId, templateAlias, scala.util.Random.nextInt(), BinaryScore(false).toJson, 0d,  None, None, false )
     ProblemDao.insertReturnId(toInsert)
   }
 
