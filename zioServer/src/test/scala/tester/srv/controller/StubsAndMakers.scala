@@ -2,7 +2,7 @@ package tester.srv.controller
 
 import doobie.util.transactor
 import io.github.gaelrenoux.tranzactio.DbException
-import io.github.gaelrenoux.tranzactio.doobie.TranzactIO
+import io.github.gaelrenoux.tranzactio.doobie.{Database, TranzactIO}
 import otsbridge.AnswerField.{AnswerField, TextField}
 import otsbridge.{AnswerField, AnswerVerificationResult, ProblemInfo}
 import otsbridge.ProblemScore.{BinaryScore, ProblemScore}
@@ -42,22 +42,24 @@ object StubsAndMakers {
       ZIO.succeed(())
   }
 
-  def makeCourseTemplateService: Task[CourseTemplateServiceTranzactIO] =
+  def makeCourseTemplateService: ZIO[MessageBus & Database, Nothing, CourseTemplateServiceTranzactIO] =
     for {
-      stub <- StubsAndMakers.registryStub
-    } yield CourseTemplateServiceTranzactIO(ProblemServiceTranzactIO(stub))
+      res <- ProblemServiceTranzactIO.live
+        .provideSomeLayer(ZLayer.fromZIO(StubsAndMakers.registryStub))
+    } yield CourseTemplateServiceTranzactIO(res)
 
-  def makeCourseService: Task[CoursesServiceTranzactIO] =
+  def makeCourseService(bus: MessageBus): Task[CoursesServiceTranzactIO] =
     for{
       stub <- StubsAndMakers.registryStub
-      problemService = ProblemServiceTranzactIO(stub)
+      problemService = ProblemServiceTranzactIO(bus, stub)
     } yield CoursesServiceTranzactIO(problemService)
 
   def makeUserAndCourse: TranzactIO[(Int, Int, Seq[Problem])] =
     val userData = RegistrationData("user", "password", "Aliecbob", "Joens", "a@a.com")
     (for {
-      courses <- StubsAndMakers.makeCourseService
-      templates <- StubsAndMakers.makeCourseTemplateService
+      bus <- MessageBus.make
+      courses <- StubsAndMakers.makeCourseService(bus)
+      templates <- StubsAndMakers.makeCourseTemplateService(bus)
       userId <- UserServiceTranzactIO.registerUser(userData).map(_.asInstanceOf[RegistrationResult.Success].userId)
       _ <- templates.createNewTemplate("alias", "description")
       _ <- templates.addProblemToTemplateAndUpdateCourses("alias", "problemAlias1")

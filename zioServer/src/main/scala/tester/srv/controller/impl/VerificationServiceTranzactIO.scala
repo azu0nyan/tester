@@ -3,7 +3,8 @@ package tester.srv.controller.impl
 import io.github.gaelrenoux.tranzactio.doobie.TranzactIO
 import otsbridge.AnswerVerificationResult.*
 import otsbridge.AnswerVerificationResult
-import tester.srv.controller.{AnswerVerificatorRegistry, ProblemService, VerificationService}
+import tester.srv.controller.MessageBus.AnswerConfirmed
+import tester.srv.controller.{AnswerVerificatorRegistry, MessageBus, ProblemService, VerificationService}
 import tester.srv.dao.AnswerDao
 import tester.srv.dao.AnswerVerificationDao
 import tester.srv.dao.AnswerVerificationConfirmationDao
@@ -15,13 +16,13 @@ import zio.*
 
 
 case class VerificationServiceTranzactIO(
-                                          registry: AnswerVerificatorRegistry[TranzactIO]                                          
+                                          bus: MessageBus,
+                                          registry: AnswerVerificatorRegistry[TranzactIO] ,
                                         ) extends VerificationService[TranzactIO] {
   //CONNECTION LOGIC ETC
 
 
-  def verify(problemId: Int, verificatorAlias: String, answerId: Int, answerRaw: String, seed: Int, requireConfirmation: Boolean)
-            (problemService: ProblemService[TranzactIO]): TranzactIO[Unit] = {
+  def verify(problemId: Int, verificatorAlias: String, answerId: Int, answerRaw: String, seed: Int, requireConfirmation: Boolean): TranzactIO[Unit] = {
     def processResult(r: AnswerVerificationResult) = r match
       case Verified(score, systemMessage) =>
         for {
@@ -30,7 +31,7 @@ case class VerificationServiceTranzactIO(
             for{
               _ <- AnswerVerificationConfirmationDao.insert(
                 AnswerVerificationConfirmation(answerId, java.time.Clock.systemUTC().instant(), None))
-              _ <- problemService.answerConfirmed(problemId, asnwerId, score)
+              _ <- bus.publish(AnswerConfirmed(answerId, score, problemId))
             } yield ())
         } yield ()
       case VerificationDelayed(systemMessage) =>

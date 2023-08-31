@@ -11,13 +11,14 @@ import doobie.postgres.pgisimplicits.*
 import io.github.gaelrenoux.tranzactio.{DbException, doobie}
 import doobie.{Connection, Database, TranzactIO, tzio}
 import otsbridge.ProblemScore.{BinaryScore, ProblemScore}
-import tester.srv.controller.ProblemService
+import tester.srv.controller.{MessageBus, ProblemService}
 import tester.srv.dao.ProblemDao
 import tester.srv.dao.ProblemDao.Problem
 
 
-case class ProblemServiceTranzactIO(
-                                     infoRegistryZIO: ProblemInfoRegistryZIO
+case class ProblemServiceTranzactIO private(
+                                     bus: MessageBus,
+                                     infoRegistryZIO: ProblemInfoRegistryZIO,
                                    ) extends ProblemService[TranzactIO] {
 
   def startProblem(courseId: Int, templateAlias: String): TranzactIO[Int] = {
@@ -40,8 +41,25 @@ case class ProblemServiceTranzactIO(
     } yield res.getOrElse(false)
 
 
-  def answerConfirmed(problemId: Int, asnwerId:Int, score: ProblemScore): TranzactIO[Unit] =
+  //todo use Hub for reporting
+  def reportAnswerConfirmed(problemId: Int, asnwerId:Int, score: ProblemScore): TranzactIO[Unit] =
     ???
 
 }
 
+object ProblemServiceTranzactIO{
+  def live: ZIO[MessageBus & ProblemInfoRegistryZIO & Database, Nothing, ProblemServiceTranzactIO] =
+    ZIO.scoped {
+      for {
+        bus <- ZIO.service[MessageBus]
+        reg <- ZIO.service[ProblemInfoRegistryZIO]
+        db <- ZIO.service[Database]
+        srv = ProblemServiceTranzactIO(bus, reg)
+        _ <- (for{
+          sub <- bus.answerConfirmations.subscribe
+          taken <- sub.take
+          _ <- db.transactionOrWiden(srv.reportAnswerConfirmed(taken.problemId, taken.answerId, taken.score)).catchAll(_ => ZIO.succeed(()))
+        } yield ())
+      } yield srv
+    }
+}

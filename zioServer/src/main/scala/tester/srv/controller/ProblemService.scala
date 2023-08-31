@@ -10,5 +10,5 @@ trait ProblemService[F[_]: TagK] {
 
   def removeProblem(courseId: Int, templateAlias: String): F[Boolean]
   
-  def answerConfirmed(problemId: Int, asnwerId:Int, score: ProblemScore): F[Unit]
+  def reportAnswerConfirmed(problemId: Int, asnwerId:Int, score: ProblemScore): F[Unit]
 }

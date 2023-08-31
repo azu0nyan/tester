@@ -23,9 +23,12 @@ object AnswerServiceTest extends ZIOSpecDefault {
     withLiveClock
 
   def makeService(reg: AnswerVerificatorRegistry[TranzactIO]): UIO[AnswerServiceTranzactIO] =
-    ZIO.succeed(AnswerServiceTranzactIO(
-    VerificationServiceTranzactIO(reg)
-  ))
+    for{
+      bus <- MessageBus.make
+    } yield AnswerServiceTranzactIO(
+      VerificationServiceTranzactIO(bus, reg)
+    )
+
 
   val submitAnswer = test("Submit answer auto confirm ") {
     for {

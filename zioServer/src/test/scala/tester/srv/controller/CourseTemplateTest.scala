@@ -22,7 +22,8 @@ object CourseTemplateTest extends ZIOSpecDefault {
 
   val courseTemplateCreation = test("Course template creation"){
     for{
-      srv <- StubsAndMakers.makeCourseTemplateService
+      bus <- MessageBus.make  
+      srv <- StubsAndMakers.makeCourseTemplateService(bus)
       _ <- srv.createNewTemplate("alias", "description")
       ct <- CourseTemplateDao.byAliasOption("alias")
     } yield assertTrue(
@@ -33,7 +34,8 @@ object CourseTemplateTest extends ZIOSpecDefault {
 
   val courseTemplateAddRemoveProblem = test("Course template add problem"){
     for{
-      srv <- StubsAndMakers.makeCourseTemplateService
+      bus <- MessageBus.make
+      srv <- StubsAndMakers.makeCourseTemplateService(bus)
       _ <- srv.createNewTemplate("alias", "description")
       _ <- srv.addProblemToTemplateAndUpdateCourses("alias", "problemAlias")
       listOne <- srv.templateProblemAliases("alias")
