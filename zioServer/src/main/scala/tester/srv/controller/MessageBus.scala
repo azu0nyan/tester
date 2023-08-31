@@ -17,7 +17,7 @@ case class MessageBus(
 
 object MessageBus {
   sealed trait Message
-  case class AnswerConfirmed(answerId: Int, score: ProblemScore, problemId: Int) extends Message
+  case class AnswerConfirmed(problemId: Int, answerId: Int, score: ProblemScore) extends Message
   case class UserLoggedIn(userId: Int, at: Instant) extends Message
 
 
@@ -25,7 +25,7 @@ object MessageBus {
     for {
       main <- Hub.unbounded[Message]
       answerConfirmations <- Hub.unbounded[AnswerConfirmed]
-      userLogins <- Hub.unbounded[ UserLoggedIn]
+      userLogins <- Hub.unbounded[UserLoggedIn]
       _ <- ZStream.fromHub(main).collect { case a: AnswerConfirmed => a }.run(ZSink.fromHub(answerConfirmations))
       _ <- ZStream.fromHub(main).collect { case a: UserLoggedIn => a }.run(ZSink.fromHub(userLogins))
     } yield MessageBus(main, answerConfirmations, userLogins)

@@ -9,9 +9,8 @@ import doobie.postgres.implicits.*
 import doobie.postgres.pgisimplicits.*
 import io.github.gaelrenoux.tranzactio.doobie.{Connection, Database, TranzactIO, tzio}
 import io.github.gaelrenoux.tranzactio.{DbException, doobie}
-import tester.srv.controller.AnswerService
+import tester.srv.controller.{AnswerService, MessageBus, VerificationService}
 import tester.srv.controller.AnswerService.*
-import tester.srv.controller.VerificationService
 import tester.srv.dao.AnswerRejectionDao.AnswerRejection
 import tester.srv.dao.AnswerReviewDao.AnswerReview
 import tester.srv.dao.AnswerVerificationConfirmationDao.AnswerVerificationConfirmation
@@ -22,16 +21,17 @@ import ProblemDao.Problem
 import tester.srv.dao.AnswerDao.{Answer, AnswerMeta}
 
 case class AnswerServiceTranzactIO(
-                              verificator: VerificationService[TranzactIO]
-                            ) extends AnswerService[TranzactIO] {
+                                    bus: MessageBus,
+                                    verificator: VerificationService[TranzactIO]
+                                  ) extends AnswerService[TranzactIO] {
   override def deleteAnswer(id: Int): TranzactIO[Boolean] =
     AnswerDao.deleteById(id)
 
   def unconfirmedAnswers(filterParams: AnswerFilterParams): TranzactIO[Seq[(Answer, AnswerMeta, AnswerStatus)]] =
-    AnswerDao.unconfirmedAnswers(filterParams).map( l => l.map{case (a, b, c):(Answer, AnswerMeta, AnswerStatusUnion)  => (a, b, c.toStatus)})
+    AnswerDao.unconfirmedAnswers(filterParams).map(l => l.map { case (a, b, c) => (a, b, c.toStatus) })
 
   def filterAnswers(filter: AnswerFilterParams): TranzactIO[Seq[(Answer, AnswerMeta, AnswerStatus)]] =
-     AnswerDao.queryAnswers(filter)().map( l => l.map{case (a, b, c):(Answer, AnswerMeta, AnswerStatusUnion)  => (a, b, c.toStatus)})
+    AnswerDao.queryAnswers(filter)().map(l => l.map { case (a, b, c) => (a, b, c.toStatus) })
 
   override def submitAnswer(problemId: Int, answerRaw: String): TranzactIO[SubmitAnswerResult] = {
     def checkMaxAttempts(problem: Problem): TranzactIO[Boolean] =
@@ -67,7 +67,6 @@ case class AnswerServiceTranzactIO(
   }
 
 
-
   override def pollAnswerStatus(answerId: Int): TranzactIO[AnswerStatusUnion] = //todo do single joined select in answerDao
     for {
       rej <- AnswerRejectionDao.answerRejection(answerId)
@@ -85,4 +84,15 @@ case class AnswerServiceTranzactIO(
 
   override def rejectAnswer(answerId: Int, message: Option[String], rejectedBy: Option[Int]): TranzactIO[Boolean] =
     AnswerRejectionDao.insert(AnswerRejection(answerId, java.time.Clock.systemUTC().instant(), message, rejectedBy))
+}
+
+
+object AnswerServiceTranzactIO {
+  def live: URIO[MessageBus & VerificationService[TranzactIO], AnswerServiceTranzactIO] =
+    for {
+      bus <- ZIO.service[MessageBus]
+      ver <- ZIO.service[VerificationService[TranzactIO]]
+    } yield AnswerServiceTranzactIO(bus, ver)
+
+  def layer: URLayer[MessageBus & VerificationService[TranzactIO], AnswerServiceTranzactIO] = ZLayer.fromZIO(live)
 }

@@ -12,7 +12,7 @@ import doobie.postgres.implicits.*
 import doobie.postgres.pgisimplicits.*
 import io.github.gaelrenoux.tranzactio.{DbException, doobie}
 import doobie.{Connection, Database, TranzactIO, tzio}
-import tester.srv.controller.{PasswordHashingSalting, TokenOps, UserService}
+import tester.srv.controller.{MessageBus, PasswordHashingSalting, TokenOps, UserService}
 import tester.srv.controller.UserService.LoginResult.*
 import tester.srv.controller.UserService.{LoginData, LoginResult, RegistrationData, RegistrationResult}
 import tester.srv.dao.RegisteredUserDao.RegisteredUser
@@ -24,7 +24,7 @@ import java.time.Instant
 
 
 
-object UserServiceTranzactIO extends UserService[TranzactIO]{
+case class UserServiceTranzactIO(bus: MessageBus) extends UserService[TranzactIO]{
 
   val minLoginLength = 3
   val minPassowdLength = 4
@@ -69,6 +69,7 @@ object UserServiceTranzactIO extends UserService[TranzactIO]{
             for {
               _ <- UserSessionDao.insert(UserSession(0, user.id, token, data.ip,
                 data.userAgent, data.platform, data.locale, start, end))
+              _ <- bus.publish(MessageBus.UserLoggedIn(user.id, start))
             } yield LoggedIn(token)
           else ZIO.succeed(WrongPassword(data.login, data.password))
         case None => ZIO.succeed(UserNotFound(data.login))
@@ -84,4 +85,11 @@ object UserServiceTranzactIO extends UserService[TranzactIO]{
   }
 }
 
-
+object UserServiceTranzactIO{
+  def live: URIO[MessageBus, UserServiceTranzactIO] =
+    for{
+      bus <- ZIO.service[MessageBus]
+    } yield UserServiceTranzactIO(bus)
+    
+  def layer: URLayer[MessageBus, UserServiceTranzactIO] = ZLayer.fromZIO(live)  
+}

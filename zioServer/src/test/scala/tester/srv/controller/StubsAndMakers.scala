@@ -48,11 +48,11 @@ object StubsAndMakers {
         .provideSomeLayer(ZLayer.fromZIO(StubsAndMakers.registryStub))
     } yield CourseTemplateServiceTranzactIO(res)
 
-  def makeCourseService(bus: MessageBus): Task[CoursesServiceTranzactIO] =
-    for{
+  def makeCourseService(bus: MessageBus): ZIO[MessageBus & ProblemService[TranzactIO], Nothing, CoursesServiceTranzactIO] =
+    for {
       stub <- StubsAndMakers.registryStub
-      problemService = ProblemServiceTranzactIO(bus, stub)
-    } yield CoursesServiceTranzactIO(problemService)
+      res <- CoursesServiceTranzactIO.live
+    } yield res
 
   def makeUserAndCourse: TranzactIO[(Int, Int, Seq[Problem])] =
     val userData = RegistrationData("user", "password", "Aliecbob", "Joens", "a@a.com")

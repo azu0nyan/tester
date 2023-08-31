@@ -1,14 +1,14 @@
 package tester.srv.controller.impl
 
 import io.github.gaelrenoux.tranzactio.doobie.TranzactIO
-import tester.srv.controller.{CoursesService, ProblemService}
+import tester.srv.controller.{CoursesService, MessageBus, ProblemService}
 import tester.srv.dao.CourseDao.Course
 import tester.srv.dao.ProblemDao.Problem
 import tester.srv.dao.{CourseDao, CourseTemplateDao, CourseTemplateProblemDao, ProblemDao}
 import zio.*
 
-case class CoursesServiceTranzactIO(
-                                     problemService: ProblemService[TranzactIO]
+case class CoursesServiceTranzactIO(bus: MessageBus,
+                                    problemService: ProblemService[TranzactIO]
                                    ) extends CoursesService[TranzactIO] {
 
   /** Returns courseId */
@@ -40,15 +40,16 @@ case class CoursesServiceTranzactIO(
   def courseProblems(courseId: Int): TranzactIO[Seq[Problem]] =
     ProblemDao.courseProblems(courseId)
 
-  def byId(courseId:Int): TranzactIO[Course] = CourseDao.byId(courseId)
+  def byId(courseId: Int): TranzactIO[Course] = CourseDao.byId(courseId)
 }
 
 object CoursesServiceTranzactIO {
-  def live: URIO[ProblemService[TranzactIO], CoursesServiceTranzactIO] =
-    ZIO.serviceWith[ProblemService[TranzactIO]](srv =>
-      CoursesServiceTranzactIO(srv))
+  def live: URIO[MessageBus & ProblemService[TranzactIO], CoursesServiceTranzactIO] =
+    for{
+      bus <- ZIO.service[MessageBus]
+      pr <- ZIO.service[ProblemService[TranzactIO]]
+    } yield CoursesServiceTranzactIO(bus, pr)
 
-
-  def layer: URLayer[ProblemService[TranzactIO], CoursesServiceTranzactIO] =
+  def layer: URLayer[MessageBus & ProblemService[TranzactIO], CoursesServiceTranzactIO] =
     ZLayer.fromZIO(live)
 }

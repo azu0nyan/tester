@@ -16,8 +16,8 @@ case class ProblemInfoRegistryZIO(map: ConcurrentMap[String, ProblemInfo]) exten
 object ProblemInfoRegistryZIO {
   def live: UIO[ProblemInfoRegistryZIO] =
     for {
-      _ <- Console.printLine(s"MAKING").orDie
       map <- ConcurrentMap.make[String, ProblemInfo]()
-      _ <- Console.printLine(s"MAKINGGGG").orDie
     } yield ProblemInfoRegistryZIO(map)
+    
+  def layer: ULayer[ProblemInfoRegistryZIO] = ZLayer.fromZIO(live)  
 }

@@ -3,13 +3,14 @@ package tester.srv.controller.impl
 import doobie.util.transactor
 import io.github.gaelrenoux.tranzactio.DbException
 import io.github.gaelrenoux.tranzactio.doobie.TranzactIO
-import tester.srv.controller.{CourseTemplateService, ProblemService}
+import tester.srv.controller.{CourseTemplateService, MessageBus, ProblemService}
 import tester.srv.dao.CourseTemplateDao.CourseTemplate
 import tester.srv.dao.CourseTemplateProblemDao.CourseTemplateProblem
 import tester.srv.dao.{CourseDao, CourseTemplateDao, CourseTemplateProblemDao}
 import zio.*
 
 case class CourseTemplateServiceTranzactIO(
+                                     bus: MessageBus,
                                      problemService: ProblemService[TranzactIO]
                                    ) extends CourseTemplateService[TranzactIO] {
 
@@ -37,13 +38,12 @@ case class CourseTemplateServiceTranzactIO(
 }
 
 object CourseTemplateServiceTranzactIO {
+  def live: URIO[MessageBus & ProblemService[TranzactIO], CourseTemplateServiceTranzactIO] =
+    for {
+      bus <- ZIO.service[MessageBus]
+      ver <- ZIO.service[ProblemService[TranzactIO]]
+    } yield CourseTemplateServiceTranzactIO(bus, ver)
 
-  def live: URIO[ProblemService[TranzactIO], CourseTemplateServiceTranzactIO] =
-    ZIO.serviceWith[ProblemService[TranzactIO]](srv => CourseTemplateServiceTranzactIO(srv))
-//    for {
-//      srv <- ZIO.service[ProblemService[TranzactIO]]
-//    } CourseTemplateTranzactIO(srv)
-
-  def layer: URLayer[ProblemService[TranzactIO], CourseTemplateServiceTranzactIO] =
+  def layer: URLayer[MessageBus & ProblemService[TranzactIO], CourseTemplateServiceTranzactIO] =
     ZLayer.fromZIO(live)
 }

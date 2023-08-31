@@ -17,9 +17,9 @@ import tester.srv.dao.ProblemDao.Problem
 
 
 case class ProblemServiceTranzactIO private(
-                                     bus: MessageBus,
-                                     infoRegistryZIO: ProblemInfoRegistryZIO,
-                                   ) extends ProblemService[TranzactIO] {
+                                             bus: MessageBus,
+                                             infoRegistryZIO: ProblemInfoRegistryZIO,
+                                           ) extends ProblemService[TranzactIO] {
 
   def startProblem(courseId: Int, templateAlias: String): TranzactIO[Int] = {
     for {
@@ -42,24 +42,24 @@ case class ProblemServiceTranzactIO private(
 
 
   //todo use Hub for reporting
-  def reportAnswerConfirmed(problemId: Int, asnwerId:Int, score: ProblemScore): TranzactIO[Unit] =
+  def reportAnswerConfirmed(problemId: Int, asnwerId: Int, score: ProblemScore): TranzactIO[Unit] =
     ???
 
 }
 
-object ProblemServiceTranzactIO{
-  def live: ZIO[MessageBus & ProblemInfoRegistryZIO & Database, Nothing, ProblemServiceTranzactIO] =
-    ZIO.scoped {
-      for {
-        bus <- ZIO.service[MessageBus]
-        reg <- ZIO.service[ProblemInfoRegistryZIO]
-        db <- ZIO.service[Database]
-        srv = ProblemServiceTranzactIO(bus, reg)
-        _ <- (for{
-          sub <- bus.answerConfirmations.subscribe
-          taken <- sub.take
-          _ <- db.transactionOrWiden(srv.reportAnswerConfirmed(taken.problemId, taken.answerId, taken.score)).catchAll(_ => ZIO.succeed(()))
-        } yield ())
-      } yield srv
-    }
+object ProblemServiceTranzactIO {
+  val live: URIO[MessageBus & ProblemInfoRegistryZIO, ProblemServiceTranzactIO] =
+    for {
+      bus <- ZIO.service[MessageBus]
+      reg <- ZIO.service[ProblemInfoRegistryZIO]
+      srv = ProblemServiceTranzactIO(bus, reg)
+      //        _ <- (for{
+      //          sub <- bus.answerConfirmations.subscribe
+      //          taken <- sub.take
+      //          _ <- db.transactionOrWiden(srv.reportAnswerConfirmed(taken.problemId, taken.answerId, taken.score)).catchAll(_ => ZIO.succeed(()))
+      //        } yield ())
+    } yield srv
+
+  def layer: URLayer[MessageBus & ProblemInfoRegistryZIO, ProblemServiceTranzactIO] =
+    ZLayer.fromZIO(live)
 }

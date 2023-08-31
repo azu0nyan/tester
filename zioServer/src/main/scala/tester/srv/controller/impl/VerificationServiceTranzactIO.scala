@@ -18,6 +18,7 @@ import zio.*
 case class VerificationServiceTranzactIO(
                                           bus: MessageBus,
                                           registry: AnswerVerificatorRegistry[TranzactIO] ,
+                                          problemService: ProblemService[TranzactIO]
                                         ) extends VerificationService[TranzactIO] {
   //CONNECTION LOGIC ETC
 
@@ -31,7 +32,8 @@ case class VerificationServiceTranzactIO(
             for{
               _ <- AnswerVerificationConfirmationDao.insert(
                 AnswerVerificationConfirmation(answerId, java.time.Clock.systemUTC().instant(), None))
-              _ <- bus.publish(AnswerConfirmed(answerId, score, problemId))
+              _ <- problemService.reportAnswerConfirmed(problemId, answerId, score)
+              _ <- bus.publish(AnswerConfirmed(problemId, answerId, score))
             } yield ())
         } yield ()
       case VerificationDelayed(systemMessage) =>
@@ -53,4 +55,16 @@ case class VerificationServiceTranzactIO(
     } yield ()
 
   }
+}
+
+
+object VerificationServiceTranzactIO{
+  def live :URIO[MessageBus &  AnswerVerificatorRegistry[TranzactIO] & ProblemService[TranzactIO], VerificationServiceTranzactIO] =
+    for{
+      bus <- ZIO.service[MessageBus]
+      reg <- ZIO.service[AnswerVerificatorRegistry[TranzactIO]]
+      prb <- ZIO.service[ProblemService[TranzactIO]]
+    } yield VerificationServiceTranzactIO(bus, reg, prb)
+
+  def layer = ZLayer.fromZIO(live)
 }
