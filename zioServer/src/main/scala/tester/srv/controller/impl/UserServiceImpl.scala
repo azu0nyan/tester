@@ -24,7 +24,7 @@ import java.time.Instant
 
 
 
-case class UserServiceTranzactIO(bus: MessageBus) extends UserService[TranzactIO]{
+case class UserServiceImpl(bus: MessageBus) extends UserService{
 
   val minLoginLength = 3
   val minPassowdLength = 4
@@ -85,11 +85,11 @@ case class UserServiceTranzactIO(bus: MessageBus) extends UserService[TranzactIO
   }
 }
 
-object UserServiceTranzactIO{
-  def live: URIO[MessageBus, UserServiceTranzactIO] =
+object UserServiceImpl{
+  def live: URIO[MessageBus, UserServiceImpl] =
     for{
       bus <- ZIO.service[MessageBus]
-    } yield UserServiceTranzactIO(bus)
+    } yield UserServiceImpl(bus)
     
-  def layer: URLayer[MessageBus, UserServiceTranzactIO] = ZLayer.fromZIO(live)  
+  def layer: URLayer[MessageBus, UserServiceImpl] = ZLayer.fromZIO(live)  
 }

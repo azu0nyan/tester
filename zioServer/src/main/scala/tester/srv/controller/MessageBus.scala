@@ -21,7 +21,7 @@ object MessageBus {
   case class UserLoggedIn(userId: Int, at: Instant) extends Message
 
 
-  def make: UIO[MessageBus] =
+  def live: UIO[MessageBus] =
     for {
       main <- Hub.unbounded[Message]
       answerConfirmations <- Hub.unbounded[AnswerConfirmed]
@@ -29,4 +29,7 @@ object MessageBus {
       _ <- ZStream.fromHub(main).collect { case a: AnswerConfirmed => a }.run(ZSink.fromHub(answerConfirmations))
       _ <- ZStream.fromHub(main).collect { case a: UserLoggedIn => a }.run(ZSink.fromHub(userLogins))
     } yield MessageBus(main, answerConfirmations, userLogins)
+    
+  def layer: ULayer[MessageBus] = ZLayer.fromZIO(live) 
+    
 }

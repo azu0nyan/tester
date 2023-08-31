@@ -2,13 +2,14 @@ package tester.srv.controller
 
 import otsbridge.ProblemScore.ProblemScore
 import zio.*
+import io.github.gaelrenoux.tranzactio.doobie.TranzactIO
 
-trait ProblemService[F[_]: TagK] {
+trait ProblemService {
 
   /** Returns problem id */
-  def startProblem(courseId: Int, templateAlias: String): F[Int]
+  def startProblem(courseId: Int, templateAlias: String): TranzactIO[Int]
 
-  def removeProblem(courseId: Int, templateAlias: String): F[Boolean]
+  def removeProblem(courseId: Int, templateAlias: String): TranzactIO[Boolean]
   
-  def reportAnswerConfirmed(problemId: Int, asnwerId:Int, score: ProblemScore): F[Unit]
+  def reportAnswerConfirmed(problemId: Int, asnwerId:Int, score: ProblemScore): TranzactIO[Unit]
 }

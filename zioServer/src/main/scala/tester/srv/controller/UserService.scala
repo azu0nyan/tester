@@ -5,14 +5,14 @@ import tester.srv.controller.UserService.LoginResult.*
 import tester.srv.controller.UserService.RegistrationResult.*
 
 import java.time.Instant
+import io.github.gaelrenoux.tranzactio.doobie.TranzactIO
 
+trait UserService {
+  def registerUser(req: RegistrationData): TranzactIO[RegistrationResult]
 
-trait UserService[F[_]] {
-  def registerUser(req: RegistrationData): F[RegistrationResult]
+  def loginUser(data: LoginData): TranzactIO[LoginResult]
 
-  def loginUser(data: LoginData): F[LoginResult]
-
-  def validateToken(token: String): F[TokenOps.ValidationResult]
+  def validateToken(token: String): TranzactIO[TokenOps.ValidationResult]
 }
 
 

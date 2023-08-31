@@ -1,7 +1,9 @@
 package tester.srv.controller
 
-trait VerificationService[F[_]] {
+import io.github.gaelrenoux.tranzactio.doobie.TranzactIO
+
+trait VerificationService {
   /**Should cancel previous verification*/
-  def verify(problemId: Int, verificatorAlias: String, answerId: Int, answerRaw: String, seed: Int, requireConfirmation: Boolean): F[Unit]
+  def verify(problemId: Int, verificatorAlias: String, answerId: Int, answerRaw: String, seed: Int, requireConfirmation: Boolean): TranzactIO[Unit]
 
 }

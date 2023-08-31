@@ -18,10 +18,10 @@ import tester.srv.dao.UserToGroupDao.UserToGroup
 import tester.srv.dao.UserToGroupDao.UserToGroup
 
 
-case class GroupServiceTranzactIO(
+case class GroupServiceImpl(
                                  bus: MessageBus,
-                                 coursesService: CoursesService[TranzactIO]
-                                 ) extends GroupService[TranzactIO] {
+                                 coursesService: CoursesService
+                                 ) extends GroupService {
 
 
   def addUserToGroup(userId: Int, groupId: Int): TranzactIO[Boolean] =
@@ -65,14 +65,14 @@ case class GroupServiceTranzactIO(
     } yield res
 }
 
-object GroupServiceTranzactIO{
-  def live: URIO[MessageBus & CoursesService[TranzactIO], GroupServiceTranzactIO] =
+object GroupServiceImpl{
+  def live: URIO[MessageBus & CoursesService, GroupServiceImpl] =
     for {
       bus <- ZIO.service[MessageBus]
-      ver <- ZIO.service[CoursesService[TranzactIO]]
-    } yield GroupServiceTranzactIO(bus, ver)
+      ver <- ZIO.service[CoursesService]
+    } yield GroupServiceImpl(bus, ver)
 
 
-  def layer: URLayer[MessageBus & CoursesService[TranzactIO], GroupServiceTranzactIO] =
+  def layer: URLayer[MessageBus & CoursesService, GroupServiceImpl] =
     ZLayer.fromZIO(live)
 }

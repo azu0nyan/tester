@@ -9,16 +9,16 @@ import tester.srv.dao.CourseTemplateProblemDao.CourseTemplateProblem
 import tester.srv.dao.{CourseDao, CourseTemplateDao, CourseTemplateProblemDao}
 import zio.*
 
-case class CourseTemplateServiceTranzactIO(
-                                     bus: MessageBus,
-                                     problemService: ProblemService[TranzactIO]
-                                   ) extends CourseTemplateService[TranzactIO] {
+case class CourseTemplateServiceImpl(
+                                            bus: MessageBus,
+                                            problemService: ProblemService
+                                          ) extends CourseTemplateService {
 
   def templateProblemAliases(alias: String): TranzactIO[Seq[CourseTemplateProblem]] =
     CourseTemplateProblemDao.templateProblemAliases(alias)
 
-  def createNewTemplate(alias: String, description: String):TranzactIO[Boolean] =
-    CourseTemplateDao.insert(CourseTemplate(alias, description, "{}"))//todo insert default course data
+  def createNewTemplate(alias: String, description: String): TranzactIO[Boolean] =
+    CourseTemplateDao.insert(CourseTemplate(alias, description, "{}")) //todo insert default course data
 
   def addProblemToTemplateAndUpdateCourses(courseAlias: String, problemAlias: String): TranzactIO[Boolean] =
     for {
@@ -37,13 +37,13 @@ case class CourseTemplateServiceTranzactIO(
     } yield res
 }
 
-object CourseTemplateServiceTranzactIO {
-  def live: URIO[MessageBus & ProblemService[TranzactIO], CourseTemplateServiceTranzactIO] =
+object CourseTemplateServiceImpl {
+  def live: URIO[MessageBus & ProblemService, CourseTemplateServiceImpl] =
     for {
       bus <- ZIO.service[MessageBus]
-      ver <- ZIO.service[ProblemService[TranzactIO]]
-    } yield CourseTemplateServiceTranzactIO(bus, ver)
+      ver <- ZIO.service[ProblemService]
+    } yield CourseTemplateServiceImpl(bus, ver)
 
-  def layer: URLayer[MessageBus & ProblemService[TranzactIO], CourseTemplateServiceTranzactIO] =
+  def layer: URLayer[MessageBus & ProblemService, CourseTemplateServiceImpl] =
     ZLayer.fromZIO(live)
 }

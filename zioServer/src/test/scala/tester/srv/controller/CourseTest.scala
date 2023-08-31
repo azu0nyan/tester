@@ -4,7 +4,7 @@ import EmbeddedPG.EmbeddedPG
 import io.github.gaelrenoux.tranzactio.DbException
 import io.github.gaelrenoux.tranzactio.doobie.TranzactIO
 import tester.srv.controller.UserService.{RegistrationData, RegistrationResult}
-import tester.srv.controller.impl.{CourseTemplateServiceTranzactIO, CoursesServiceTranzactIO, UserServiceTranzactIO}
+import tester.srv.controller.impl.{CourseTemplateServiceImpl, CoursesServiceTranzactIO, ProblemServiceImpl, UserServiceImpl}
 import tester.srv.dao.{CourseDao, CourseTemplateDao, ProblemDao}
 import tester.srv.dao.CourseTemplateDao.CourseTemplate
 import zio.*
@@ -19,14 +19,19 @@ object CourseTest extends ZIOSpecDefault {
     removeCourse,
     addingProblemToTemplate,
     removingProblemToTemplate
-  ).provideLayer(EmbeddedPG.connectionLayer) @@
+  ).provideSomeLayer(EmbeddedPG.connectionLayer)
+    .provideSomeLayer(MessageBus.layer)
+    .provideSomeLayer(UserServiceImpl.layer)
+    .provideSomeLayer(StubsAndMakers.registryStubLayer)
+    .provideSomeLayer(ProblemServiceImpl.layer)
+    @@
     timeout(60.seconds) @@
     withLiveClock
 
   val createUserMakeTemplate: TranzactIO[Int] =
     val userData = RegistrationData("user", "password", "Aliecbob", "Joens", "a@a.com")
     (for {
-      userId <- UserServiceTranzactIO.registerUser(userData).map(_.asInstanceOf[RegistrationResult.Success].userId)
+      userId <- UserServiceImpl.registerUser(userData).map(_.asInstanceOf[RegistrationResult.Success].userId)
       tmp <- StubsAndMakers.makeCourseTemplateService
       _ <- tmp.createNewTemplate("alias", "description")
       _ <- tmp.addProblemToTemplateAndUpdateCourses("alias", "problemAlias1")

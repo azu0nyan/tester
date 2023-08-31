@@ -5,7 +5,7 @@ import EmbeddedPG.EmbeddedPG
 import io.github.gaelrenoux.tranzactio.doobie.TranzactIO
 import tester.srv.controller.AnswerService.{AnswerFilterParams, AnswerSubmitted, SubmitAnswerResult}
 import tester.srv.controller.UserService.{RegistrationData, RegistrationResult}
-import tester.srv.controller.impl.{AnswerServiceTranzactIO, CourseTemplateServiceTranzactIO, CoursesServiceTranzactIO, UserServiceTranzactIO, VerificationServiceTranzactIO}
+import tester.srv.controller.impl.{AnswerServiceImpl, CourseTemplateServiceImpl, CoursesServiceTranzactIO, ProblemServiceImpl, UserServiceImpl, VerificationServiceImpl}
 import tester.srv.dao.CourseTemplateDao.CourseTemplate
 import tester.srv.dao.{CourseTemplateDao, CourseTemplateProblemDao, UserSessionDao}
 import tester.srv.dao.CourseTemplateProblemDao.CourseTemplateProblem
@@ -18,23 +18,26 @@ import zio.test.TestAspect.*
 object AnswerServiceTest extends ZIOSpecDefault {
   def spec = suite("Answer service test")(
     submitAnswer, submitAnswerRequireConfirm, submitRejectedAnswer, deleteAnswer
-  ).provideLayer(EmbeddedPG.connectionLayer) @@
+  ).provideSomeLayer(EmbeddedPG.connectionLayer)
+    .provideSomeLayer(MessageBus.layer)
+    .provideSomeLayer(StubsAndMakers.registryStubLayer)
+    @@
     timeout(60.seconds) @@
     withLiveClock
 
-  def makeService(reg: AnswerVerificatorRegistry[TranzactIO]): UIO[AnswerServiceTranzactIO] =
-    for{
-      bus <- MessageBus.make
-    } yield AnswerServiceTranzactIO(
-      VerificationServiceTranzactIO(bus, reg)
-    )
+  def makeService(reg: AnswerVerificatorRegistry): URIO[MessageBus, AnswerServiceImpl] =
+    for {
+      prv <- ProblemServiceImpl.live
+      ver <- VerificationServiceImpl.live.provideSomeLayer(ZLayer.succeed(reg))
+      res <- AnswerServiceImpl.live
+    } yield res
 
 
   val submitAnswer = test("Submit answer auto confirm ") {
     for {
       service <- makeService(StubsAndMakers.acceptAllRegistryStub)
       res <- StubsAndMakers.makeUserAndCourse
-      problemId = res._3.find(! _.requireConfirmation).get.id
+      problemId = res._3.find(!_.requireConfirmation).get.id
       submitResult <- service.submitAnswer(problemId, "DUMMY ANSWER")
       id = submitResult.asInstanceOf[AnswerSubmitted].id
       status <- service.pollAnswerStatus(id)

@@ -16,10 +16,10 @@ import tester.srv.dao.ProblemDao
 import tester.srv.dao.ProblemDao.Problem
 
 
-case class ProblemServiceTranzactIO private(
+case class ProblemServiceImpl private(
                                              bus: MessageBus,
-                                             infoRegistryZIO: ProblemInfoRegistryZIO,
-                                           ) extends ProblemService[TranzactIO] {
+                                             infoRegistryZIO: ProblemInfoRegistryImpl,
+                                           ) extends ProblemService {
 
   def startProblem(courseId: Int, templateAlias: String): TranzactIO[Int] = {
     for {
@@ -47,12 +47,12 @@ case class ProblemServiceTranzactIO private(
 
 }
 
-object ProblemServiceTranzactIO {
-  val live: URIO[MessageBus & ProblemInfoRegistryZIO, ProblemServiceTranzactIO] =
+object ProblemServiceImpl {
+  val live: URIO[MessageBus & ProblemInfoRegistryImpl, ProblemServiceImpl] =
     for {
       bus <- ZIO.service[MessageBus]
-      reg <- ZIO.service[ProblemInfoRegistryZIO]
-      srv = ProblemServiceTranzactIO(bus, reg)
+      reg <- ZIO.service[ProblemInfoRegistryImpl]
+      srv = ProblemServiceImpl(bus, reg)
       //        _ <- (for{
       //          sub <- bus.answerConfirmations.subscribe
       //          taken <- sub.take
@@ -60,6 +60,6 @@ object ProblemServiceTranzactIO {
       //        } yield ())
     } yield srv
 
-  def layer: URLayer[MessageBus & ProblemInfoRegistryZIO, ProblemServiceTranzactIO] =
+  def layer: URLayer[MessageBus & ProblemInfoRegistryImpl, ProblemServiceImpl] =
     ZLayer.fromZIO(live)
 }

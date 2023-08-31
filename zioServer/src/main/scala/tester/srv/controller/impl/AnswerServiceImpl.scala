@@ -20,10 +20,10 @@ import zio.*
 import ProblemDao.Problem
 import tester.srv.dao.AnswerDao.{Answer, AnswerMeta}
 
-case class AnswerServiceTranzactIO(
+case class AnswerServiceImpl(
                                     bus: MessageBus,
-                                    verificator: VerificationService[TranzactIO]
-                                  ) extends AnswerService[TranzactIO] {
+                                    verificator: VerificationService
+                                  ) extends AnswerService {
   override def deleteAnswer(id: Int): TranzactIO[Boolean] =
     AnswerDao.deleteById(id)
 
@@ -87,12 +87,12 @@ case class AnswerServiceTranzactIO(
 }
 
 
-object AnswerServiceTranzactIO {
-  def live: URIO[MessageBus & VerificationService[TranzactIO], AnswerServiceTranzactIO] =
+object AnswerServiceImpl {
+  def live: URIO[MessageBus & VerificationService, AnswerServiceImpl] =
     for {
       bus <- ZIO.service[MessageBus]
-      ver <- ZIO.service[VerificationService[TranzactIO]]
-    } yield AnswerServiceTranzactIO(bus, ver)
+      ver <- ZIO.service[VerificationService]
+    } yield AnswerServiceImpl(bus, ver)
 
-  def layer: URLayer[MessageBus & VerificationService[TranzactIO], AnswerServiceTranzactIO] = ZLayer.fromZIO(live)
+  def layer: URLayer[MessageBus & VerificationService, AnswerServiceImpl] = ZLayer.fromZIO(live)
 }

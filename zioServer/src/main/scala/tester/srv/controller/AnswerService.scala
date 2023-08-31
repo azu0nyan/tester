@@ -9,27 +9,29 @@ import tester.srv.dao.AnswerRejectionDao.AnswerRejection
 import tester.srv.dao.AnswerReviewDao.AnswerReview
 import tester.srv.dao.AnswerVerificationConfirmationDao.AnswerVerificationConfirmation
 import tester.srv.dao.AnswerVerificationDao.AnswerVerification
+import io.github.gaelrenoux.tranzactio.doobie.TranzactIO
 
 import java.time.Instant
 
-trait AnswerService[F[_]] {
-  def deleteAnswer(id: Int): F[Boolean]
+trait AnswerService {
+  def deleteAnswer(id: Int): TranzactIO[Boolean]
 
-  def filterAnswers(filter: AnswerFilterParams): F[Seq[(Answer, AnswerMeta, AnswerStatus)]]
+  def filterAnswers(filter: AnswerFilterParams): TranzactIO[Seq[(Answer, AnswerMeta, AnswerStatus)]]
 
-  def unconfirmedAnswers(filter: AnswerFilterParams): F[Seq[(Answer, AnswerMeta, AnswerStatus)]]
+  def unconfirmedAnswers(filter: AnswerFilterParams): TranzactIO[Seq[(Answer, AnswerMeta, AnswerStatus)]]
 
-  def submitAnswer(problemId: Int, answerRaw: String): F[SubmitAnswerResult]
+  def submitAnswer(problemId: Int, answerRaw: String): TranzactIO[SubmitAnswerResult]
 
-  def pollAnswerStatus(answerId: Int): F[AnswerStatusUnion]
+  def pollAnswerStatus(answerId: Int): TranzactIO[AnswerStatusUnion]
 
-  def confirmAnswer(answerId: Int, userId: Option[Int]): F[Boolean]
+  def confirmAnswer(answerId: Int, userId: Option[Int]): TranzactIO[Boolean]
 
-  def reviewAnswer(answerId: Int, userId: Int, review: String): F[Boolean]
+  def reviewAnswer(answerId: Int, userId: Int, review: String): TranzactIO[Boolean]
 
-  def rejectAnswer(answerId: Int, message: Option[String], rejectedBy: Option[Int]): F[Boolean]
+  def rejectAnswer(answerId: Int, message: Option[String], rejectedBy: Option[Int]): TranzactIO[Boolean]
 
-  def problemAnswers(pId: Int): F[Seq[(Answer, AnswerMeta, AnswerStatus)]] = filterAnswers(AnswerFilterParams(problemId = Some(pId)))
+  def problemAnswers(pId: Int): TranzactIO[Seq[(Answer, AnswerMeta, AnswerStatus)]] =
+    filterAnswers(AnswerFilterParams(problemId = Some(pId)))
 }
 
 object AnswerService {

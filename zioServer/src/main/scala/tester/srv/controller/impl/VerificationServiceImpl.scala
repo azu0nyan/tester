@@ -4,7 +4,7 @@ import io.github.gaelrenoux.tranzactio.doobie.TranzactIO
 import otsbridge.AnswerVerificationResult.*
 import otsbridge.AnswerVerificationResult
 import tester.srv.controller.MessageBus.AnswerConfirmed
-import tester.srv.controller.{AnswerVerificatorRegistry, MessageBus, ProblemService, VerificationService}
+import tester.srv.controller.{AnswerVerificator, AnswerVerificatorRegistry, MessageBus, ProblemService, VerificationService}
 import tester.srv.dao.AnswerDao
 import tester.srv.dao.AnswerVerificationDao
 import tester.srv.dao.AnswerVerificationConfirmationDao
@@ -13,13 +13,14 @@ import tester.srv.dao.AnswerRejectionDao.AnswerRejection
 import tester.srv.dao.AnswerVerificationConfirmationDao.AnswerVerificationConfirmation
 import tester.srv.dao.AnswerVerificationDao.AnswerVerification
 import zio.*
+import zio.logging._
 
 
-case class VerificationServiceTranzactIO(
-                                          bus: MessageBus,
-                                          registry: AnswerVerificatorRegistry[TranzactIO] ,
-                                          problemService: ProblemService[TranzactIO]
-                                        ) extends VerificationService[TranzactIO] {
+case class VerificationServiceImpl(
+                                    bus: MessageBus,
+                                    registry: AnswerVerificatorRegistry,
+                                    problemService: ProblemService
+                                  ) extends VerificationService {
   //CONNECTION LOGIC ETC
 
 
@@ -29,7 +30,7 @@ case class VerificationServiceTranzactIO(
         for {
           _ <- AnswerVerificationDao.insert(AnswerVerification(answerId, java.time.Clock.systemUTC().instant(), systemMessage, score.toJson, score.percentage))
           _ <- ZIO.when(!requireConfirmation)(
-            for{
+            for {
               _ <- AnswerVerificationConfirmationDao.insert(
                 AnswerVerificationConfirmation(answerId, java.time.Clock.systemUTC().instant(), None))
               _ <- problemService.reportAnswerConfirmed(problemId, answerId, score)
@@ -41,14 +42,24 @@ case class VerificationServiceTranzactIO(
       case CantVerify(systemMessage) =>
         AnswerRejectionDao.insert(AnswerRejection(answerId, java.time.Clock.systemUTC().instant(), None, None))
 
+
+    def verifyWith(verificator: AnswerVerificator): TranzactIO[Unit] =
+      (for {
+        res <- verificator.verifyAnswer(seed, answerRaw)
+        _ <- processResult(res)
+      } yield ()).catchAllCause { e =>
+        for{
+          rand <- Random.nextLong.map(_.toHexString)
+          _ <- ZIO.logCause(s"Error Id: rand", e)
+          _ <- AnswerRejectionDao.insert(AnswerRejection(answerId, java.time.Clock.systemUTC().instant(), Some(s"Error $rand"), None))
+        } yield ()
+      }
+
     for {
       verificator <- registry.getVerificator(verificatorAlias)
       _ <- verificator match
         case Some(ver) =>
-          for {
-            res <- ver.verifyAnswer(seed, answerRaw)
-            _ <- processResult(res)
-          } yield ()
+          verifyWith(ver)
         case None =>
           AnswerRejectionDao.insert(AnswerRejection(answerId, java.time.Clock.systemUTC().instant(),
             Some(s"Verificator for  $verificatorAlias not found."), None))
@@ -58,13 +69,13 @@ case class VerificationServiceTranzactIO(
 }
 
 
-object VerificationServiceTranzactIO{
-  def live :URIO[MessageBus &  AnswerVerificatorRegistry[TranzactIO] & ProblemService[TranzactIO], VerificationServiceTranzactIO] =
-    for{
+object VerificationServiceImpl {
+  def live: URIO[MessageBus & AnswerVerificatorRegistry & ProblemService, VerificationServiceImpl] =
+    for {
       bus <- ZIO.service[MessageBus]
-      reg <- ZIO.service[AnswerVerificatorRegistry[TranzactIO]]
-      prb <- ZIO.service[ProblemService[TranzactIO]]
-    } yield VerificationServiceTranzactIO(bus, reg, prb)
+      reg <- ZIO.service[AnswerVerificatorRegistry]
+      prb <- ZIO.service[ProblemService]
+    } yield VerificationServiceImpl(bus, reg, prb)
 
   def layer = ZLayer.fromZIO(live)
 }

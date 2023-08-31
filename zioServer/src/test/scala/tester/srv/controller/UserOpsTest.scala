@@ -4,7 +4,7 @@ import EmbeddedPG.EmbeddedPG
 import tester.srv.controller.UserService.LoginResult.LoggedIn
 import tester.srv.controller.UserService.RegistrationResult.AlreadyExists
 import tester.srv.controller.UserService.{LoginData, RegistrationData, RegistrationResult}
-import tester.srv.controller.impl.UserServiceTranzactIO
+import tester.srv.controller.impl.UserServiceImpl
 import tester.srv.dao.{RegisteredUserDao, UserSessionDao}
 import zio.*
 import zio.test.*
@@ -31,7 +31,7 @@ object UserOpsTest extends ZIOSpecDefault {
     val req = RegistrationData("regUserLogin", "password", "Aliecbob", "Joens", "a@a.com")
     for {
       notExists <- RegisteredUserDao.loginExists("regUserLogin")
-      regResult <- UserServiceTranzactIO.registerUser(req)
+      regResult <- UserServiceImpl.registerUser(req)
       exists <- RegisteredUserDao.loginExists("regUserLogin")
       dataOpt <- RegisteredUserDao.byLogin("regUserLogin")
       data = dataOpt.get
@@ -52,8 +52,8 @@ object UserOpsTest extends ZIOSpecDefault {
     val data1 = RegistrationData("double", "password", "Aliecbob", "Joens", "a@a.com")
     val data2 = RegistrationData("double", "password", "Aliecbob2", "Joens2", "a@a.com")
     for {
-      _ <- UserServiceTranzactIO.registerUser(data1)
-      res <- UserServiceTranzactIO.registerUser(data2)
+      _ <- UserServiceImpl.registerUser(data1)
+      res <- UserServiceImpl.registerUser(data2)
     } yield assertTrue(res == AlreadyExists("double"))
   }
 
@@ -61,11 +61,11 @@ object UserOpsTest extends ZIOSpecDefault {
     val data1 = RegistrationData("loginTester", "password", "Aliecbob", "Joens", "a@a.com")
     val loginData = LoginData("loginTester", "password")
     for {
-      _ <- UserServiceTranzactIO.registerUser(data1)
+      _ <- UserServiceImpl.registerUser(data1)
       usrOpt <- RegisteredUserDao.byLogin("loginTester")
-      result <- UserServiceTranzactIO.loginUser(loginData)
+      result <- UserServiceImpl.loginUser(loginData)
       sessions <- UserSessionDao.getValidUserSessions(usrOpt.get.id)
-      loginResult <- UserServiceTranzactIO.validateToken(result.asInstanceOf[LoggedIn].token)
+      loginResult <- UserServiceImpl.validateToken(result.asInstanceOf[LoggedIn].token)
     } yield assertTrue(
       loginResult.isInstanceOf[TokenOps.TokenValid],
       loginResult.asInstanceOf[TokenOps.TokenValid].id == usrOpt.get.id,
@@ -80,13 +80,13 @@ object UserOpsTest extends ZIOSpecDefault {
     val loginData = LoginData("loginTester", "password")
 
     for {
-      _ <- UserServiceTranzactIO.registerUser(data1)
+      _ <- UserServiceImpl.registerUser(data1)
       usrOpt <- RegisteredUserDao.byLogin("loginTester")
-      result <- UserServiceTranzactIO.loginUser(loginData)
+      result <- UserServiceImpl.loginUser(loginData)
       token = result.asInstanceOf[LoggedIn].token
-      loginResultBefore <- UserServiceTranzactIO.validateToken(token)
+      loginResultBefore <- UserServiceImpl.validateToken(token)
       _ <- UserSessionDao.invalidateSessionByToken(token)
-      loginResultAfter <- UserServiceTranzactIO.validateToken(token)
+      loginResultAfter <- UserServiceImpl.validateToken(token)
       sessions <- UserSessionDao.getValidUserSessions(usrOpt.get.id)
     } yield assertTrue(
       loginResultBefore.isInstanceOf[TokenOps.TokenValid],

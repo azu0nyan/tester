@@ -8,8 +8,8 @@ import tester.srv.dao.{CourseDao, CourseTemplateDao, CourseTemplateProblemDao, P
 import zio.*
 
 case class CoursesServiceTranzactIO(bus: MessageBus,
-                                    problemService: ProblemService[TranzactIO]
-                                   ) extends CoursesService[TranzactIO] {
+                                    problemService: ProblemService
+                                   ) extends CoursesService {
 
   /** Returns courseId */
   def startCourseForUser(alias: String, userId: Int): TranzactIO[Int] =
@@ -44,12 +44,12 @@ case class CoursesServiceTranzactIO(bus: MessageBus,
 }
 
 object CoursesServiceTranzactIO {
-  def live: URIO[MessageBus & ProblemService[TranzactIO], CoursesServiceTranzactIO] =
+  def live: URIO[MessageBus & ProblemService, CoursesServiceTranzactIO] =
     for{
       bus <- ZIO.service[MessageBus]
-      pr <- ZIO.service[ProblemService[TranzactIO]]
+      pr <- ZIO.service[ProblemService]
     } yield CoursesServiceTranzactIO(bus, pr)
 
-  def layer: URLayer[MessageBus & ProblemService[TranzactIO], CoursesServiceTranzactIO] =
+  def layer: URLayer[MessageBus & ProblemService, CoursesServiceTranzactIO] =
     ZLayer.fromZIO(live)
 }

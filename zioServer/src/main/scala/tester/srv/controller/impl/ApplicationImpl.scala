@@ -13,8 +13,8 @@ import zio.*
 
 case class ApplicationImpl(
                             db: Database,
-                            answ: AnswerService[TranzactIO],
-                            grps: GroupService[TranzactIO]
+                            answ: AnswerService,
+                            grps: GroupService
                           ) extends Application {
   override def answerForConfirmationList(req: AnswerForConfirmationListRequest): Task[AnswerForConfirmationListResponse] =
     db.transactionOrWiden(

@@ -1,7 +1,7 @@
 package tester.srv.controller
 
 import EmbeddedPG.EmbeddedPG
-import tester.srv.controller.impl.{CourseTemplateServiceTranzactIO, ProblemInfoRegistryZIO, ProblemServiceTranzactIO}
+import tester.srv.controller.impl.{CourseTemplateServiceImpl, ProblemInfoRegistryImpl, ProblemServiceImpl}
 import tester.srv.dao.CourseTemplateDao.CourseTemplate
 import tester.srv.dao.{CourseTemplateDao, CourseTemplateProblemDao, UserSessionDao}
 import tester.srv.dao.CourseTemplateProblemDao.CourseTemplateProblem
@@ -14,7 +14,8 @@ object CourseTemplateTest extends ZIOSpecDefault {
   def spec = suite("Course template test")(
     courseTemplateCreation,
     courseTemplateAddRemoveProblem
-  ).provideLayer(EmbeddedPG.connectionLayer) @@
+  ).provideLayer(EmbeddedPG.connectionLayer)
+   .provideLayer(MessageBus.layer)  @@
     timeout(60.seconds) @@
     withLiveClock
 
@@ -22,8 +23,7 @@ object CourseTemplateTest extends ZIOSpecDefault {
 
   val courseTemplateCreation = test("Course template creation"){
     for{
-      bus <- MessageBus.make  
-      srv <- StubsAndMakers.makeCourseTemplateService(bus)
+      srv <- StubsAndMakers.makeCourseTemplateService
       _ <- srv.createNewTemplate("alias", "description")
       ct <- CourseTemplateDao.byAliasOption("alias")
     } yield assertTrue(
@@ -34,8 +34,7 @@ object CourseTemplateTest extends ZIOSpecDefault {
 
   val courseTemplateAddRemoveProblem = test("Course template add problem"){
     for{
-      bus <- MessageBus.make
-      srv <- StubsAndMakers.makeCourseTemplateService(bus)
+      srv <- StubsAndMakers.makeCourseTemplateService
       _ <- srv.createNewTemplate("alias", "description")
       _ <- srv.addProblemToTemplateAndUpdateCourses("alias", "problemAlias")
       listOne <- srv.templateProblemAliases("alias")

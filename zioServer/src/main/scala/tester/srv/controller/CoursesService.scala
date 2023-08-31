@@ -2,16 +2,16 @@ package tester.srv.controller
 
 import tester.srv.dao.CourseDao.Course
 import tester.srv.dao.ProblemDao.Problem
+import io.github.gaelrenoux.tranzactio.doobie.TranzactIO
+trait CoursesService {
+  def startCourseForUser(alias: String, userId: Int): TranzactIO[Int]
 
-trait CoursesService[F[_]]{
-  def startCourseForUser(alias: String, userId: Int): F[Int]
-
-  def stopCourse(alias: String, userId: Int): F[Unit]
+  def stopCourse(alias: String, userId: Int): TranzactIO[Unit]
   /** Так же удаляет все ответы пользователя */
-  def removeCourseFromUser(alias: String, userId: Int): F[Unit]
-  
-  def courseProblems(courseId: Int): F[Seq[Problem]]
+  def removeCourseFromUser(alias: String, userId: Int): TranzactIO[Unit]
 
-  def byId(courseId:Int):F [Course]
+  def courseProblems(courseId: Int): TranzactIO[Seq[Problem]]
+
+  def byId(courseId: Int): TranzactIO[Course]
 }
 

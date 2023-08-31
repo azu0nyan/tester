@@ -5,7 +5,7 @@ import tester.srv.controller.ProblemInfoRegistry
 import zio.*
 import zio.concurrent.ConcurrentMap
 
-case class ProblemInfoRegistryZIO(map: ConcurrentMap[String, ProblemInfo]) extends ProblemInfoRegistry[UIO] {
+case class ProblemInfoRegistryImpl(map: ConcurrentMap[String, ProblemInfo]) extends ProblemInfoRegistry {
   override def problemInfo(alias: String): UIO[Option[ProblemInfo]] =
     map.get(alias)
 
@@ -13,11 +13,11 @@ case class ProblemInfoRegistryZIO(map: ConcurrentMap[String, ProblemInfo]) exten
     map.put(info.uniqueAlias, info).map(_ => ())
 }
 
-object ProblemInfoRegistryZIO {
-  def live: UIO[ProblemInfoRegistryZIO] =
+object ProblemInfoRegistryImpl {
+  def live: UIO[ProblemInfoRegistryImpl] =
     for {
       map <- ConcurrentMap.make[String, ProblemInfo]()
-    } yield ProblemInfoRegistryZIO(map)
+    } yield ProblemInfoRegistryImpl(map)
     
-  def layer: ULayer[ProblemInfoRegistryZIO] = ZLayer.fromZIO(live)  
+  def layer: ULayer[ProblemInfoRegistryImpl] = ZLayer.fromZIO(live)  
 }

@@ -1,8 +1,9 @@
 package tester.srv.controller
 
 import otsbridge.{ProblemInfo, ProblemTemplate}
+import zio.UIO
 
-trait ProblemInfoRegistry[F[_]] {
-  def problemInfo(alias: String): F[Option[ProblemInfo]]
-  def registerProblemInfo(info: ProblemInfo): F[Unit]
+trait ProblemInfoRegistry {
+  def problemInfo(alias: String): UIO[Option[ProblemInfo]]
+  def registerProblemInfo(info: ProblemInfo): UIO[Unit]
 }
