@@ -1,12 +1,15 @@
 package tester.srv.controller.impl
 
 import io.github.gaelrenoux.tranzactio.doobie.TranzactIO
-import tester.srv.controller.{Courses, ProblemService}
+import tester.srv.controller.{CoursesService, ProblemService}
+import tester.srv.dao.CourseDao.Course
 import tester.srv.dao.ProblemDao.Problem
 import tester.srv.dao.{CourseDao, CourseTemplateDao, CourseTemplateProblemDao, ProblemDao}
-import zio.ZIO
+import zio.*
 
-object CoursesTranzactIO extends Courses[TranzactIO] {
+case class CoursesServiceTranzactIO(
+                                     problemService: ProblemService[TranzactIO]
+                                   ) extends CoursesService[TranzactIO] {
 
   /** Returns courseId */
   def startCourseForUser(alias: String, userId: Int): TranzactIO[Int] =
@@ -16,7 +19,7 @@ object CoursesTranzactIO extends Courses[TranzactIO] {
         scala.util.Random.nextInt(), Some(java.time.Clock.systemUTC().instant()), None)
       courseId <- CourseDao.insertReturnId(course)
       aliases <- CourseTemplateProblemDao.templateProblemAliases(courseTemplate.alias)
-      _ <- ZIO.foreach(aliases)(a => ProblemServiceTranzactIO.startProblem(courseId, a.problemAlias))//todo add problem service as dependency
+      _ <- ZIO.foreach(aliases)(a => problemService.startProblem(courseId, a.problemAlias)) //todo add problem service as dependency
     } yield courseId
 
 
@@ -36,4 +39,16 @@ object CoursesTranzactIO extends Courses[TranzactIO] {
 
   def courseProblems(courseId: Int): TranzactIO[Seq[Problem]] =
     ProblemDao.courseProblems(courseId)
+
+  def byId(courseId:Int): TranzactIO[Course] = CourseDao.byId(courseId)
+}
+
+object CoursesServiceTranzactIO {
+  def live: URIO[ProblemService[TranzactIO], CoursesServiceTranzactIO] =
+    ZIO.serviceWith[ProblemService[TranzactIO]](srv =>
+      CoursesServiceTranzactIO(srv))
+
+
+  def layer: URLayer[ProblemService[TranzactIO], CoursesServiceTranzactIO] =
+    ZLayer.fromZIO(live)
 }

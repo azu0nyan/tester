@@ -12,6 +12,7 @@ val zioVersion = "2.0.13"
 val basicZioDependencies = Seq(
   "dev.zio" %% "zio" % zioVersion,
   "dev.zio" %% "zio-streams" % zioVersion,
+  "dev.zio" %% "zio-concurrent" % zioVersion,
   "dev.zio" %% "zio-logging" % "2.1.13",
 //  "dev.zio" %% "zio-logging-slf4j2-bridge" % "2.1.14"
 
@@ -120,7 +121,7 @@ lazy val protos = crossProject(JSPlatform, JVMPlatform)
 val zioServer = (project in file("zioServer"))
   .dependsOn(jvmToJsApi, /*zioDockerRunner,*/ protos.jvm, legacyExtensionBridge)
   .settings(
-    version := "0.0.4",
+    version := "2.0.5",
     scalaVersion := scalaVer,
     name := "zioServer",
     fork := true,

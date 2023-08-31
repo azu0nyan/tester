@@ -18,17 +18,23 @@ object ProblemTemplate {
 
 }
 
-
-trait ProblemTemplate {
-
+trait ProblemInfo {
   def title(seed: Int): String
-  val initialScore: ProblemScore
-  val uniqueAlias: String
-  val allowedAttempts: Option[Int] = None
+  def alias: String
+  def uniqueAlias: String = alias
+  def maxAttempts: Option[Int] = allowedAttempts
+  def allowedAttempts: Option[Int] = None
+  def initialScore: ProblemScore
+  def requireConfirmation: Boolean = requireTeacherVerificationIfScoreGEQThan.nonEmpty
   def requireTeacherVerificationIfScoreGEQThan: Option[Int] = None
   def problemHtml(seed: Int): String
   def answerField(seed: Int): AnswerField
-  def verifyAnswer(seed: Int, answer: String): AnswerVerificationResult
+
   def editable:Boolean = false
+}
+
+@deprecated
+trait ProblemTemplate extends ProblemInfo {
+  def verifyAnswer(seed: Int, answer: String): AnswerVerificationResult
 }
 

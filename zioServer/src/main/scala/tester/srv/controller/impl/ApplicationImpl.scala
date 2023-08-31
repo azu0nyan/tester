@@ -6,14 +6,15 @@ import clientRequests.teacher.{AnswerForConfirmationListRequest, AnswerForConfir
 import clientRequests.watcher.{GroupScoresRequest, GroupScoresResponse, LightGroupScoresRequest, LightGroupScoresResponse}
 import io.github.gaelrenoux.tranzactio.doobie.{Database, TranzactIO}
 import tester.srv.controller.AnswerService.AnswerFilterParams
-import tester.srv.controller.{AnswerService, Application}
+import tester.srv.controller.{AnswerService, Application, GroupService}
 import tester.srv.dao.AnswerDao
 import viewData.AnswerViewData
 import zio.*
 
 case class ApplicationImpl(
                             db: Database,
-                            answ: AnswerService[TranzactIO]
+                            answ: AnswerService[TranzactIO],
+                            grps: GroupService[TranzactIO]
                           ) extends Application {
   override def answerForConfirmationList(req: AnswerForConfirmationListRequest): Task[AnswerForConfirmationListResponse] =
     db.transactionOrWiden(
@@ -47,7 +48,7 @@ case class ApplicationImpl(
   override def addProblemToCourseTemplate(req: AddProblemToCourseTemplateRequest): Task[AddProblemToCourseTemplateResponse] = ???
   override def addUserToGroup(req: AddUserToGroupRequest): Task[AddUserToGroupResponse] =
     db.transactionOrWiden(
-        GroupServiceTranzactIO.addUserToGroup(req.UserHexIdOrLogin.toInt, req.groupIdOrTitle.toInt))
+        grps.addUserToGroup(req.UserHexIdOrLogin.toInt, req.groupIdOrTitle.toInt))
       .map {
         case true => AddUserToGroupSuccess()
         case false => AddUserToGroupFailure()

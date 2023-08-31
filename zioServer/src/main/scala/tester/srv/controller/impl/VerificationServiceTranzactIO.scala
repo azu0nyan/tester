@@ -2,8 +2,8 @@ package tester.srv.controller.impl
 
 import io.github.gaelrenoux.tranzactio.doobie.TranzactIO
 import otsbridge.AnswerVerificationResult.*
-import otsbridge.{AnswerVerificationResult}
-import tester.srv.controller.{AnswerVerificatorRegistry, VerificationService}
+import otsbridge.AnswerVerificationResult
+import tester.srv.controller.{AnswerVerificatorRegistry, ProblemService, VerificationService}
 import tester.srv.dao.AnswerDao
 import tester.srv.dao.AnswerVerificationDao
 import tester.srv.dao.AnswerVerificationConfirmationDao
@@ -15,19 +15,23 @@ import zio.*
 
 
 case class VerificationServiceTranzactIO(
-                                          registry: AnswerVerificatorRegistry[TranzactIO]
+                                          registry: AnswerVerificatorRegistry[TranzactIO]                                          
                                         ) extends VerificationService[TranzactIO] {
   //CONNECTION LOGIC ETC
 
 
-  def verify(problemId: Int, verificatorAlias: String, answerId: Int, answerRaw: String, seed: Int, requireConfirmation: Boolean): TranzactIO[Unit] = {
+  def verify(problemId: Int, verificatorAlias: String, answerId: Int, answerRaw: String, seed: Int, requireConfirmation: Boolean)
+            (problemService: ProblemService[TranzactIO]): TranzactIO[Unit] = {
     def processResult(r: AnswerVerificationResult) = r match
       case Verified(score, systemMessage) =>
         for {
           _ <- AnswerVerificationDao.insert(AnswerVerification(answerId, java.time.Clock.systemUTC().instant(), systemMessage, score.toJson, score.percentage))
-          _ <- ZIO.when(!requireConfirmation)(AnswerVerificationConfirmationDao.insert(
-            AnswerVerificationConfirmation(answerId, java.time.Clock.systemUTC().instant(), None)
-          ))
+          _ <- ZIO.when(!requireConfirmation)(
+            for{
+              _ <- AnswerVerificationConfirmationDao.insert(
+                AnswerVerificationConfirmation(answerId, java.time.Clock.systemUTC().instant(), None))
+              _ <- problemService.answerConfirmed(problemId, asnwerId, score)
+            } yield ())
         } yield ()
       case VerificationDelayed(systemMessage) =>
         ZIO.succeed(()) //todo mb remove

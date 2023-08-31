@@ -10,26 +10,38 @@ import doobie.postgres.implicits.*
 import doobie.postgres.pgisimplicits.*
 import io.github.gaelrenoux.tranzactio.{DbException, doobie}
 import doobie.{Connection, Database, TranzactIO, tzio}
-import otsbridge.ProblemScore.BinaryScore
+import otsbridge.ProblemScore.{BinaryScore, ProblemScore}
 import tester.srv.controller.ProblemService
 import tester.srv.dao.ProblemDao
 import tester.srv.dao.ProblemDao.Problem
 
 
-object ProblemServiceTranzactIO extends ProblemService[TranzactIO]{
+case class ProblemServiceTranzactIO(
+                                     infoRegistryZIO: ProblemInfoRegistryZIO
+                                   ) extends ProblemService[TranzactIO] {
 
   def startProblem(courseId: Int, templateAlias: String): TranzactIO[Int] = {
-    //todo use template alias to fill fields
-    val toInsert = Problem(0, courseId, templateAlias, scala.util.Random.nextInt(), BinaryScore(false).toJson, 0d,  None, None, false )
-    ProblemDao.insertReturnId(toInsert)
+    for {
+      info <- infoRegistryZIO.problemInfo(templateAlias)
+      res <- info match
+        case Some(info) =>
+          val toInsert = Problem(0, courseId, templateAlias, scala.util.Random.nextInt(),
+            info.initialScore.toJson, info.initialScore.percentage, None, None, info.requireConfirmation)
+          ProblemDao.insertReturnId(toInsert)
+        case None =>
+          ZIO.die(new Exception(s"Cant find problem with alias $templateAlias"))
+    } yield res
   }
 
-  def removeProblem(courseId: Int, templateAlias: String): TranzactIO[Unit] =
+  def removeProblem(courseId: Int, templateAlias: String): TranzactIO[Boolean] =
     for {
       problem <- ProblemDao.byCourseAndTemplate(courseId, templateAlias)
-      _ <- ZIO.when(problem.nonEmpty)(ProblemDao.deleteById(problem.get.id))
-    } yield ()
+      res <- ZIO.when(problem.nonEmpty)(ProblemDao.deleteById(problem.get.id))
+    } yield res.getOrElse(false)
 
+
+  def answerConfirmed(problemId: Int, asnwerId:Int, score: ProblemScore): TranzactIO[Unit] =
+    ???
 
 }
 

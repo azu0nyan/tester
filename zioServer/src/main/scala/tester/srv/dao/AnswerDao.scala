@@ -70,7 +70,7 @@ object AnswerDao extends AbstractDao[Answer]
   val answerMetaFields = "U.id, Course.templateAlias, Course.id, P.id FROM"
   //todo correct status
   def queryAnswers(filter: AnswerFilterParams)(andFrag: Option[Fragment] = None, addJoins: Fragment = fr""): TranzactIO[List[(Answer, AnswerMeta, AnswerStatusUnion)]] = tzio {
-    (fr"SELECT " ++ Fragment.const(fieldStringWithTable + ", " + answerMetaFields + " " + tableName) ++
+    val q = (fr"SELECT " ++ Fragment.const(fieldStringWithTable + ", " + answerMetaFields + " " + tableName) ++
       fr"""LEFT JOIN Problem as P ON P.id = problemId
          LEFT JOIN Course ON P.courseId = Course.id
          LEFT JOIN CourseTemplate as CT ON CT.alias = Course.templateAlias
@@ -89,14 +89,16 @@ object AnswerDao extends AbstractDao[Answer]
         filter.userId.map(uid => fr"U.id = $uid"),
         andFrag
       )
-      ).query[(Answer, AnswerMeta)].to[List].map(l => l.map { case (a, b) => (a, b, AnswerStatusUnion(None, None, None, None)) })
+      )
+      println(q)
+      q.query[(Answer, AnswerMeta)].to[List].map(l => l.map { case (a, b) => (a, b, AnswerStatusUnion(None, None, None, None)) })
   }
 
   /** Успешно оцененные ответы, ожидающие подтверждения вручную */
   def unconfirmedAnswers(filter: AnswerFilterParams): TranzactIO[List[(Answer, AnswerMeta, AnswerStatusUnion)]] =
     queryAnswers(filter)(Some(fr"Conf.answerId IS NULL AND R.answerId IS NOT NULL AND P.scoreNormalized = 1.0"),
-      fr"""LEFT JOIN AnswerVerification R ON R.answerId = id
-                    LEFT JOIN AnswerVerificationConfirmation as Conf ON Conf.answerId = id""")
+      fr"""LEFT JOIN AnswerVerification R ON R.answerId = Answer.id
+          |LEFT JOIN AnswerVerifiactionConfirmation as Conf ON Conf.answerId = Answer.id""".stripMargin)
 
 
 }

@@ -1,9 +1,14 @@
 package tester.srv.controller
 
-trait ProblemService[F[_]] {
+import otsbridge.ProblemScore.ProblemScore
+import zio.*
+
+trait ProblemService[F[_]: TagK] {
 
   /** Returns problem id */
   def startProblem(courseId: Int, templateAlias: String): F[Int]
 
-  def removeProblem(courseId: Int, templateAlias: String): F[Unit]
+  def removeProblem(courseId: Int, templateAlias: String): F[Boolean]
+  
+  def answerConfirmed(problemId: Int, asnwerId:Int, score: ProblemScore): F[Unit]
 }

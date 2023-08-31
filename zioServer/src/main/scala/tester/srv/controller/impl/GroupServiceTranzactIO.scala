@@ -10,22 +10,24 @@ import doobie.postgres.implicits.*
 import doobie.postgres.pgisimplicits.*
 import io.github.gaelrenoux.tranzactio.{DbException, doobie}
 import doobie.{Connection, Database, TranzactIO, tzio}
-import tester.srv.controller.GroupService
-import tester.srv.controller.impl.CoursesTranzactIO
+import tester.srv.controller.{CoursesService, GroupService}
+import tester.srv.controller.impl.CoursesServiceTranzactIO
 import tester.srv.dao.CourseTemplateForGroupDao.CourseTemplateForGroup
 import tester.srv.dao.{CourseTemplateForGroupDao, UserToGroupDao}
 import tester.srv.dao.UserToGroupDao.UserToGroup
 import tester.srv.dao.UserToGroupDao.UserToGroup
 
 
-object GroupServiceTranzactIO extends GroupService[TranzactIO] {
+case class GroupServiceTranzactIO(
+                                 coursesService: CoursesService[TranzactIO]
+                                 ) extends GroupService[TranzactIO] {
 
 
   def addUserToGroup(userId: Int, groupId: Int): TranzactIO[Boolean] =
     for {
       res <- addUserToGroupQuery(userId, groupId)
       courses <- CourseTemplateForGroupDao.forcedCourses(groupId)
-      _ <- ZIO.foreach(courses)(course => CoursesTranzactIO.startCourseForUser(course.templateAlias, userId))
+      _ <- ZIO.foreach(courses)(course => coursesService.startCourseForUser(course.templateAlias, userId))
     } yield res
 
   private def addUserToGroupQuery(userId: Int, groupId: Int) =
@@ -49,7 +51,7 @@ object GroupServiceTranzactIO extends GroupService[TranzactIO] {
       toStartUsersIds <-
         if (forceStart) UserToGroupDao.usersInGroup(groupId)
         else ZIO.succeed(Seq())
-      _ <- ZIO.foreach(toStartUsersIds)(userId => CoursesTranzactIO.startCourseForUser(templateAlias, userId))
+      _ <- ZIO.foreach(toStartUsersIds)(userId => coursesService.startCourseForUser(templateAlias, userId))
     } yield res
 
   def removeCourseTemplateFromGroup(templateAlias: String, groupId: Int, forceRemoval: Boolean): TranzactIO[Boolean] =
@@ -58,7 +60,16 @@ object GroupServiceTranzactIO extends GroupService[TranzactIO] {
       toRemoveUserIds <-
         if (forceRemoval) UserToGroupDao.usersInGroup(groupId)
         else ZIO.succeed(Seq())
-      _ <- ZIO.foreach(toRemoveUserIds)(userId => CoursesTranzactIO.removeCourseFromUser(templateAlias, userId))
+      _ <- ZIO.foreach(toRemoveUserIds)(userId => coursesService.removeCourseFromUser(templateAlias, userId))
     } yield res
 }
 
+object GroupServiceTranzactIO{
+  def live: URIO[CoursesService[TranzactIO], GroupServiceTranzactIO] =
+    ZIO.serviceWith[CoursesService[TranzactIO]](srv =>
+      GroupServiceTranzactIO(srv))
+
+
+  def layer: URLayer[CoursesService[TranzactIO], GroupServiceTranzactIO] =
+    ZLayer.fromZIO(live)
+}
