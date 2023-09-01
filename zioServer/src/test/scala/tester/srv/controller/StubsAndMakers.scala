@@ -8,7 +8,7 @@ import otsbridge.{AnswerField, AnswerVerificationResult, ProblemInfo}
 import otsbridge.ProblemScore.{BinaryScore, ProblemScore}
 import tester.srv.controller.UserService.{RegistrationData, RegistrationResult}
 import tester.srv.controller.VerificationService
-import tester.srv.controller.impl.{CourseTemplateServiceImpl, CoursesServiceImpl, ProblemInfoRegistryImpl, ProblemServiceImpl, UserServiceImpl}
+import tester.srv.controller.impl.{CourseTemplateRegistryImpl, CourseTemplateServiceImpl, CoursesServiceImpl, ProblemInfoRegistryImpl, ProblemServiceImpl, UserServiceImpl}
 import tester.srv.dao.CourseTemplateDao
 import tester.srv.dao.CourseTemplateDao.CourseTemplate
 import tester.srv.dao.ProblemDao.Problem
@@ -44,20 +44,20 @@ object StubsAndMakers {
 
   def makeCourseTemplateService: ZIO[MessageBus & ProblemService, Nothing, CourseTemplateService] =
     for {
-      stub <- StubsAndMakers.registryStub
+      stub <- StubsAndMakers.problemRegistryStub
       srvv <- CourseTemplateServiceImpl.live
     } yield srvv
 
   def makeProblemService: ZIO[MessageBus, Nothing, ProblemService] =
   for{
-    stub <- registryStub
+    stub <- problemRegistryStub
     res <-  ProblemServiceImpl.live.provideSomeLayer(ZLayer.succeed(stub))
   } yield res
 
   def makeCourseService: ZIO[MessageBus & ProblemService, Nothing, CoursesService] =
     for {
-      stub <- StubsAndMakers.registryStub
-      res <- CoursesServiceImpl.live
+      stub <- StubsAndMakers.courseTemplateRegistryStub
+      res <- CoursesServiceImpl.live.provideSomeLayer(ZLayer.succeed(stub))
     } yield res
 
   def makeUserAndCourse: TranzactIO[(Int, Int, Seq[Problem])] =
@@ -87,9 +87,17 @@ object StubsAndMakers {
     override def answerField(seed: Int): AnswerField = answerField
   }
 
-  def registryStubLayer = ZLayer.fromZIO(registryStub)
-  
-  def registryStub = for {
+
+  def courseTemplateRegistryLayer = ZLayer.fromZIO(courseTemplateRegistryStub)
+  def courseTemplateRegistryStub = for{
+    reg <- CourseTemplateRegistryImpl.live
+    _ <- reg.registerCourseTemplate(otsbridge.CourseTemplate.CourseTemplateData("someCourse", problemAliases = Seq("problemAlias1", "problemAlias2")))
+  } yield reg
+
+
+  def problemRegistryStubLayer = ZLayer.fromZIO(problemRegistryStub)
+
+  def problemRegistryStub = for {
     reg <- ProblemInfoRegistryImpl.live
     _ <- reg.registerProblemInfo(ProblemInfoImpl("title1", "problemAlias1", None, BinaryScore(false), false, "", TextField("")))
     _ <- reg.registerProblemInfo(ProblemInfoImpl("title2", "problemAlias2", None, BinaryScore(false), false, "", TextField("")))

@@ -14,7 +14,7 @@ object CourseTemplateTest extends ZIOSpecDefault {
 
 
   val busLayer = MessageBus.layer
-  val problemServiceLayer = (busLayer ++ StubsAndMakers.registryStubLayer) >>> ProblemServiceImpl.layer
+  val problemServiceLayer = (busLayer ++ StubsAndMakers.problemRegistryStubLayer) >>> ProblemServiceImpl.layer
 
   def spec = suite("Course template test")(
     courseTemplateCreation,

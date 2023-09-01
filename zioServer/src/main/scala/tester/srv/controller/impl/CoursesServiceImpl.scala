@@ -1,14 +1,16 @@
 package tester.srv.controller.impl
 
+import DbViewsShared.AnswerStatus.Passing
 import io.github.gaelrenoux.tranzactio.doobie.TranzactIO
-import tester.srv.controller.{CoursesService, MessageBus, ProblemService}
+import tester.srv.controller.{CourseTemplateRegistry, CoursesService, MessageBus, ProblemService}
 import tester.srv.dao.CourseDao.Course
 import tester.srv.dao.ProblemDao.Problem
 import tester.srv.dao.{CourseDao, CourseTemplateDao, CourseTemplateProblemDao, ProblemDao}
 import zio.*
 
 case class CoursesServiceImpl(bus: MessageBus,
-                              problemService: ProblemService
+                              problemService: ProblemService,
+                              templateRegistry: CourseTemplateRegistry
                                    ) extends CoursesService {
 
   /** Returns courseId */
@@ -41,15 +43,24 @@ case class CoursesServiceImpl(bus: MessageBus,
     ProblemDao.courseProblems(courseId)
 
   def byId(courseId: Int): TranzactIO[Course] = CourseDao.byId(courseId)
+
+  def courseViewData(courseId: Int): TranzactIO[viewData.CourseViewData] =
+    for{
+      course <- byId(courseId)
+      template <- templateRegistry.courseTemplate(course.templateAlias).map(_.get) //todo optimize
+      problems <- courseProblems(courseId)
+      views <- ZIO.foreach(problems)(p => problemService.getViewData(p.id))
+    } yield viewData.CourseViewData(courseId.toString, template.courseTitle, Passing(course.endedAt), template.courseData, views, template.description)
 }
 
 object CoursesServiceImpl {
-  def live: URIO[MessageBus & ProblemService, CoursesService] =
+  def live: URIO[MessageBus & ProblemService & CourseTemplateRegistry, CoursesService] =
     for{
       bus <- ZIO.service[MessageBus]
       pr <- ZIO.service[ProblemService]
-    } yield CoursesServiceImpl(bus, pr)
+      reg <- ZIO.service[CourseTemplateRegistry]
+    } yield CoursesServiceImpl(bus, pr, reg)
 
-  def layer: URLayer[MessageBus & ProblemService, CoursesService] =
+  def layer: URLayer[MessageBus & ProblemService & CourseTemplateRegistry, CoursesService] =
     ZLayer.fromZIO(live)
 }

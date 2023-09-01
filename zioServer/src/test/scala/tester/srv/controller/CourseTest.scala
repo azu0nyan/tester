@@ -17,7 +17,7 @@ object CourseTest extends ZIOSpecDefault {
 
   val busLayer = MessageBus.layer
   val userServiceLayer = busLayer >>> UserServiceImpl.layer
-  val problemServiceLayer = (busLayer ++ StubsAndMakers.registryStubLayer) >>>ProblemServiceImpl.layer
+  val problemServiceLayer = (busLayer ++ StubsAndMakers.problemRegistryStubLayer) >>>ProblemServiceImpl.layer
 
   def spec = suite("UserOps test")(
     startCourse,

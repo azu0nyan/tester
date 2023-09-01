@@ -7,7 +7,7 @@ trait CourseTemplate {
 
   def editable:Boolean = false
 
-  def description(): String = ""
+  def description: String = ""
 
   def problemAliasesToGenerate:Seq[String] = problemAliasesToGenerateRec(courseData)
 
@@ -25,6 +25,11 @@ trait CourseTemplate {
 
 
 }
-
+object CourseTemplate {
+  case class CourseTemplateData(uniqueAlias: String,
+                                courseTitle: String = "",
+                                override val description: String = "",
+                                override val courseData: CourseRoot = CourseRoot("NO TITLE", "", Seq()), problemAliases: Seq[String] = Seq()) extends CourseTemplate
+}
 
 

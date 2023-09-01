@@ -28,7 +28,7 @@ object AnswerServiceTest extends ZIOSpecDefault {
 
   def makeService(reg: AnswerVerificatorRegistry): URIO[MessageBus, AnswerService] =
     for {
-      prv <- ProblemServiceImpl.live.provideSomeLayer(StubsAndMakers.registryStubLayer)
+      prv <- ProblemServiceImpl.live.provideSomeLayer(StubsAndMakers.problemRegistryStubLayer)
       ver <- VerificationServiceImpl.live.provideSomeLayer(ZLayer.succeed(reg)).provideSomeLayer(ZLayer.succeed(prv))
       res <- AnswerServiceImpl.live.provideSomeLayer(ZLayer.succeed(ver))
     } yield res
