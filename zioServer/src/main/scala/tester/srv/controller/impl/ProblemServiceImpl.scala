@@ -11,14 +11,14 @@ import doobie.postgres.pgisimplicits.*
 import io.github.gaelrenoux.tranzactio.{DbException, doobie}
 import doobie.{Connection, Database, TranzactIO, tzio}
 import otsbridge.ProblemScore.{BinaryScore, ProblemScore}
-import tester.srv.controller.{MessageBus, ProblemService}
+import tester.srv.controller.{MessageBus, ProblemInfoRegistry, ProblemService}
 import tester.srv.dao.ProblemDao
 import tester.srv.dao.ProblemDao.Problem
 
 
 case class ProblemServiceImpl private(
                                              bus: MessageBus,
-                                             infoRegistryZIO: ProblemInfoRegistryImpl,
+                                             infoRegistryZIO: ProblemInfoRegistry,
                                            ) extends ProblemService {
 
   def startProblem(courseId: Int, templateAlias: String): TranzactIO[Int] = {
@@ -42,16 +42,16 @@ case class ProblemServiceImpl private(
 
 
   //todo use Hub for reporting
-  def reportAnswerConfirmed(problemId: Int, asnwerId: Int, score: ProblemScore): TranzactIO[Unit] =
+  def reportAnswerConfirmed(problemId: Int, answerId: Int, score: ProblemScore): TranzactIO[Unit] =
     ???
 
 }
 
 object ProblemServiceImpl {
-  val live: URIO[MessageBus & ProblemInfoRegistryImpl, ProblemServiceImpl] =
+  val live: URIO[MessageBus & ProblemInfoRegistry, ProblemService] =
     for {
       bus <- ZIO.service[MessageBus]
-      reg <- ZIO.service[ProblemInfoRegistryImpl]
+      reg <- ZIO.service[ProblemInfoRegistry]
       srv = ProblemServiceImpl(bus, reg)
       //        _ <- (for{
       //          sub <- bus.answerConfirmations.subscribe
@@ -60,6 +60,6 @@ object ProblemServiceImpl {
       //        } yield ())
     } yield srv
 
-  def layer: URLayer[MessageBus & ProblemInfoRegistryImpl, ProblemServiceImpl] =
+  def layer: URLayer[MessageBus & ProblemInfoRegistry, ProblemService] =
     ZLayer.fromZIO(live)
 }

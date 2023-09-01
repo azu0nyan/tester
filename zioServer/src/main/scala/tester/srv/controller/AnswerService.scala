@@ -2,6 +2,7 @@ package tester.srv.controller
 
 import DbViewsShared.AnswerStatus
 import DbViewsShared.AnswerStatus.{BeingVerified, Rejected, Verified, VerifiedAwaitingConfirmation}
+import doobie.Transactor
 import otsbridge.ProblemScore
 import tester.srv.controller.AnswerService.{AnswerFilterParams, AnswerStatusUnion, SubmitAnswerResult}
 import tester.srv.dao.AnswerDao.{Answer, AnswerMeta}
@@ -10,6 +11,7 @@ import tester.srv.dao.AnswerReviewDao.AnswerReview
 import tester.srv.dao.AnswerVerificationConfirmationDao.AnswerVerificationConfirmation
 import tester.srv.dao.AnswerVerificationDao.AnswerVerification
 import io.github.gaelrenoux.tranzactio.doobie.TranzactIO
+import zio.*
 
 import java.time.Instant
 
@@ -35,6 +37,24 @@ trait AnswerService {
 }
 
 object AnswerService {
+  def deleteAnswer(id: Int): ZIO[Transactor[Task] & AnswerService, Throwable, Boolean] =
+    ZIO.serviceWithZIO[AnswerService](_.deleteAnswer(id))
+  def filterAnswers(filter: AnswerFilterParams): ZIO[Transactor[Task] & AnswerService, Throwable, Seq[(Answer, AnswerMeta, AnswerStatus)]] =
+    ZIO.serviceWithZIO[AnswerService](_.filterAnswers(filter))
+  def unconfirmedAnswers(filter: AnswerFilterParams): ZIO[Transactor[Task] & AnswerService, Throwable, Seq[(Answer, AnswerMeta, AnswerStatus)]] =
+    ZIO.serviceWithZIO[AnswerService](_.unconfirmedAnswers(filter))
+  def submitAnswer(problemId: Int, answerRaw: String): ZIO[Transactor[Task] & AnswerService, Throwable, SubmitAnswerResult] =
+    ZIO.serviceWithZIO[AnswerService](_.submitAnswer(problemId, answerRaw))
+  def pollAnswerStatus(answerId: Int): ZIO[Transactor[Task] & AnswerService, Throwable, AnswerStatusUnion] =
+    ZIO.serviceWithZIO[AnswerService](_.pollAnswerStatus(answerId))
+  def confirmAnswer(answerId: Int, userId: Option[Int]): ZIO[Transactor[Task] & AnswerService, Throwable, Boolean] =
+    ZIO.serviceWithZIO[AnswerService](_.confirmAnswer(answerId, userId))
+  def reviewAnswer(answerId: Int, userId: Int, review: String): ZIO[Transactor[Task] & AnswerService, Throwable, Boolean] =
+    ZIO.serviceWithZIO[AnswerService](_.reviewAnswer(answerId, userId, review))
+  def rejectAnswer(answerId: Int, message: Option[String], rejectedBy: Option[Int]): ZIO[Transactor[Task] & AnswerService, Throwable, Boolean] =
+    ZIO.serviceWithZIO[AnswerService](_.rejectAnswer(answerId, message, rejectedBy))
+  def problemAnswers(pId: Int): ZIO[Transactor[Task] & AnswerService, Throwable, Seq[(Answer, AnswerMeta, AnswerStatus)]] =
+    ZIO.serviceWithZIO[AnswerService](_.problemAnswers(pId))
 
   case class AnswerFilterParams(problemId: Option[Int] = None,
                                 problemAlias: Option[String] = None,

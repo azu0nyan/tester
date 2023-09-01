@@ -1,7 +1,7 @@
 package tester.srv.controller
 
 import EmbeddedPG.EmbeddedPG
-import tester.srv.controller.impl.{CourseTemplateServiceImpl, ProblemInfoRegistryImpl, ProblemServiceImpl}
+import tester.srv.controller.impl.{CourseTemplateServiceImpl, ProblemInfoRegistryImpl, ProblemServiceImpl, UserServiceImpl}
 import tester.srv.dao.CourseTemplateDao.CourseTemplate
 import tester.srv.dao.{CourseTemplateDao, CourseTemplateProblemDao, UserSessionDao}
 import tester.srv.dao.CourseTemplateProblemDao.CourseTemplateProblem
@@ -11,11 +11,18 @@ import zio.test.Assertion.*
 import zio.test.TestAspect.*
 
 object CourseTemplateTest extends ZIOSpecDefault {
+
+
+  val busLayer = MessageBus.layer
+  val problemServiceLayer = (busLayer ++ StubsAndMakers.registryStubLayer) >>> ProblemServiceImpl.layer
+
   def spec = suite("Course template test")(
     courseTemplateCreation,
     courseTemplateAddRemoveProblem
-  ).provideLayer(EmbeddedPG.connectionLayer)
-   .provideLayer(MessageBus.layer)  @@
+  ).provideSomeLayer(EmbeddedPG.connectionLayer)
+   .provideSomeLayer(busLayer)
+   .provideSomeLayer(problemServiceLayer)
+   @@
     timeout(60.seconds) @@
     withLiveClock
 

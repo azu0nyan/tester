@@ -1,11 +1,13 @@
 package tester.srv.controller
 
+import doobie.util.transactor.Transactor
 import tester.srv.controller.UserService.*
 import tester.srv.controller.UserService.LoginResult.*
 import tester.srv.controller.UserService.RegistrationResult.*
 
 import java.time.Instant
 import io.github.gaelrenoux.tranzactio.doobie.TranzactIO
+import zio.*
 
 trait UserService {
   def registerUser(req: RegistrationData): TranzactIO[RegistrationResult]
@@ -17,6 +19,17 @@ trait UserService {
 
 
 object UserService {
+  def registerUser(req: RegistrationData): ZIO[ Transactor[Task] & UserService, Throwable, RegistrationResult] =
+    ZIO.serviceWithZIO[UserService](_.registerUser(req))
+
+  def loginUser(data: LoginData): ZIO[ Transactor[Task] & UserService, Throwable, LoginResult] =
+    ZIO.serviceWithZIO[UserService](_.loginUser(data))
+
+  def validateToken(token: String): ZIO[ Transactor[Task]& UserService, Throwable, TokenOps.ValidationResult] =
+    ZIO.serviceWithZIO[UserService](_.validateToken(token))
+
+
+
   case class UserFromList(login: String, firstName: String, lastName: String)
 
   sealed trait RegistrationResult

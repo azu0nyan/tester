@@ -14,10 +14,10 @@ case class ProblemInfoRegistryImpl(map: ConcurrentMap[String, ProblemInfo]) exte
 }
 
 object ProblemInfoRegistryImpl {
-  def live: UIO[ProblemInfoRegistryImpl] =
+  def live: UIO[ProblemInfoRegistry] =
     for {
       map <- ConcurrentMap.make[String, ProblemInfo]()
     } yield ProblemInfoRegistryImpl(map)
     
-  def layer: ULayer[ProblemInfoRegistryImpl] = ZLayer.fromZIO(live)  
+  def layer: ULayer[ProblemInfoRegistry] = ZLayer.fromZIO(live)  
 }

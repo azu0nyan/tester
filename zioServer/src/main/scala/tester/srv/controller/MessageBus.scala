@@ -26,8 +26,8 @@ object MessageBus {
       main <- Hub.unbounded[Message]
       answerConfirmations <- Hub.unbounded[AnswerConfirmed]
       userLogins <- Hub.unbounded[UserLoggedIn]
-      _ <- ZStream.fromHub(main).collect { case a: AnswerConfirmed => a }.run(ZSink.fromHub(answerConfirmations))
-      _ <- ZStream.fromHub(main).collect { case a: UserLoggedIn => a }.run(ZSink.fromHub(userLogins))
+      _ <- ZStream.fromHub(main).collect { case a: AnswerConfirmed => a }.run(ZSink.fromHub(answerConfirmations)).fork
+      _ <- ZStream.fromHub(main).collect { case a: UserLoggedIn => a }.run(ZSink.fromHub(userLogins)).fork
     } yield MessageBus(main, answerConfirmations, userLogins)
     
   def layer: ULayer[MessageBus] = ZLayer.fromZIO(live) 

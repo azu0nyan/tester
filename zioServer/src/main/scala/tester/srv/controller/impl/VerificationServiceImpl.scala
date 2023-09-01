@@ -70,7 +70,7 @@ case class VerificationServiceImpl(
 
 
 object VerificationServiceImpl {
-  def live: URIO[MessageBus & AnswerVerificatorRegistry & ProblemService, VerificationServiceImpl] =
+  def live: URIO[MessageBus & AnswerVerificatorRegistry & ProblemService, VerificationService] =
     for {
       bus <- ZIO.service[MessageBus]
       reg <- ZIO.service[AnswerVerificatorRegistry]

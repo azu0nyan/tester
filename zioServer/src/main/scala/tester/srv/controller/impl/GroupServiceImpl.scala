@@ -11,7 +11,7 @@ import doobie.postgres.pgisimplicits.*
 import io.github.gaelrenoux.tranzactio.{DbException, doobie}
 import doobie.{Connection, Database, TranzactIO, tzio}
 import tester.srv.controller.{CoursesService, GroupService, MessageBus}
-import tester.srv.controller.impl.CoursesServiceTranzactIO
+import tester.srv.controller.impl.CoursesServiceImpl
 import tester.srv.dao.CourseTemplateForGroupDao.CourseTemplateForGroup
 import tester.srv.dao.{CourseTemplateForGroupDao, UserToGroupDao}
 import tester.srv.dao.UserToGroupDao.UserToGroup
@@ -66,13 +66,13 @@ case class GroupServiceImpl(
 }
 
 object GroupServiceImpl{
-  def live: URIO[MessageBus & CoursesService, GroupServiceImpl] =
+  def live: URIO[MessageBus & CoursesService, GroupService] =
     for {
       bus <- ZIO.service[MessageBus]
       ver <- ZIO.service[CoursesService]
     } yield GroupServiceImpl(bus, ver)
 
 
-  def layer: URLayer[MessageBus & CoursesService, GroupServiceImpl] =
+  def layer: URLayer[MessageBus & CoursesService, GroupService] =
     ZLayer.fromZIO(live)
 }

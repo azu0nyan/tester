@@ -38,12 +38,12 @@ case class CourseTemplateServiceImpl(
 }
 
 object CourseTemplateServiceImpl {
-  def live: URIO[MessageBus & ProblemService, CourseTemplateServiceImpl] =
+  def live: URIO[MessageBus & ProblemService, CourseTemplateService] =
     for {
       bus <- ZIO.service[MessageBus]
       ver <- ZIO.service[ProblemService]
     } yield CourseTemplateServiceImpl(bus, ver)
 
-  def layer: URLayer[MessageBus & ProblemService, CourseTemplateServiceImpl] =
+  def layer: URLayer[MessageBus & ProblemService, CourseTemplateService] =
     ZLayer.fromZIO(live)
 }

@@ -5,7 +5,7 @@ import EmbeddedPG.EmbeddedPG
 import io.github.gaelrenoux.tranzactio.doobie.TranzactIO
 import tester.srv.controller.AnswerService.{AnswerFilterParams, AnswerSubmitted, SubmitAnswerResult}
 import tester.srv.controller.UserService.{RegistrationData, RegistrationResult}
-import tester.srv.controller.impl.{AnswerServiceImpl, CourseTemplateServiceImpl, CoursesServiceTranzactIO, ProblemServiceImpl, UserServiceImpl, VerificationServiceImpl}
+import tester.srv.controller.impl.{AnswerServiceImpl, CourseTemplateServiceImpl, CoursesServiceImpl, ProblemServiceImpl, UserServiceImpl, VerificationServiceImpl}
 import tester.srv.dao.CourseTemplateDao.CourseTemplate
 import tester.srv.dao.{CourseTemplateDao, CourseTemplateProblemDao, UserSessionDao}
 import tester.srv.dao.CourseTemplateProblemDao.CourseTemplateProblem
@@ -16,25 +16,27 @@ import zio.test.Assertion.*
 import zio.test.TestAspect.*
 
 object AnswerServiceTest extends ZIOSpecDefault {
+
+  val bus = MessageBus.layer
+
   def spec = suite("Answer service test")(
     submitAnswer, submitAnswerRequireConfirm, submitRejectedAnswer, deleteAnswer
   ).provideSomeLayer(EmbeddedPG.connectionLayer)
-    .provideSomeLayer(MessageBus.layer)
-    .provideSomeLayer(StubsAndMakers.registryStubLayer)
-    @@
+    .provideSomeLayer(bus) @@
     timeout(60.seconds) @@
     withLiveClock
 
-  def makeService(reg: AnswerVerificatorRegistry): URIO[MessageBus, AnswerServiceImpl] =
+  def makeService(reg: AnswerVerificatorRegistry): URIO[MessageBus, AnswerService] =
     for {
-      prv <- ProblemServiceImpl.live
-      ver <- VerificationServiceImpl.live.provideSomeLayer(ZLayer.succeed(reg))
-      res <- AnswerServiceImpl.live
+      prv <- ProblemServiceImpl.live.provideSomeLayer(StubsAndMakers.registryStubLayer)
+      ver <- VerificationServiceImpl.live.provideSomeLayer(ZLayer.succeed(reg)).provideSomeLayer(ZLayer.succeed(prv))
+      res <- AnswerServiceImpl.live.provideSomeLayer(ZLayer.succeed(ver))
     } yield res
 
 
   val submitAnswer = test("Submit answer auto confirm ") {
     for {
+      _ <- ZIO.log(s"Making service")
       service <- makeService(StubsAndMakers.acceptAllRegistryStub)
       res <- StubsAndMakers.makeUserAndCourse
       problemId = res._3.find(!_.requireConfirmation).get.id

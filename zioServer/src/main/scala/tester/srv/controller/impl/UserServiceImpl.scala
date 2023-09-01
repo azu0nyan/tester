@@ -86,10 +86,10 @@ case class UserServiceImpl(bus: MessageBus) extends UserService{
 }
 
 object UserServiceImpl{
-  def live: URIO[MessageBus, UserServiceImpl] =
+  def live: URIO[MessageBus, UserService] =
     for{
       bus <- ZIO.service[MessageBus]
     } yield UserServiceImpl(bus)
     
-  def layer: URLayer[MessageBus, UserServiceImpl] = ZLayer.fromZIO(live)  
+  def layer: URLayer[MessageBus, UserService] = ZLayer.fromZIO(live)  
 }

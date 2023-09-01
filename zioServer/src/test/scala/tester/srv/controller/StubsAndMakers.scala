@@ -8,7 +8,7 @@ import otsbridge.{AnswerField, AnswerVerificationResult, ProblemInfo}
 import otsbridge.ProblemScore.{BinaryScore, ProblemScore}
 import tester.srv.controller.UserService.{RegistrationData, RegistrationResult}
 import tester.srv.controller.VerificationService
-import tester.srv.controller.impl.{CourseTemplateServiceImpl, CoursesServiceTranzactIO, ProblemInfoRegistryImpl, ProblemServiceImpl, UserServiceImpl}
+import tester.srv.controller.impl.{CourseTemplateServiceImpl, CoursesServiceImpl, ProblemInfoRegistryImpl, ProblemServiceImpl, UserServiceImpl}
 import tester.srv.dao.CourseTemplateDao
 import tester.srv.dao.CourseTemplateDao.CourseTemplate
 import tester.srv.dao.ProblemDao.Problem
@@ -18,7 +18,7 @@ import zio.*
 object StubsAndMakers {
 
   def acceptAllVerificator = new AnswerVerificator {
-    override def verifyAnswer(seed: Int, answer: String): TranzactIO[AnswerVerificationResult] =
+    override def verifyAnswer(seed: Int, answer: String): Task[AnswerVerificationResult] =
       ZIO.succeed(AnswerVerificationResult.Verified(BinaryScore(true), None))
   }
 
@@ -30,7 +30,7 @@ object StubsAndMakers {
   }
 
   def rejectAllVerificator = new AnswerVerificator {
-    override def verifyAnswer(seed: Int, answer: String): TranzactIO[AnswerVerificationResult] =
+    override def verifyAnswer(seed: Int, answer: String): Task[AnswerVerificationResult] =
       ZIO.succeed(AnswerVerificationResult.CantVerify(None))
   }
 
@@ -42,25 +42,33 @@ object StubsAndMakers {
       ZIO.succeed(())
   }
 
-  def makeCourseTemplateService: ZIO[MessageBus, Nothing, CourseTemplateServiceImpl] =
-    for {
-      res <- ProblemServiceImpl.live
-        .provideSomeLayer(ZLayer.fromZIO(StubsAndMakers.registryStub))
-    } yield CourseTemplateServiceTranzactIO(res)
-
-  def makeCourseService(bus: MessageBus): ZIO[MessageBus & ProblemService, Nothing, CoursesServiceTranzactIO] =
+  def makeCourseTemplateService: ZIO[MessageBus & ProblemService, Nothing, CourseTemplateService] =
     for {
       stub <- StubsAndMakers.registryStub
-      res <- CoursesServiceTranzactIO.live
+      srvv <- CourseTemplateServiceImpl.live
+    } yield srvv
+
+  def makeProblemService: ZIO[MessageBus, Nothing, ProblemService] =
+  for{
+    stub <- registryStub
+    res <-  ProblemServiceImpl.live.provideSomeLayer(ZLayer.succeed(stub))
+  } yield res
+
+  def makeCourseService: ZIO[MessageBus & ProblemService, Nothing, CoursesService] =
+    for {
+      stub <- StubsAndMakers.registryStub
+      res <- CoursesServiceImpl.live
     } yield res
 
   def makeUserAndCourse: TranzactIO[(Int, Int, Seq[Problem])] =
     val userData = RegistrationData("user", "password", "Aliecbob", "Joens", "a@a.com")
     (for {
       bus <- MessageBus.live
-      courses <- StubsAndMakers.makeCourseService(bus)
-      templates <- StubsAndMakers.makeCourseTemplateService(bus)
-      userId <- UserServiceImpl.registerUser(userData).map(_.asInstanceOf[RegistrationResult.Success].userId)
+      userService <- UserServiceImpl.live.provideSomeLayer(ZLayer.succeed(bus))
+      probems <- StubsAndMakers.makeProblemService.provideSomeLayer(ZLayer.succeed(bus))
+      courses <- StubsAndMakers.makeCourseService.provideSomeLayer(ZLayer.succeed(bus)).provideSomeLayer(ZLayer.succeed(probems))
+      templates <- StubsAndMakers.makeCourseTemplateService.provideSomeLayer(ZLayer.succeed(bus)).provideSomeLayer(ZLayer.succeed(probems))
+      userId <- UserService.registerUser(userData).map(_.asInstanceOf[RegistrationResult.Success].userId).provideSomeLayer(ZLayer.succeed(userService))
       _ <- templates.createNewTemplate("alias", "description")
       _ <- templates.addProblemToTemplateAndUpdateCourses("alias", "problemAlias1")
       _ <- templates.addProblemToTemplateAndUpdateCourses("alias", "problemAlias2")

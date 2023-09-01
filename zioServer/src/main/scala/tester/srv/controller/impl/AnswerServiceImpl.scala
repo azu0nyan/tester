@@ -88,11 +88,11 @@ case class AnswerServiceImpl(
 
 
 object AnswerServiceImpl {
-  def live: URIO[MessageBus & VerificationService, AnswerServiceImpl] =
+  def live: URIO[MessageBus & VerificationService, AnswerService] =
     for {
       bus <- ZIO.service[MessageBus]
       ver <- ZIO.service[VerificationService]
     } yield AnswerServiceImpl(bus, ver)
 
-  def layer: URLayer[MessageBus & VerificationService, AnswerServiceImpl] = ZLayer.fromZIO(live)
+  def layer: URLayer[MessageBus & VerificationService, AnswerService] = ZLayer.fromZIO(live)
 }

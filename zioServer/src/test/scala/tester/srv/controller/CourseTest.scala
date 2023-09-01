@@ -4,7 +4,7 @@ import EmbeddedPG.EmbeddedPG
 import io.github.gaelrenoux.tranzactio.DbException
 import io.github.gaelrenoux.tranzactio.doobie.TranzactIO
 import tester.srv.controller.UserService.{RegistrationData, RegistrationResult}
-import tester.srv.controller.impl.{CourseTemplateServiceImpl, CoursesServiceTranzactIO, ProblemServiceImpl, UserServiceImpl}
+import tester.srv.controller.impl.{CourseTemplateServiceImpl, CoursesServiceImpl, ProblemServiceImpl, UserServiceImpl}
 import tester.srv.dao.{CourseDao, CourseTemplateDao, ProblemDao}
 import tester.srv.dao.CourseTemplateDao.CourseTemplate
 import zio.*
@@ -13,6 +13,12 @@ import zio.test.Assertion.*
 import zio.test.TestAspect.*
 
 object CourseTest extends ZIOSpecDefault {
+
+
+  val busLayer = MessageBus.layer
+  val userServiceLayer = busLayer >>> UserServiceImpl.layer
+  val problemServiceLayer = (busLayer ++ StubsAndMakers.registryStubLayer) >>>ProblemServiceImpl.layer
+
   def spec = suite("UserOps test")(
     startCourse,
     stopCourse,
@@ -20,18 +26,16 @@ object CourseTest extends ZIOSpecDefault {
     addingProblemToTemplate,
     removingProblemToTemplate
   ).provideSomeLayer(EmbeddedPG.connectionLayer)
-    .provideSomeLayer(MessageBus.layer)
-    .provideSomeLayer(UserServiceImpl.layer)
-    .provideSomeLayer(StubsAndMakers.registryStubLayer)
-    .provideSomeLayer(ProblemServiceImpl.layer)
-    @@
+    .provideSomeLayer(busLayer)
+    .provideSomeLayer(userServiceLayer)
+    .provideSomeLayer(problemServiceLayer) @@
     timeout(60.seconds) @@
     withLiveClock
 
-  val createUserMakeTemplate: TranzactIO[Int] =
+  val createUserMakeTemplate =
     val userData = RegistrationData("user", "password", "Aliecbob", "Joens", "a@a.com")
     (for {
-      userId <- UserServiceImpl.registerUser(userData).map(_.asInstanceOf[RegistrationResult.Success].userId)
+      userId <- UserService.registerUser(userData).map(_.asInstanceOf[RegistrationResult.Success].userId)
       tmp <- StubsAndMakers.makeCourseTemplateService
       _ <- tmp.createNewTemplate("alias", "description")
       _ <- tmp.addProblemToTemplateAndUpdateCourses("alias", "problemAlias1")
