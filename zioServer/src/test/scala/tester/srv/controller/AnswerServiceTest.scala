@@ -64,8 +64,8 @@ object AnswerServiceTest extends ZIOSpecDefault {
       problemId = res._3.find(_.requireConfirmation).get.id
       submitResult <- service.submitAnswer(problemId, "DUMMY ANSWER")
       id = submitResult.asInstanceOf[AnswerSubmitted].id
-      status <- service.pollAnswerStatus(id)
-      unconf <- service.unconfirmedAnswers(AnswerFilterParams())
+      status <- service.pollAnswerStatus(id).tap(c => Console.printLine(c))
+      unconf <- service.unconfirmedAnswers(AnswerFilterParams()).tap(c => Console.printLine(c))
     } yield assertTrue(
       unconf.size == 1,
       status.verified.nonEmpty,

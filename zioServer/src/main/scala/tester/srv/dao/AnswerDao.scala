@@ -96,8 +96,8 @@ object AnswerDao extends AbstractDao[Answer]
 
   /** Успешно оцененные ответы, ожидающие подтверждения вручную */
   def unconfirmedAnswers(filter: AnswerFilterParams): TranzactIO[List[(Answer, AnswerMeta, AnswerStatusUnion)]] =
-    queryAnswers(filter)(Some(fr"Conf.answerId IS NULL AND R.answerId IS NOT NULL AND P.scoreNormalized = 1.0"),
-      fr"""LEFT JOIN AnswerVerification R ON R.answerId = Answer.id
+    queryAnswers(filter)(Some(fr"Conf.answerId IS NULL AND VER.answerId IS NOT NULL AND VER.scoreNormalized = 1.0"),
+      fr"""LEFT JOIN AnswerVerification VER ON VER.answerId = Answer.id
           |LEFT JOIN AnswerVerifiactionConfirmation as Conf ON Conf.answerId = Answer.id""".stripMargin)
 
 

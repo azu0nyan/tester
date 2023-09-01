@@ -41,9 +41,11 @@ case class ProblemServiceImpl private(
     } yield res.getOrElse(false)
 
 
-  //todo use Hub for reporting
   def reportAnswerConfirmed(problemId: Int, answerId: Int, score: ProblemScore): TranzactIO[Unit] =
-    ???
+    for{
+      p <- ProblemDao.byId(problemId)
+      _ <- ZIO.when(p.scoreNormalized < score.percentage)(ProblemDao.updateScore(problemId, score))
+    } yield ()
 
 }
 

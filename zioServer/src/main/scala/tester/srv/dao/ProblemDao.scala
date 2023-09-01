@@ -34,5 +34,8 @@ object ProblemDao extends AbstractDao[Problem]
   def courseProblems(courseId: Int): TranzactIO[List[Problem]] =
     selectWhereList(fr"courseId = $courseId")
 
+
+  def updateScore(problemId: Int, score: ProblemScore): TranzactIO[Boolean] =
+    updateById(problemId, fr"scoreNormalized=${score.percentage}, score=${score.toJson}::jsonb")
 }
 
