@@ -21,7 +21,7 @@ trait AbstractDao[T: Read : Write] {
   def jsonbFields: Seq[String] = Seq()
 
 
-  lazy val fieldNames: Seq[String] = schema.asInstanceOf[zio.schema.Schema.Record[T]].fields.map( _.name)
+  lazy val fieldNames: Seq[String] = schema.asInstanceOf[zio.schema.Schema.Record[T]].fields.map(_.name)
   lazy val fieldNamesWithTable: Seq[String] = fieldNames.map(n => tableName + "." + n)
   lazy val fieldStringWithTable: String = fieldNamesWithTable.mkString(", ")
   lazy val fieldString: String = fieldNames.mkString(", ")
@@ -159,9 +159,16 @@ object AbstractDao {
   }
 
   trait ByAlias[T: Read] extends AbstractDao[T] {
-    def byAliasOption(alias: String): TranzactIO[Option[T]] = selectWhereAndOption(fr"alias = $alias")
-    def byAlias(alias: String): TranzactIO[T] = selectWhereAnd(fr"alias = $alias")
+    def byAliasOption(alias: String): TranzactIO[Option[T]] =
+      selectWhereAndOption(fr"alias = $alias")
+      
+    def byAlias(alias: String): TranzactIO[T] =
+      selectWhereAnd(fr"alias = $alias")
 
-    def deleteByAlias(alias: String): TranzactIO[Int] = deleteWhere(fr"alias = $alias")
+    def deleteByAlias(alias: String): TranzactIO[Boolean] =
+      deleteWhere(fr"alias = $alias").map(_ == 1)
+
+    def updateByAlias(alias: String, set: Fragment): TranzactIO[Boolean] =
+      updateWhere(set, fr"alias = $alias").map(_ == 1)
   }
 }

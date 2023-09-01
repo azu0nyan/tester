@@ -21,9 +21,9 @@ object CourseTemplateForGroupDao extends AbstractDao[CourseTemplateForGroup] {
   def removeCourseFromGroup(templateAlias: String, groupId: Int): TranzactIO[Boolean] =
     deleteWhere(fr"templateAlias = $templateAlias AND groupId = $groupId").map(_ == 1)
 
-  /** Курсы, которые должны стартовать для всех участников группы автоматически */
-  def forcedCourses(groupId: Int): TranzactIO[List[CourseTemplateForGroup]] =
-    selectWhereList(fr"groupId = $groupId")
+  /** forced Курсы, которые должны стартовать для всех участников группы автоматически */
+  def groupCourses(groupId: Int, forced: Boolean): TranzactIO[List[CourseTemplateForGroup]] =
+    selectWhereOptList(Some(fr"groupId = $groupId"), Option.when(forced)(fr"forceStartForGroupMembers = TRUE"))
 
 }
 

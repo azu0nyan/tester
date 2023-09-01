@@ -7,7 +7,16 @@ object CoursePiece {
   import io.circe.syntax.*, io.circe.*, io.circe.generic.semiauto.*
   implicit val reqDec: Decoder[CoursePiece] = deriveDecoder[CoursePiece]
   implicit val resEnc: Encoder[CoursePiece] = deriveEncoder[CoursePiece]
+ 
+  def fromJson(json: String): CourseRoot = {
+    import io.circe.parser.decode
+    decode[CourseRoot](json) match
+      case Left(value) => throw new Exception(s"Cant decode problem score $value $json")
+      case Right(value) => value
+  }
 
+
+  
 
   val emptyCourse: CourseRoot = CourseRoot("", "", Seq())
 
@@ -165,7 +174,7 @@ object CoursePiece {
 
 
   case class CourseRoot(title: String, annotation: String, childs: Seq[CoursePiece]) extends Container {
-
+    def toJson: String = resEnc(this).noSpaces
 
     override def alias: String = "main"
     override def displayMe: DisplayMe = OwnPage

@@ -4,7 +4,7 @@ import clientRequests.{GenericRequestFailure, Route, WithToken}
 import RemoveUserFromGroup.*
 
 
-object RemoveUserFromGroupJson{
+object RemoveUserFromGroupJson {
 
   import viewData.*
   import io.circe.syntax.*, io.circe.*, io.circe.generic.semiauto.*
@@ -23,7 +23,7 @@ object RemoveUserFromGroup extends Route[RemoveUserFromGroupRequest, RemoveUserF
 }
 
 //REQ
-case class RemoveUserFromGroupRequest(token:String, userHexIdOrLogin:String, groupHexIdOrAlias:String, forceCourseDelete: Boolean) extends WithToken
+case class RemoveUserFromGroupRequest(token: String, userId: String, groupId: String, forceCourseDelete: Boolean) extends WithToken
 
 //RES
 sealed trait RemoveUserFromGroupResponse

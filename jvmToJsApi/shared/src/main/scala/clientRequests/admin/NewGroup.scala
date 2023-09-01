@@ -26,7 +26,7 @@ case class NewGroupRequest(token: String, title: String) extends WithToken
 
 //RES
 sealed trait NewGroupResponse
-case class NewGroupSuccess(groupHexId: String) extends NewGroupResponse
+case class NewGroupSuccess(id: String) extends NewGroupResponse
 sealed trait NewGroupFailure extends NewGroupResponse
 case class TitleAlreadyClaimed() extends NewGroupFailure
 case class UnknownNewGroupFailure() extends NewGroupFailure

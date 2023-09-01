@@ -1,13 +1,13 @@
 package tester.srv.controller.impl
 
-import clientRequests.{CourseDataRequest, CourseDataResponse, CoursesListRequest, CoursesListResponse, GetCoursesListSuccess, LoginFailureUserNotFoundResponse, LoginFailureWrongPasswordResponse, LoginRequest, LoginResponse, LoginSuccessResponse, PartialCourseDataRequest, PartialCourseDataResponse, PartialCourseDataSuccess, ProblemDataRequest, ProblemDataResponse, ProblemDataSuccess, RegistrationRequest, RegistrationResponse, RequestStartCourseSuccess, StartCourseRequest, StartCourseResponse, SubmitAnswerRequest, SubmitAnswerResponse, UpdateUserDataRequest, UpdateUserDataResponse, UserDataRequest, UserDataResponse}
-import clientRequests.admin.{AddCourseToGroupRequest, AddCourseToGroupResponse, AddCustomProblemTemplateRequest, AddCustomProblemTemplateResponse, AddProblemToCourseTemplateRequest, AddProblemToCourseTemplateResponse, AddUserToGroupFailure, AddUserToGroupRequest, AddUserToGroupResponse, AddUserToGroupSuccess, AdminActionRequest, AdminActionResponse, AdminCourseInfoRequest, AdminCourseInfoResponse, AdminCourseListRequest, AdminCourseListResponse, GroupInfoRequest, GroupInfoResponse, GroupListRequest, GroupListResponse, NewCourseTemplateRequest, NewCourseTemplateResponse, NewGroupRequest, NewGroupResponse, ProblemTemplateListRequest, ProblemTemplateListResponse, RemoveCustomProblemTemplateRequest, RemoveCustomProblemTemplateResponse, RemoveProblemFromCourseTemplateRequest, RemoveProblemFromCourseTemplateResponse, RemoveUserFromGroupRequest, RemoveUserFromGroupResponse, UpdateCustomCourseRequest, UpdateCustomCourseResponse, UpdateCustomProblemTemplateRequest, UpdateCustomProblemTemplateResponse, UserListRequest, UserListResponse}
+import clientRequests.{CourseDataRequest, CourseDataResponse, CoursesListRequest, CoursesListResponse, GetCoursesListSuccess, LoginFailureUserNotFoundResponse, LoginFailureWrongPasswordResponse, LoginRequest, LoginResponse, LoginSuccessResponse, PartialCourseDataRequest, PartialCourseDataResponse, PartialCourseDataSuccess, ProblemDataRequest, ProblemDataResponse, ProblemDataSuccess, RegistrationRequest, RegistrationResponse, RequestStartCourseSuccess, StartCourseRequest, StartCourseResponse, SubmitAnswerRequest, SubmitAnswerResponse, UpdateUserDataRequest, UpdateUserDataResponse, UserDataRequest, UserDataResponse, UserDataSuccess}
+import clientRequests.admin.{AddCourseToGroupRequest, AddCourseToGroupResponse, AddCustomProblemTemplateRequest, AddCustomProblemTemplateResponse, AddProblemToCourseTemplateRequest, AddProblemToCourseTemplateResponse, AddUserToGroupFailure, AddUserToGroupRequest, AddUserToGroupResponse, AddUserToGroupSuccess, AdminActionRequest, AdminActionResponse, AdminCourseInfoRequest, AdminCourseInfoResponse, AdminCourseListRequest, AdminCourseListResponse, GroupInfoRequest, GroupInfoResponse, GroupInfoResponseSuccess, GroupListRequest, GroupListResponse, GroupListResponseSuccess, NewCourseTemplateRequest, NewCourseTemplateResponse, NewCourseTemplateSuccess, NewGroupRequest, NewGroupResponse, NewGroupSuccess, ProblemTemplateListRequest, ProblemTemplateListResponse, RemoveCustomProblemTemplateRequest, RemoveCustomProblemTemplateResponse, RemoveProblemFromCourseTemplateRequest, RemoveProblemFromCourseTemplateResponse, RemoveProblemFromCourseTemplateSuccess, RemoveProblemFromCourseTemplateUnknownFailure, RemoveUserFromGroupFailure, RemoveUserFromGroupRequest, RemoveUserFromGroupResponse, RemoveUserFromGroupSuccess, UnknownUpdateCustomCourseFailure, UpdateCustomCourseRequest, UpdateCustomCourseResponse, UpdateCustomCourseSuccess, UpdateCustomProblemTemplateRequest, UpdateCustomProblemTemplateResponse, UserListRequest, UserListResponse}
 import clientRequests.teacher.{AnswerForConfirmationListRequest, AnswerForConfirmationListResponse, AnswerForConfirmationListSuccess, AnswersListRequest, AnswersListResponse, AnswersListSuccess, CourseAnswersConfirmationInfo, ModifyProblemRequest, ModifyProblemResponse, ModifyProblemSuccess, RejectAnswer, SetScore, ShortCourseInfo, TeacherConfirmAnswerRequest, TeacherConfirmAnswerResponse, TeacherConfirmAnswerSuccess, UserConfirmationInfo}
 import clientRequests.watcher.{GroupScoresRequest, GroupScoresResponse, LightGroupScoresRequest, LightGroupScoresResponse}
 import io.github.gaelrenoux.tranzactio.doobie.{Database, TranzactIO}
 import tester.srv.controller.AnswerService.AnswerFilterParams
 import tester.srv.controller.UserService.{LoginResult, RegistrationResult}
-import tester.srv.controller.{AnswerService, Application, CoursesService, GroupService, ProblemService, UserService}
+import tester.srv.controller.{AnswerService, Application, CourseTemplateService, CoursesService, GroupService, ProblemService, UserService}
 import tester.srv.dao.AnswerDao
 import viewData.AnswerViewData
 import zio.*
@@ -18,6 +18,7 @@ case class ApplicationImpl(
                             groups: GroupService,
                             problems: ProblemService,
                             courses: CoursesService,
+                            courseTemplates: CourseTemplateService,
                             users: UserService
                           ) extends Application {
   override def answerForConfirmationList(req: AnswerForConfirmationListRequest): Task[AnswerForConfirmationListResponse] =
@@ -64,7 +65,7 @@ case class ApplicationImpl(
   override def login(req: LoginRequest): Task[LoginResponse] = //todo add metadata logging
     db.transactionOrWiden(users.loginUser(UserService.LoginData(req.login, req.password))).flatMap {
       case LoginResult.LoggedIn(token) =>
-        for{
+        for {
           u <- users.byLogin(req.login).map(_.get)
         } yield LoginSuccessResponse(token, u)
       case LoginResult.UserNotFound(login) => ZIO.succeed(LoginFailureUserNotFoundResponse())
@@ -93,23 +94,31 @@ case class ApplicationImpl(
       .map(id => RequestStartCourseSuccess(id.toString))
 
   override def submitAnswer(req: SubmitAnswerRequest): Task[SubmitAnswerResponse] = ???
-//    db.transactionOrWiden(answers.submitAnswer(req.problemIdHex.toInt, req.answerRaw)).flatMap {
-//      case AnswerService.AnswerSubmitted(id) =>
-//        answers.viewData(id)
-//      case AnswerService.ProblemNotFound() => ???
-//      case AnswerService.MaximumAttemptsLimitExceeded(attempts) => ???
-//      case AnswerService.AlreadyVerifyingAnswer() => ???
-//      case AnswerService.AnswerSubmissionClosed(cause) => ???
-//    }
+  //    db.transactionOrWiden(answers.submitAnswer(req.problemIdHex.toInt, req.answerRaw)).flatMap {
+  //      case AnswerService.AnswerSubmitted(id) =>
+  //        answers.viewData(id)
+  //      case AnswerService.ProblemNotFound() => ???
+  //      case AnswerService.MaximumAttemptsLimitExceeded(attempts) => ???
+  //      case AnswerService.AlreadyVerifyingAnswer() => ???
+  //      case AnswerService.AnswerSubmissionClosed(cause) => ???
+  //    }
 
   override def updateUserData(req: UpdateUserDataRequest): Task[UpdateUserDataResponse] = ???
-  override def userData(req: UserDataRequest): Task[UserDataResponse] = ???
-  override def groupScores(req: GroupScoresRequest): Task[GroupScoresResponse] = ???
+
+  override def userData(req: UserDataRequest): Task[UserDataResponse] =
+    db.transactionOrWiden(users.byId(req.id.toInt)).map(uvd => UserDataSuccess(uvd))
+
+  @deprecated override def groupScores(req: GroupScoresRequest): Task[GroupScoresResponse] = ???
   override def lightGroupScores(req: LightGroupScoresRequest): Task[LightGroupScoresResponse] = ???
 
-  override def addCourseToGroup(req: AddCourseToGroupRequest): Task[AddCourseToGroupResponse] = ???
+  override def addCourseToGroup(req: AddCourseToGroupRequest): Task[AddCourseToGroupResponse] =
+    db.transactionOrWiden(groups.addCourseTemplateToGroup(req.courseAlias, req.groupId, req.forceToGroupMembers))
+
   override def addCustomProblemTemplate(req: AddCustomProblemTemplateRequest): Task[AddCustomProblemTemplateResponse] = ???
-  override def addProblemToCourseTemplate(req: AddProblemToCourseTemplateRequest): Task[AddProblemToCourseTemplateResponse] = ???
+
+  override def addProblemToCourseTemplate(req: AddProblemToCourseTemplateRequest): Task[AddProblemToCourseTemplateResponse] =
+    db.transactionOrWiden(courseTemplates.addProblemToTemplateAndUpdateCourses(req.courseAlias, req.problemAlias))
+
   override def addUserToGroup(req: AddUserToGroupRequest): Task[AddUserToGroupResponse] =
     db.transactionOrWiden(
         groups.addUserToGroup(req.UserHexIdOrLogin.toInt, req.groupIdOrTitle.toInt))
@@ -119,17 +128,47 @@ case class ApplicationImpl(
       }
 
   override def adminAction(req: AdminActionRequest): Task[AdminActionResponse] = ???
-  override def adminCourseInfo(req: AdminCourseInfoRequest): Task[AdminCourseInfoResponse] = ???
-  override def adminCourseList(req: AdminCourseListRequest): Task[AdminCourseListResponse] = ???
-  override def groupInfo(req: GroupInfoRequest): Task[GroupInfoResponse] = ???
-  override def groupList(req: GroupListRequest): Task[GroupListResponse] = ???
-  override def newCourseTemplate(req: NewCourseTemplateRequest): Task[NewCourseTemplateResponse] = ???
-  override def newGroup(req: NewGroupRequest): Task[NewGroupResponse] = ???
+  @deprecated override def adminCourseInfo(req: AdminCourseInfoRequest): Task[AdminCourseInfoResponse] = ???
+  @deprecated override def adminCourseList(req: AdminCourseListRequest): Task[AdminCourseListResponse] = ???
+
+  override def groupInfo(req: GroupInfoRequest): Task[GroupInfoResponse] =
+    db.transactionOrWiden(groups.groupInfo(req.groupId)).map(vd => GroupInfoResponseSuccess(vd))
+
+  override def groupList(req: GroupListRequest): Task[GroupListResponse] =
+    db.transactionOrWiden(groups.groupList()).map(list => GroupListResponseSuccess(list))
+
+  override def newCourseTemplate(req: NewCourseTemplateRequest): Task[NewCourseTemplateResponse] =
+    db.transactionOrWiden(courseTemplates.createNewTemplate(req.uniqueAlias, "")).map{
+      case true => NewCourseTemplateSuccess()
+      case false => UnknownFailure() //todo check for AliasNotUnique
+    }
+  override def newGroup(req: NewGroupRequest): Task[NewGroupResponse] =
+    db.transactionOrWiden(groups.newGroup(req.title, "")).map(id => NewGroupSuccess(id.toString))
+    
   override def problemTemplateList(req: ProblemTemplateListRequest): Task[ProblemTemplateListResponse] = ???
   override def removeCustomProblemTemplate(req: RemoveCustomProblemTemplateRequest): Task[RemoveCustomProblemTemplateResponse] = ???
-  override def removeProblemFromCourseTemplate(req: RemoveProblemFromCourseTemplateRequest): Task[RemoveProblemFromCourseTemplateResponse] = ???
-  override def removeUserFromGroup(req: RemoveUserFromGroupRequest): Task[RemoveUserFromGroupResponse] = ???
-  override def updateCustomCourse(req: UpdateCustomCourseRequest): Task[UpdateCustomCourseResponse] = ???
+  
+  override def removeProblemFromCourseTemplate(req: RemoveProblemFromCourseTemplateRequest): Task[RemoveProblemFromCourseTemplateResponse] =
+    db.transactionOrWiden(courseTemplates.removeProblemFromTemplateAndUpdateCourses(req.courseAlias, req.problemAlias))
+      .map{
+        case true => RemoveProblemFromCourseTemplateSuccess()
+        case false => RemoveProblemFromCourseTemplateUnknownFailure()
+      }
+    
+  override def removeUserFromGroup(req: RemoveUserFromGroupRequest): Task[RemoveUserFromGroupResponse] =
+    db.transactionOrWiden(groups.removeUserFromGroup(req.userId.toInt, req.groupId.toInt))
+      .map{
+        case true => RemoveUserFromGroupSuccess()
+        case false => RemoveUserFromGroupFailure()()
+      }
+    
+  override def updateCustomCourse(req: UpdateCustomCourseRequest): Task[UpdateCustomCourseResponse] =
+    db.transactionOrWiden(courseTemplates.updateCourse(req.courseAlias, req.updatedData.description, req.updatedData.courseData))
+      .map{
+        case true => UpdateCustomCourseSuccess()
+        case false => UnknownUpdateCustomCourseFailure()()
+      }
+    
   override def updateCustomProblemTemplate(req: UpdateCustomProblemTemplateRequest): Task[UpdateCustomProblemTemplateResponse] = ???
   override def userList(req: UserListRequest): Task[UserListResponse] = ???
 }

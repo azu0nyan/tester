@@ -27,7 +27,6 @@ object UpdateCustomCourse extends Route[UpdateCustomCourseRequest, UpdateCustomC
 }
 
 case class CustomCourseUpdateData(
-                                    title: Option[String] = None,
                                     description: Option[String]= None,
                                     courseData: Option[CourseRoot]= None
                                   )

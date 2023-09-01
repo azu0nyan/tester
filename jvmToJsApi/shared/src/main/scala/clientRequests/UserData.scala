@@ -23,7 +23,7 @@ object UserData extends Route[UserDataRequest, UserDataResponse] {
 }
 
 //REQ
-case class UserDataRequest(token:String) extends WithToken
+case class UserDataRequest(token:String, id: String) extends WithToken
 
 //RES
 sealed trait UserDataResponse

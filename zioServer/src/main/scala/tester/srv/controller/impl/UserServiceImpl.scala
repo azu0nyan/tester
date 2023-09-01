@@ -86,6 +86,9 @@ case class UserServiceImpl(bus: MessageBus) extends UserService{
 
   def byLogin(login: String): TranzactIO[Option[viewData.UserViewData]] =
     RegisteredUserDao.byLogin(login).map(_.map(_.toViewData))
+
+  def byId(id: Int): TranzactIO[viewData.UserViewData]=
+    RegisteredUserDao.byId(id).map(_.map(_.toViewData))  
 }
 
 object UserServiceImpl{

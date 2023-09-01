@@ -17,6 +17,8 @@ trait UserService {
   def validateToken(token: String): TranzactIO[TokenOps.ValidationResult]
 
   def byLogin(login: String): TranzactIO[Option[viewData.UserViewData]]
+  
+  def byId(id: Int): TranzactIO[viewData.UserViewData]
 
 }
 
@@ -33,6 +35,9 @@ object UserService {
 
   def byLogin(login: String): ZIO[Transactor[Task] & UserService, Throwable, viewData.UserViewData] =
     ZIO.serviceWithZIO[UserService](_.byLogin(login))
+
+  def byId(id: Int): ZIO[Transactor[Task] & UserService, Throwable, viewData.UserViewData] =
+    ZIO.serviceWithZIO[UserService](_.byId(id))  
 
 
   case class UserFromList(login: String, firstName: String, lastName: String)
