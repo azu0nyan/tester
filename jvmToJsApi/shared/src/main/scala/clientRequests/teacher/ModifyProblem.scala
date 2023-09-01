@@ -24,10 +24,10 @@ object ModifyProblem extends Route[ModifyProblemRequest, ModifyProblemResponse] 
 }
 
 sealed trait ModifyType
-case class Invalide(answerId:Option[String], answerMessage:Option[String]) extends ModifyType
-case class SetScore(problemScore: ProblemScore) extends ModifyType
+case class RejectAnswer(answerId: String, answerMessage:Option[String], invalidateBy: Option[String]) extends ModifyType
+case class SetScore(problemId: String, problemScore: ProblemScore) extends ModifyType
 //REQ
-case class ModifyProblemRequest(token:String, problemId:String, modifyType: ModifyType) extends WithToken
+case class ModifyProblemRequest(token:String, modifyType: ModifyType) extends WithToken
 
 //RES
 sealed trait ModifyProblemResponse

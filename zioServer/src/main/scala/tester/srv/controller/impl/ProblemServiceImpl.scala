@@ -10,16 +10,19 @@ import doobie.postgres.implicits.*
 import doobie.postgres.pgisimplicits.*
 import io.github.gaelrenoux.tranzactio.{DbException, doobie}
 import doobie.{Connection, Database, TranzactIO, tzio}
+import otsbridge.ProblemScore
 import otsbridge.ProblemScore.{BinaryScore, ProblemScore}
+import tester.srv.controller.AnswerService.{AnswerFilterParams, FilteredAnswer}
 import tester.srv.controller.{MessageBus, ProblemInfoRegistry, ProblemService}
+import tester.srv.dao.AnswerDao
 import tester.srv.dao.ProblemDao
 import tester.srv.dao.ProblemDao.Problem
-
+import viewData.ProblemViewData
 
 case class ProblemServiceImpl private(
-                                             bus: MessageBus,
-                                             infoRegistryZIO: ProblemInfoRegistry,
-                                           ) extends ProblemService {
+                                       bus: MessageBus,
+                                       infoRegistryZIO: ProblemInfoRegistry,
+                                     ) extends ProblemService {
 
   def startProblem(courseId: Int, templateAlias: String): TranzactIO[Int] = {
     for {
@@ -42,10 +45,22 @@ case class ProblemServiceImpl private(
 
 
   def reportAnswerConfirmed(problemId: Int, answerId: Int, score: ProblemScore): TranzactIO[Unit] =
-    for{
+    for {
       p <- ProblemDao.byId(problemId)
       _ <- ZIO.when(p.scoreNormalized < score.percentage)(ProblemDao.updateScore(problemId, score))
     } yield ()
+
+  def setScore(problemId: Int, score: ProblemScore): TranzactIO[Boolean] =
+    ProblemDao.updateScore(problemId, score)
+
+  def getViewData(problemId: Int): TranzactIO[ProblemViewData] =
+    for{
+      problem <- ProblemDao.byId(problemId)
+      template <- infoRegistryZIO.problemInfo(problem.templateAlias).map(_.get)
+      answers <- AnswerDao.queryAnswers(AnswerFilterParams(problemId = Some(problemId)))()
+    } yield ProblemViewData(problemId.toString, problem.templateAlias,
+      template.title(problem.seed), template.problemHtml(problem.seed), template.answerField(problem.seed),
+      ProblemScore.fromJson(problem.score), answers.lastOption.map(_._1.answer).getOrElse(""), answers.map{case (a,b,c) => FilteredAnswer(a, b, c.toStatus).toViewData})
 
 }
 
@@ -55,11 +70,6 @@ object ProblemServiceImpl {
       bus <- ZIO.service[MessageBus]
       reg <- ZIO.service[ProblemInfoRegistry]
       srv = ProblemServiceImpl(bus, reg)
-      //        _ <- (for{
-      //          sub <- bus.answerConfirmations.subscribe
-      //          taken <- sub.take
-      //          _ <- db.transactionOrWiden(srv.reportAnswerConfirmed(taken.problemId, taken.answerId, taken.score)).catchAll(_ => ZIO.succeed(()))
-      //        } yield ())
     } yield srv
 
   def layer: URLayer[MessageBus & ProblemInfoRegistry, ProblemService] =

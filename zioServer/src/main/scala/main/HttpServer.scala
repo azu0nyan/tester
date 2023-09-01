@@ -75,6 +75,6 @@ object HttpServer extends ZIOAppDefault {
 
   override def run = for{
     _ <- ZIO.log(s"Starting server")
-    _ <- Server.serve(httpServer(new ApplicationImpl(/*todo*/???, ???, ???))).provide(Server.defaultWithPort(8080))
+    _ <- Server.serve(httpServer(new ApplicationImpl(/*todo*/???, ???, ???, ???))).provide(Server.defaultWithPort(8080))
   } yield ()
 }

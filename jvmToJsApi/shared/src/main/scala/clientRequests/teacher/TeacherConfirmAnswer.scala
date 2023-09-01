@@ -23,7 +23,7 @@ object TeacherConfirmAnswer extends Route[TeacherConfirmAnswerRequest, TeacherCo
 }
 
 //REQ
-case class TeacherConfirmAnswerRequest(token:String, answerId:String, score:ProblemScore, review:Option[String]) extends WithToken
+case class TeacherConfirmAnswerRequest(token:String, problemId: String, answerId:String, score:ProblemScore, review:Option[String], confirmedBy: String) extends WithToken
 
 //RES
 sealed trait TeacherConfirmAnswerResponse

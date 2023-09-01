@@ -2,6 +2,7 @@ package tester.srv.controller
 
 import DbViewsShared.AnswerStatus
 import DbViewsShared.AnswerStatus.{BeingVerified, Rejected, Verified, VerifiedAwaitingConfirmation}
+import clientRequests.teacher.{AnswersListFilter, ByGroupId, ByProblemTemplate}
 import doobie.Transactor
 import otsbridge.ProblemScore
 import tester.srv.controller.AnswerService.{AnswerFilterParams, AnswerStatusUnion, SubmitAnswerResult}
@@ -12,15 +13,17 @@ import tester.srv.dao.AnswerVerificationConfirmationDao.AnswerVerificationConfir
 import tester.srv.dao.AnswerVerificationDao.AnswerVerification
 import io.github.gaelrenoux.tranzactio.doobie.TranzactIO
 import zio.*
+import AnswerService.FilteredAnswer
+import viewData.AnswerViewData
 
 import java.time.Instant
 
 trait AnswerService {
   def deleteAnswer(id: Int): TranzactIO[Boolean]
 
-  def filterAnswers(filter: AnswerFilterParams): TranzactIO[Seq[(Answer, AnswerMeta, AnswerStatus)]]
+  def filterAnswers(filter: AnswerFilterParams): TranzactIO[Seq[FilteredAnswer]]
 
-  def unconfirmedAnswers(filter: AnswerFilterParams): TranzactIO[Seq[(Answer, AnswerMeta, AnswerStatus)]]
+  def unconfirmedAnswers(filter: AnswerFilterParams): TranzactIO[Seq[FilteredAnswer]]
 
   def submitAnswer(problemId: Int, answerRaw: String): TranzactIO[SubmitAnswerResult]
 
@@ -32,16 +35,16 @@ trait AnswerService {
 
   def rejectAnswer(answerId: Int, message: Option[String], rejectedBy: Option[Int]): TranzactIO[Boolean]
 
-  def problemAnswers(pId: Int): TranzactIO[Seq[(Answer, AnswerMeta, AnswerStatus)]] =
+  def problemAnswers(pId: Int): TranzactIO[Seq[FilteredAnswer]] =
     filterAnswers(AnswerFilterParams(problemId = Some(pId)))
 }
 
 object AnswerService {
   def deleteAnswer(id: Int): ZIO[Transactor[Task] & AnswerService, Throwable, Boolean] =
     ZIO.serviceWithZIO[AnswerService](_.deleteAnswer(id))
-  def filterAnswers(filter: AnswerFilterParams): ZIO[Transactor[Task] & AnswerService, Throwable, Seq[(Answer, AnswerMeta, AnswerStatus)]] =
+  def filterAnswers(filter: AnswerFilterParams): ZIO[Transactor[Task] & AnswerService, Throwable, Seq[FilteredAnswer]] =
     ZIO.serviceWithZIO[AnswerService](_.filterAnswers(filter))
-  def unconfirmedAnswers(filter: AnswerFilterParams): ZIO[Transactor[Task] & AnswerService, Throwable, Seq[(Answer, AnswerMeta, AnswerStatus)]] =
+  def unconfirmedAnswers(filter: AnswerFilterParams): ZIO[Transactor[Task] & AnswerService, Throwable, Seq[FilteredAnswer]] =
     ZIO.serviceWithZIO[AnswerService](_.unconfirmedAnswers(filter))
   def submitAnswer(problemId: Int, answerRaw: String): ZIO[Transactor[Task] & AnswerService, Throwable, SubmitAnswerResult] =
     ZIO.serviceWithZIO[AnswerService](_.submitAnswer(problemId, answerRaw))
@@ -53,9 +56,10 @@ object AnswerService {
     ZIO.serviceWithZIO[AnswerService](_.reviewAnswer(answerId, userId, review))
   def rejectAnswer(answerId: Int, message: Option[String], rejectedBy: Option[Int]): ZIO[Transactor[Task] & AnswerService, Throwable, Boolean] =
     ZIO.serviceWithZIO[AnswerService](_.rejectAnswer(answerId, message, rejectedBy))
-  def problemAnswers(pId: Int): ZIO[Transactor[Task] & AnswerService, Throwable, Seq[(Answer, AnswerMeta, AnswerStatus)]] =
+  def problemAnswers(pId: Int): ZIO[Transactor[Task] & AnswerService, Throwable, Seq[FilteredAnswer]] =
     ZIO.serviceWithZIO[AnswerService](_.problemAnswers(pId))
 
+  //todo unconfirmed/verified etc
   case class AnswerFilterParams(problemId: Option[Int] = None,
                                 problemAlias: Option[String] = None,
                                 teacherId: Option[Int] = None,
@@ -63,6 +67,16 @@ object AnswerService {
                                 groupId: Option[Int] = None,
                                 userId: Option[Int] = None)
 
+  def filterSeqToParams(seq: Seq[AnswersListFilter]): AnswerFilterParams =
+    AnswerFilterParams(
+      groupId = seq.collectFirst { case g: ByGroupId => g.id.toInt },
+      problemAlias = seq.collectFirst { case g: ByProblemTemplate => g.templateAlias }
+    )
+
+  case class FilteredAnswer(a: Answer, meta: AnswerMeta, status: AnswerStatus) {
+    def toViewData: AnswerViewData = AnswerViewData(a.id.toString, meta.problemId.toString, 
+      a.answer, a.answeredAt, status, meta.userId.toString, meta.courseId.toString)
+  }
   case class AnswerStatusUnion(
                                 verified: Option[AnswerVerification],
                                 verificationConfirmed: Option[AnswerVerificationConfirmation],

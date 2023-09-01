@@ -52,6 +52,7 @@ package object viewData {
                                  courseData: CourseRoot, problemAliasesToGenerate: Seq[String], editable: Boolean)
 
   /** teacher */
+  @deprecated
   case class AnswerFullViewData(answerId: String, answer: String, answeredAt: Instant,score: ProblemScore, user: UserViewData, problemViewData: ProblemViewData, review: Option[String])
 
 
@@ -72,7 +73,9 @@ package object viewData {
                              problemId: String,
                              answerText: String,
                              answeredAt: Instant,
-                             status: AnswerStatus
+                             status: AnswerStatus,
+                             userId: String,
+                             courseId: String
                            ) {
     def score: Option[ProblemScore] = status match {
       case AnswerStatus.Verified(score, review, systemMessage, verifiedAt, _) => Some(score)

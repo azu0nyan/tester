@@ -1,7 +1,7 @@
 package clientRequests.teacher
 
 import clientRequests.{ProblemDataRequest, ProblemDataResponse, Route, WithToken}
-import viewData.AnswerFullViewData
+import viewData.AnswerViewData
 import AnswersList.*
 
 
@@ -29,9 +29,9 @@ object AnswersList extends Route[AnswersListRequest, AnswersListResponse] {
 sealed trait AnswersListFilter
 case class ByGroupId(id: String) extends AnswersListFilter
 case class ByProblemTemplate(templateAlias: String) extends AnswersListFilter
-case object AwaitingConfirmation extends AnswersListFilter
-case class WithScoreGEqThan(x:Double) extends AnswersListFilter
-case class WithScoreLessThan(x:Double) extends AnswersListFilter
+case object AwaitingConfirmation extends AnswersListFilter  //todo
+case class WithScoreGEqThan(x:Double) extends AnswersListFilter //todo
+case class WithScoreLessThan(x:Double) extends AnswersListFilter //todo
 
 //REQ
 case class AnswersListRequest(token: String, filters: Seq[AnswersListFilter], orderByDateAsc: Boolean, limit: Option[Int]) extends WithToken{
@@ -40,7 +40,7 @@ case class AnswersListRequest(token: String, filters: Seq[AnswersListFilter], or
 
 //RES
 sealed trait AnswersListResponse
-case class AnswersListSuccess(answers: Seq[AnswerFullViewData]) extends AnswersListResponse
+case class AnswersListSuccess(answers: Seq[AnswerViewData]) extends AnswersListResponse
 sealed trait AnswersListFailure extends AnswersListResponse
 case class UnknownAnswersListFailure() extends AnswersListFailure
 
