@@ -13,7 +13,7 @@ import tester.srv.dao.AnswerVerificationConfirmationDao.AnswerVerificationConfir
 import tester.srv.dao.AnswerVerificationDao.AnswerVerification
 import io.github.gaelrenoux.tranzactio.doobie.TranzactIO
 import zio.*
-import AnswerService.FilteredAnswer
+import AnswerService.AnswerMetaStatus
 import viewData.AnswerViewData
 
 import java.time.Instant
@@ -21,9 +21,9 @@ import java.time.Instant
 trait AnswerService {
   def deleteAnswer(id: Int): TranzactIO[Boolean]
 
-  def filterAnswers(filter: AnswerFilterParams): TranzactIO[Seq[FilteredAnswer]]
+  def filterAnswers(filter: AnswerFilterParams): TranzactIO[Seq[AnswerMetaStatus]]
 
-  def unconfirmedAnswers(filter: AnswerFilterParams): TranzactIO[Seq[FilteredAnswer]]
+  def unconfirmedAnswers(filter: AnswerFilterParams): TranzactIO[Seq[AnswerMetaStatus]]
 
   def submitAnswer(problemId: Int, answerRaw: String): TranzactIO[SubmitAnswerResult]
 
@@ -34,17 +34,20 @@ trait AnswerService {
   def reviewAnswer(answerId: Int, userId: Int, review: String): TranzactIO[Boolean]
 
   def rejectAnswer(answerId: Int, message: Option[String], rejectedBy: Option[Int]): TranzactIO[Boolean]
-
-  def problemAnswers(pId: Int): TranzactIO[Seq[FilteredAnswer]] =
+  
+  def problemAnswers(pId: Int): TranzactIO[Seq[AnswerMetaStatus]] =
     filterAnswers(AnswerFilterParams(problemId = Some(pId)))
+    
+  def byId(answerId: Int): TranzactIO[AnswerMetaStatus] =
+    filterAnswers(AnswerFilterParams(answerId = Some(answerId))).map(_.head)
 }
 
 object AnswerService {
   def deleteAnswer(id: Int): ZIO[Transactor[Task] & AnswerService, Throwable, Boolean] =
     ZIO.serviceWithZIO[AnswerService](_.deleteAnswer(id))
-  def filterAnswers(filter: AnswerFilterParams): ZIO[Transactor[Task] & AnswerService, Throwable, Seq[FilteredAnswer]] =
+  def filterAnswers(filter: AnswerFilterParams): ZIO[Transactor[Task] & AnswerService, Throwable, Seq[AnswerMetaStatus]] =
     ZIO.serviceWithZIO[AnswerService](_.filterAnswers(filter))
-  def unconfirmedAnswers(filter: AnswerFilterParams): ZIO[Transactor[Task] & AnswerService, Throwable, Seq[FilteredAnswer]] =
+  def unconfirmedAnswers(filter: AnswerFilterParams): ZIO[Transactor[Task] & AnswerService, Throwable, Seq[AnswerMetaStatus]] =
     ZIO.serviceWithZIO[AnswerService](_.unconfirmedAnswers(filter))
   def submitAnswer(problemId: Int, answerRaw: String): ZIO[Transactor[Task] & AnswerService, Throwable, SubmitAnswerResult] =
     ZIO.serviceWithZIO[AnswerService](_.submitAnswer(problemId, answerRaw))
@@ -56,7 +59,7 @@ object AnswerService {
     ZIO.serviceWithZIO[AnswerService](_.reviewAnswer(answerId, userId, review))
   def rejectAnswer(answerId: Int, message: Option[String], rejectedBy: Option[Int]): ZIO[Transactor[Task] & AnswerService, Throwable, Boolean] =
     ZIO.serviceWithZIO[AnswerService](_.rejectAnswer(answerId, message, rejectedBy))
-  def problemAnswers(pId: Int): ZIO[Transactor[Task] & AnswerService, Throwable, Seq[FilteredAnswer]] =
+  def problemAnswers(pId: Int): ZIO[Transactor[Task] & AnswerService, Throwable, Seq[AnswerMetaStatus]] =
     ZIO.serviceWithZIO[AnswerService](_.problemAnswers(pId))
 
   //todo unconfirmed/verified etc
@@ -65,7 +68,9 @@ object AnswerService {
                                 teacherId: Option[Int] = None,
                                 courseAlias: Option[String] = None,
                                 groupId: Option[Int] = None,
-                                userId: Option[Int] = None)
+                                userId: Option[Int] = None,
+                                answerId: Option[Int] = None
+                               )
 
   def filterSeqToParams(seq: Seq[AnswersListFilter]): AnswerFilterParams =
     AnswerFilterParams(
@@ -73,7 +78,7 @@ object AnswerService {
       problemAlias = seq.collectFirst { case g: ByProblemTemplate => g.templateAlias }
     )
 
-  case class FilteredAnswer(a: Answer, meta: AnswerMeta, status: AnswerStatus) {
+  case class AnswerMetaStatus(a: Answer, meta: AnswerMeta, status: AnswerStatus) {
     def toViewData: AnswerViewData = AnswerViewData(a.id.toString, meta.problemId.toString, 
       a.answer, a.answeredAt, status, meta.userId.toString, meta.courseId.toString)
   }

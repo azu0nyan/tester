@@ -26,36 +26,30 @@ import UserListJson.*
 object UserList extends Route[UserListRequest, UserListResponse] {
   override val route: String = "adminGetUserList"
 
-  def matchesFilter(filter: Seq[UserListFilter], user: UserViewData): Boolean =
-    filter.forall {
-      case ByNameOrLoginOrEmailMatch(regex) =>
-        user.firstName.nonEmpty && user.firstName.get.toLowerCase.matches(regex.toLowerCase) ||
-          user.lastName.nonEmpty && user.lastName.get.toLowerCase.matches(regex.toLowerCase) ||
-          user.email.nonEmpty && user.email.get.toLowerCase.matches(regex.toLowerCase) ||
-          user.login.toLowerCase.matches(regex.toLowerCase)
-    }
+  sealed trait UserOrder {
+    def asc: Boolean
+  }
 
+  object UserOrder {
+    case class ByDateRegistered(asc: Boolean) extends UserOrder
+    case class ByLogin(asc: Boolean) extends UserOrder
+    case class ByFirstName(asc: Boolean) extends UserOrder
+    case class ByLastName(asc: Boolean) extends UserOrder
+    case class ByEmail(asc: Boolean) extends UserOrder
+  }
+
+  sealed trait UserFilter
+  object UserFilter {
+    case class MatchesRegex(regex: String) extends UserFilter
+    case object Teacher extends UserFilter
+    case object User extends UserFilter
+    case object Admin extends UserFilter
+    case object Watcher extends UserFilter
+  }
 }
 
-sealed trait UserListFilter
-case class ByNameOrLoginOrEmailMatch(regex:String) extends UserListFilter
-
-sealed trait UserListOrder{
-  def order(s: Seq[UserViewData]): Seq[UserViewData] = s
-}
-case object NoOrder extends UserListOrder
-case class ByDate(asc: Boolean) extends UserListOrder{
-  override def order(s: Seq[UserViewData]): Seq[UserViewData] =
-    if(asc) s.sortWith(Ordering.by[UserViewData, Instant](s => s.registeredAt).lt)
-    else s.sortWith(Ordering.by[UserViewData, Instant](s => s.registeredAt).reverse.lt)
-}
-case class ByLogin(desc: Boolean) extends UserListOrder {
-  override def order(s: Seq[UserViewData]): Seq[UserViewData] =
-    if (desc) s.sortWith(Ordering.by[UserViewData, String](s => s.login).lt)
-    else s.sortWith(Ordering.by[UserViewData, String](s => s.login).reverse.lt)
-}
 //REQ
-case class UserListRequest(token:String, filters:Seq[UserListFilter], itemsPerPage: Int = 200, page:Int = 0, order: UserListOrder = NoOrder) extends WithToken
+case class UserListRequest(token:String, filters: Seq[UserFilter], itemsPerPage: Int = 200, page:Int = 0, order: UserListOrder = Seq[UserOrder]) extends WithToken
 
 //RES
 sealed trait UserListResponse

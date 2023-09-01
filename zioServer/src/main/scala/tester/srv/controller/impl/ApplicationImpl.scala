@@ -1,11 +1,13 @@
 package tester.srv.controller.impl
 
 import clientRequests.{CourseDataRequest, CourseDataResponse, CoursesListRequest, CoursesListResponse, GetCoursesListSuccess, LoginFailureUserNotFoundResponse, LoginFailureWrongPasswordResponse, LoginRequest, LoginResponse, LoginSuccessResponse, PartialCourseDataRequest, PartialCourseDataResponse, PartialCourseDataSuccess, ProblemDataRequest, ProblemDataResponse, ProblemDataSuccess, RegistrationRequest, RegistrationResponse, RequestStartCourseSuccess, StartCourseRequest, StartCourseResponse, SubmitAnswerRequest, SubmitAnswerResponse, UpdateUserDataRequest, UpdateUserDataResponse, UserDataRequest, UserDataResponse, UserDataSuccess}
-import clientRequests.admin.{AddCourseToGroupRequest, AddCourseToGroupResponse, AddCustomProblemTemplateRequest, AddCustomProblemTemplateResponse, AddProblemToCourseTemplateRequest, AddProblemToCourseTemplateResponse, AddUserToGroupFailure, AddUserToGroupRequest, AddUserToGroupResponse, AddUserToGroupSuccess, AdminActionRequest, AdminActionResponse, AdminCourseInfoRequest, AdminCourseInfoResponse, AdminCourseListRequest, AdminCourseListResponse, GroupInfoRequest, GroupInfoResponse, GroupInfoResponseSuccess, GroupListRequest, GroupListResponse, GroupListResponseSuccess, NewCourseTemplateRequest, NewCourseTemplateResponse, NewCourseTemplateSuccess, NewGroupRequest, NewGroupResponse, NewGroupSuccess, ProblemTemplateListRequest, ProblemTemplateListResponse, RemoveCustomProblemTemplateRequest, RemoveCustomProblemTemplateResponse, RemoveProblemFromCourseTemplateRequest, RemoveProblemFromCourseTemplateResponse, RemoveProblemFromCourseTemplateSuccess, RemoveProblemFromCourseTemplateUnknownFailure, RemoveUserFromGroupFailure, RemoveUserFromGroupRequest, RemoveUserFromGroupResponse, RemoveUserFromGroupSuccess, UnknownUpdateCustomCourseFailure, UpdateCustomCourseRequest, UpdateCustomCourseResponse, UpdateCustomCourseSuccess, UpdateCustomProblemTemplateRequest, UpdateCustomProblemTemplateResponse, UserListRequest, UserListResponse}
+import clientRequests.admin.{
+  AddCourseToGroupRequest, AddCourseToGroupResponse, AddCustomProblemTemplateRequest, AddCustomProblemTemplateResponse, AddProblemToCourseTemplateRequest, AddProblemToCourseTemplateResponse, AddUserToGroupFailure, AddUserToGroupRequest, AddUserToGroupResponse, AddUserToGroupSuccess, AdminActionRequest, AdminActionResponse, AdminCourseInfoRequest, AdminCourseInfoResponse, AdminCourseListRequest, AdminCourseListResponse, GroupInfoRequest, GroupInfoResponse, GroupInfoResponseSuccess, GroupListRequest, GroupListResponse, GroupListResponseSuccess, NewCourseTemplateRequest, NewCourseTemplateResponse, NewCourseTemplateSuccess, NewGroupRequest, NewGroupResponse, NewGroupSuccess, ProblemTemplateListRequest, ProblemTemplateListResponse, RemoveCustomProblemTemplateRequest, RemoveCustomProblemTemplateResponse, RemoveProblemFromCourseTemplateRequest, RemoveProblemFromCourseTemplateResponse, RemoveProblemFromCourseTemplateSuccess, RemoveProblemFromCourseTemplateUnknownFailure, RemoveUserFromGroupFailure, RemoveUserFromGroupRequest, RemoveUserFromGroupResponse, RemoveUserFromGroupSuccess, UnknownUpdateCustomCourseFailure, UpdateCustomCourseRequest, UpdateCustomCourseResponse, UpdateCustomCourseSuccess, UpdateCustomProblemTemplateRequest, UpdateCustomProblemTemplateResponse, UserListRequest, UserListResponse
+}
 import clientRequests.teacher.{AnswerForConfirmationListRequest, AnswerForConfirmationListResponse, AnswerForConfirmationListSuccess, AnswersListRequest, AnswersListResponse, AnswersListSuccess, CourseAnswersConfirmationInfo, ModifyProblemRequest, ModifyProblemResponse, ModifyProblemSuccess, RejectAnswer, SetScore, ShortCourseInfo, TeacherConfirmAnswerRequest, TeacherConfirmAnswerResponse, TeacherConfirmAnswerSuccess, UserConfirmationInfo}
 import clientRequests.watcher.{GroupScoresRequest, GroupScoresResponse, LightGroupScoresRequest, LightGroupScoresResponse}
 import io.github.gaelrenoux.tranzactio.doobie.{Database, TranzactIO}
-import tester.srv.controller.AnswerService.AnswerFilterParams
+import tester.srv.controller.AnswerService.{AnswerFilterParams, AnswerSubmitted}
 import tester.srv.controller.UserService.{LoginResult, RegistrationResult}
 import tester.srv.controller.{AnswerService, Application, CourseTemplateService, CoursesService, GroupService, ProblemService, UserService}
 import tester.srv.dao.AnswerDao
@@ -93,15 +95,19 @@ case class ApplicationImpl(
     db.transactionOrWiden(courses.startCourseForUser(req.courseTemplateAlias, req.userId.toInt))
       .map(id => RequestStartCourseSuccess(id.toString))
 
-  override def submitAnswer(req: SubmitAnswerRequest): Task[SubmitAnswerResponse] = ???
-  //    db.transactionOrWiden(answers.submitAnswer(req.problemIdHex.toInt, req.answerRaw)).flatMap {
-  //      case AnswerService.AnswerSubmitted(id) =>
-  //        answers.viewData(id)
-  //      case AnswerService.ProblemNotFound() => ???
-  //      case AnswerService.MaximumAttemptsLimitExceeded(attempts) => ???
-  //      case AnswerService.AlreadyVerifyingAnswer() => ???
-  //      case AnswerService.AnswerSubmissionClosed(cause) => ???
-  //    }
+  override def submitAnswer(req: SubmitAnswerRequest): Task[SubmitAnswerResponse] =
+    db.transactionOrWiden(answers.submitAnswer(req.problemIdHex.toInt, req.answerRaw)).flatMap {
+      case AnswerService.AnswerSubmitted(id) =>
+        answers.byId(id).map(avd => clientRequests.AnswerSubmitted(avd))
+      case AnswerService.ProblemNotFound() =>
+        ZIO.succeed(clientRequests.ProblemNotFound())
+      case AnswerService.MaximumAttemptsLimitExceeded(attempts) =>
+        ZIO.succeed(clientRequests.MaximumAttemptsLimitExceeded(attempts))
+      case AnswerService.AlreadyVerifyingAnswer() =>
+        ZIO.succeed(clientRequests.AlreadyVerifyingAnswer())
+      case AnswerService.AnswerSubmissionClosed(cause) =>
+        ZIO.succeed(clientRequests.AnswerSubmissionClosed(cause))
+    }
 
   override def updateUserData(req: UpdateUserDataRequest): Task[UpdateUserDataResponse] = ???
 
@@ -109,7 +115,10 @@ case class ApplicationImpl(
     db.transactionOrWiden(users.byId(req.id.toInt)).map(uvd => UserDataSuccess(uvd))
 
   @deprecated override def groupScores(req: GroupScoresRequest): Task[GroupScoresResponse] = ???
-  override def lightGroupScores(req: LightGroupScoresRequest): Task[LightGroupScoresResponse] = ???
+
+  override def lightGroupScores(req: LightGroupScoresRequest): Task[LightGroupScoresResponse] =
+    db.transactionOrWiden(groups.groupScores(req.groupId, req.courseAliases, req.userIds.map(_.toInt)))
+      .map(s => LightGroupScoresSuccess(s.values.flatMap(_.values).flatMap(s => s.map((a, s) => (a, a/**get problem title*/))).toMap, s))//todo
 
   override def addCourseToGroup(req: AddCourseToGroupRequest): Task[AddCourseToGroupResponse] =
     db.transactionOrWiden(groups.addCourseTemplateToGroup(req.courseAlias, req.groupId, req.forceToGroupMembers))
@@ -138,37 +147,40 @@ case class ApplicationImpl(
     db.transactionOrWiden(groups.groupList()).map(list => GroupListResponseSuccess(list))
 
   override def newCourseTemplate(req: NewCourseTemplateRequest): Task[NewCourseTemplateResponse] =
-    db.transactionOrWiden(courseTemplates.createNewTemplate(req.uniqueAlias, "")).map{
+    db.transactionOrWiden(courseTemplates.createNewTemplate(req.uniqueAlias, "")).map {
       case true => NewCourseTemplateSuccess()
       case false => UnknownFailure() //todo check for AliasNotUnique
     }
   override def newGroup(req: NewGroupRequest): Task[NewGroupResponse] =
     db.transactionOrWiden(groups.newGroup(req.title, "")).map(id => NewGroupSuccess(id.toString))
-    
+
   override def problemTemplateList(req: ProblemTemplateListRequest): Task[ProblemTemplateListResponse] = ???
   override def removeCustomProblemTemplate(req: RemoveCustomProblemTemplateRequest): Task[RemoveCustomProblemTemplateResponse] = ???
-  
+
   override def removeProblemFromCourseTemplate(req: RemoveProblemFromCourseTemplateRequest): Task[RemoveProblemFromCourseTemplateResponse] =
     db.transactionOrWiden(courseTemplates.removeProblemFromTemplateAndUpdateCourses(req.courseAlias, req.problemAlias))
-      .map{
+      .map {
         case true => RemoveProblemFromCourseTemplateSuccess()
         case false => RemoveProblemFromCourseTemplateUnknownFailure()
       }
-    
+
   override def removeUserFromGroup(req: RemoveUserFromGroupRequest): Task[RemoveUserFromGroupResponse] =
     db.transactionOrWiden(groups.removeUserFromGroup(req.userId.toInt, req.groupId.toInt))
-      .map{
+      .map {
         case true => RemoveUserFromGroupSuccess()
         case false => RemoveUserFromGroupFailure()()
       }
-    
+
   override def updateCustomCourse(req: UpdateCustomCourseRequest): Task[UpdateCustomCourseResponse] =
     db.transactionOrWiden(courseTemplates.updateCourse(req.courseAlias, req.updatedData.description, req.updatedData.courseData))
-      .map{
+      .map {
         case true => UpdateCustomCourseSuccess()
-        case false => UnknownUpdateCustomCourseFailure()()
+        case false => UnknownUpdateCustomCourseFailure()
       }
-    
+
   override def updateCustomProblemTemplate(req: UpdateCustomProblemTemplateRequest): Task[UpdateCustomProblemTemplateResponse] = ???
-  override def userList(req: UserListRequest): Task[UserListResponse] = ???
+
+  override def userList(req: UserListRequest): Task[UserListResponse] =
+    db.transactionOrWiden(users.byFilterInOrder(req.filters, req.order, req.itemsPerPage, req.page))
+      .map(l => l.map(_.toViewData))
 }

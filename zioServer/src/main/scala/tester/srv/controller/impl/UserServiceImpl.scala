@@ -1,6 +1,7 @@
 package tester.srv.controller.impl
 
 
+import clientRequests.admin.UserList.{UserFilter, UserOrder}
 import doobie.Update
 import tester.srv.controller.PasswordHashingSalting.HashAndSalt
 import zio.*
@@ -22,15 +23,13 @@ import tester.srv.dao.UserSessionDao.UserSession
 import java.time.Instant
 
 
-
-
-case class UserServiceImpl(bus: MessageBus) extends UserService{
+case class UserServiceImpl(bus: MessageBus) extends UserService {
 
   val minLoginLength = 3
   val minPassowdLength = 4
 
   //todo assign role to new users
-  /**Returns userId*/
+  /** Returns userId */
   private def registerUserQuery(req: RegistrationData): TranzactIO[Int] =
     val HashAndSalt(hash, salt) = PasswordHashingSalting.hashPassword(req.password)
     val user = RegisteredUser(0, req.login, req.firstName, req.lastName, req.email, hash, salt,
@@ -87,15 +86,19 @@ case class UserServiceImpl(bus: MessageBus) extends UserService{
   def byLogin(login: String): TranzactIO[Option[viewData.UserViewData]] =
     RegisteredUserDao.byLogin(login).map(_.map(_.toViewData))
 
-  def byId(id: Int): TranzactIO[viewData.UserViewData]=
-    RegisteredUserDao.byId(id).map(_.map(_.toViewData))  
+  def byId(id: Int): TranzactIO[viewData.UserViewData] =
+    RegisteredUserDao.byId(id).map(_.map(_.toViewData))
+
+  def byFilterInOrder(filters: Seq[UserFilter], order: Seq[UserOrder],
+                      itemsPerPage: Int, page: Int): TranzactIO[Seq[RegisteredUser]] =
+    RegisteredUserDao.byFilterInOrder
 }
 
-object UserServiceImpl{
+object UserServiceImpl {
   def live: URIO[MessageBus, UserService] =
-    for{
+    for {
       bus <- ZIO.service[MessageBus]
     } yield UserServiceImpl(bus)
-    
-  def layer: URLayer[MessageBus, UserService] = ZLayer.fromZIO(live)  
+
+  def layer: URLayer[MessageBus, UserService] = ZLayer.fromZIO(live)
 }

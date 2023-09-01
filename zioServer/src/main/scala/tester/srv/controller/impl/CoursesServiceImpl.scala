@@ -13,6 +13,7 @@ case class CoursesServiceImpl(bus: MessageBus,
                               templateRegistry: CourseTemplateRegistry
                              ) extends CoursesService {
 
+  //todo bind course to Option[Group] respect these binding in get scores
   /** Returns courseId */
   def startCourseForUser(alias: String, userId: Int): TranzactIO[Int] =
     for {

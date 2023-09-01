@@ -14,6 +14,7 @@ import tester.srv.controller.{CoursesService, GroupService, MessageBus, UserServ
 import tester.srv.controller.impl.CoursesServiceImpl
 import tester.srv.dao.CourseTemplateForGroupDao.CourseTemplateForGroup
 import tester.srv.dao.{CourseTemplateForGroupDao, UserToGroupDao, GroupDao}
+import tester.srv.dao.ProblemDao
 import tester.srv.dao.UserToGroupDao.UserToGroup
 import tester.srv.dao.UserToGroupDao.UserToGroup
 
@@ -94,6 +95,23 @@ case class GroupServiceImpl(
       groups <- GroupDao.all
       res <- ZIO.foreach(groups)(g => groupInfo(g.id))
     } yield res
+
+  def groupScores(groupId: Int, courseAliases: Seq[String], userIds: Seq[Int]): TranzactIO[clientRequests.watcher.LightGroupScores.UserScores] =
+    ProblemDao.queryProblems(Seq(
+      ProblemDao.ProblemFilter.ByGroup(groupId),
+      ProblemDao.ProblemFilter.ByCourseAliases(courseAliases: _*),
+      ProblemDao.ProblemFilter.ByUsers(userIds: _*))
+    ).map { s =>
+      s.groupBy(_._2.userId).map {
+        case (userId, problems) =>
+          val groupedByCourse = problems.groupBy(_._2.courseAlias).map {
+            case (courseAlias, courseProblems) =>
+              (courseAlias, courseProblems.map(p => (p._1.templateAlias, p._1.score)).toMap)
+          }
+          (userId.toString, groupedByCourse)
+      }
+    }
+
 }
 
 object GroupServiceImpl {

@@ -1,5 +1,6 @@
 package tester.srv.controller
 
+import clientRequests.admin.UserList.{UserFilter, UserOrder}
 import doobie.util.transactor.Transactor
 import tester.srv.controller.UserService.*
 import tester.srv.controller.UserService.LoginResult.*
@@ -7,6 +8,7 @@ import tester.srv.controller.UserService.RegistrationResult.*
 
 import java.time.Instant
 import io.github.gaelrenoux.tranzactio.doobie.TranzactIO
+import tester.srv.dao.RegisteredUserDao.RegisteredUser
 import zio.*
 
 trait UserService {
@@ -17,9 +19,11 @@ trait UserService {
   def validateToken(token: String): TranzactIO[TokenOps.ValidationResult]
 
   def byLogin(login: String): TranzactIO[Option[viewData.UserViewData]]
-  
+
   def byId(id: Int): TranzactIO[viewData.UserViewData]
 
+  def byFilterInOrder(filters: Seq[UserFilter], order: Seq[UserOrder],
+                      itemsPerPage: Int, page: Int): TranzactIO[Seq[RegisteredUser]]
 }
 
 
@@ -37,8 +41,7 @@ object UserService {
     ZIO.serviceWithZIO[UserService](_.byLogin(login))
 
   def byId(id: Int): ZIO[Transactor[Task] & UserService, Throwable, viewData.UserViewData] =
-    ZIO.serviceWithZIO[UserService](_.byId(id))  
-
+    ZIO.serviceWithZIO[UserService](_.byId(id))
 
   case class UserFromList(login: String, firstName: String, lastName: String)
 

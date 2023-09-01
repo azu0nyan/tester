@@ -67,10 +67,10 @@ object AnswerDao extends AbstractDao[Answer]
   }
 
   case class AnswerMeta(userId: Int, courseAlias: String, courseId: Int, problemId: Int)
-  val answerMetaFields = "U.id, Course.templateAlias, Course.id, P.id FROM"
+  val answerMetaFields = "U.id, Course.templateAlias, Course.id, P.id"
   //todo correct status
   def queryAnswers(filter: AnswerFilterParams)(andFrag: Option[Fragment] = None, addJoins: Fragment = fr""): TranzactIO[List[(Answer, AnswerMeta, AnswerStatusUnion)]] = tzio {
-    val q = (fr"SELECT " ++ Fragment.const(fieldStringWithTable + ", " + answerMetaFields + " " + tableName) ++
+    val q = (fr"SELECT " ++ Fragment.const(fieldStringWithTable + ", " + answerMetaFields + " FROM " + tableName) ++
       fr"""LEFT JOIN Problem as P ON P.id = problemId
          LEFT JOIN Course ON P.courseId = Course.id
          LEFT JOIN CourseTemplate as CT ON CT.alias = Course.templateAlias
@@ -81,6 +81,7 @@ object AnswerDao extends AbstractDao[Answer]
       addJoins ++
       fr"""WHERE """ ++
       Fragments.andOpt(
+        filter.answerId.map(aid => fr"Answer.id = $aid"),
         filter.problemId.map(pid => fr"problemId = $pid"),
         filter.problemAlias.map(a => fr"P.templateAlias = $a"),
         filter.teacherId.map(tid => fr"TTG.teacherID = $tid"),

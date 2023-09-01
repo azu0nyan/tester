@@ -106,6 +106,18 @@ trait AbstractDao[T: Read : Write] {
 
 object AbstractDao {
 
+  case class Ord(expr: Fragment, asc: Boolean)
+  def orderByOpt(ords: Option[Ord]*): Fragment = ords.foldLeft(fr0"") {
+    case (left, Some(Ord(expr, true))) => left ++ (if (left.toString.isEmpty) fr0"" else fr0",") ++ expr ++ fr"ASC"
+    case (left, Some(Ord(expr, false))) => left ++ (if (left.toString.isEmpty) fr0"" else fr0",") ++ expr ++ fr"DESC"
+    case (left, None) if !asc => left
+  }
+
+  def orderBy(ords: Ord*): Fragment = ords.foldLeft(fr0"") {
+    case (left, Ord(expr, true)) => left ++ (if (left.toString.isEmpty) fr0"" else fr0",") ++ expr ++ fr"ASC"
+    case (left, Ord(expr, false)) => left ++ (if (left.toString.isEmpty) fr0"" else fr0",") ++ expr ++ fr"DESC"
+  }
+
   trait ById[T: Read : Write] extends AbstractDao[T] {
     def byIdOption(id: Int): TranzactIO[Option[T]] = selectWhereAndOption(fr"id = $id")
     def byId(id: Int): TranzactIO[T] = selectWhereAnd(fr"id = $id")
@@ -161,7 +173,7 @@ object AbstractDao {
   trait ByAlias[T: Read] extends AbstractDao[T] {
     def byAliasOption(alias: String): TranzactIO[Option[T]] =
       selectWhereAndOption(fr"alias = $alias")
-      
+
     def byAlias(alias: String): TranzactIO[T] =
       selectWhereAnd(fr"alias = $alias")
 

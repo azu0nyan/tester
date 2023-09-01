@@ -11,7 +11,8 @@ import doobie.postgres.*
 import doobie.postgres.implicits.*
 import doobie.postgres.pgisimplicits.*
 import RegisteredUserDao.RegisteredUser
-import AbstractDao.ById
+import AbstractDao.{ById, Ord}
+import clientRequests.admin.UserList.{UserFilter, UserOrder}
 
 import java.time.Instant
 
@@ -37,6 +38,26 @@ object RegisteredUserDao extends AbstractDao[RegisteredUser]
       sql"""SELECT EXISTS(SELECT * FROM RegisteredUser where login ILIKE ${login})"""
         .query[Exists].unique.map(_.exists)
     }
+
+  def filterToFrag(f: UserFilter): Fragment = f match
+    case UserFilter.MatchesRegex(regex) => f"(login ILIKE $regex OR firstName ILIKE $regex OR lastName ILIKE $regex OR email ILIKE $regex)"
+    case UserFilter.Teacher => ???
+    case UserFilter.User => ???
+    case UserFilter.Admin => ???
+    case UserFilter.Watcher => ???
+
+  def orderToFrag(o: UserOrder): Ord = o match
+    case UserOrder.ByDateRegistered(asc) => Ord(fr"registeredAt", asc)
+    case UserOrder.ByLogin(asc) => Ord(fr"login", asc)
+    case UserOrder.ByFirstName(asc) => Ord(fr"firstName", asc)
+    case UserOrder.ByLastName(asc) => Ord(fr"lastName", asc)
+    case UserOrder.ByEmail(asc) => Ord(fr"email", asc)
+
+  def byFilterInOrder(filters: Seq[UserFilter], order: Seq[UserOrder],
+                      itemsPerPage: Int, page: Int): TranzactIO[Seq[RegisteredUser]] =
+    selectFragment ++ fr"WHERE" ++ Fragments.and(filters.map(filterToFrag): _ *) ++
+      AbstractDao.orderBy(order.map(orderToFrag)) ++
+      Fragment.const(s"LIMIT $itemsPerPage OFFSET ${itemsPerPage * page}")
 
 }
 

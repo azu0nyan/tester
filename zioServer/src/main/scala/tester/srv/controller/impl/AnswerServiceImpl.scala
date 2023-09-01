@@ -27,11 +27,11 @@ case class AnswerServiceImpl(
   override def deleteAnswer(id: Int): TranzactIO[Boolean] =
     AnswerDao.deleteById(id)
 
-  def unconfirmedAnswers(filterParams: AnswerFilterParams): TranzactIO[Seq[FilteredAnswer]] =
-    AnswerDao.unconfirmedAnswers(filterParams).map(l => l.map { case (a, b, c) => FilteredAnswer(a, b, c.toStatus) })
+  def unconfirmedAnswers(filterParams: AnswerFilterParams): TranzactIO[Seq[AnswerMetaStatus]] =
+    AnswerDao.unconfirmedAnswers(filterParams).map(l => l.map { case (a, b, c) => AnswerMetaStatus(a, b, c.toStatus) })
 
-  def filterAnswers(filter: AnswerFilterParams): TranzactIO[Seq[FilteredAnswer]] =
-    AnswerDao.queryAnswers(filter)().map(l => l.map { case (a, b, c) => FilteredAnswer(a, b, c.toStatus) })
+  def filterAnswers(filter: AnswerFilterParams): TranzactIO[Seq[AnswerMetaStatus]] =
+    AnswerDao.queryAnswers(filter)().map(l => l.map { case (a, b, c) => AnswerMetaStatus(a, b, c.toStatus) })
 
   override def submitAnswer(problemId: Int, answerRaw: String): TranzactIO[SubmitAnswerResult] = {
     def checkMaxAttempts(problem: Problem): TranzactIO[Boolean] =

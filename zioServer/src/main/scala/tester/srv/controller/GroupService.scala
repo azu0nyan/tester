@@ -22,4 +22,6 @@ trait GroupService {
   def groupUsers(groupId: Int): TranzactIO[Seq[viewData.UserViewData]]
   
   def groupList(): TranzactIO[Seq[viewData.GroupInfoViewData]]
+
+  def groupScores(groupId: Int, courseAliases: Seq[String], userIds: Seq[Int]): TranzactIO[clientRequests.watcher.LightGroupScores.UserScores]
 }

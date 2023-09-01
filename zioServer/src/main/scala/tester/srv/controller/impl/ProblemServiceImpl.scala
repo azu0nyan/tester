@@ -12,7 +12,7 @@ import io.github.gaelrenoux.tranzactio.{DbException, doobie}
 import doobie.{Connection, Database, TranzactIO, tzio}
 import otsbridge.ProblemScore
 import otsbridge.ProblemScore.{BinaryScore, ProblemScore}
-import tester.srv.controller.AnswerService.{AnswerFilterParams, FilteredAnswer}
+import tester.srv.controller.AnswerService.{AnswerFilterParams, AnswerMetaStatus}
 import tester.srv.controller.{MessageBus, ProblemInfoRegistry, ProblemService}
 import tester.srv.dao.AnswerDao
 import tester.srv.dao.ProblemDao
@@ -30,7 +30,7 @@ case class ProblemServiceImpl private(
       res <- info match
         case Some(info) =>
           val toInsert = Problem(0, courseId, templateAlias, scala.util.Random.nextInt(),
-            info.initialScore.toJson, info.initialScore.percentage, None, None, info.requireConfirmation)
+            info.initialScore.toJson, info.initialScore.percentage, None, None, info.requireConfirmation, java.time.Clock.systemUTC().instant())
           ProblemDao.insertReturnId(toInsert)
         case None =>
           ZIO.die(new Exception(s"Cant find problem with alias $templateAlias"))
@@ -66,7 +66,7 @@ case class ProblemServiceImpl private(
       answers <- AnswerDao.queryAnswers(AnswerFilterParams(problemId = Some(problemId)))()
     } yield ProblemViewData(problemId.toString, problem.templateAlias,
       template.title(problem.seed), template.problemHtml(problem.seed), template.answerField(problem.seed),
-      ProblemScore.fromJson(problem.score), answers.lastOption.map(_._1.answer).getOrElse(""), answers.map{case (a,b,c) => FilteredAnswer(a, b, c.toStatus).toViewData})
+      ProblemScore.fromJson(problem.score), answers.lastOption.map(_._1.answer).getOrElse(""), answers.map{case (a,b,c) => AnswerMetaStatus(a, b, c.toStatus).toViewData})
 
 }
 

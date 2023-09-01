@@ -22,7 +22,7 @@ object ProblemDao extends AbstractDao[Problem]
   type ScoreJsonString = String
   case class Problem(id: Int, courseId: Int, templateAlias: String, seed: Int,
                      score: ScoreJsonString, scoreNormalized: Double,
-                     maxAttempts: Option[Int], deadline: Option[Instant], requireConfirmation: Boolean)
+                     maxAttempts: Option[Int], deadline: Option[Instant], requireConfirmation: Boolean, addedAt: Instant)
 
   override val schema: Schema[Problem] = DeriveSchema.gen[Problem]
   override val tableName: String = "Problem"
@@ -34,8 +34,44 @@ object ProblemDao extends AbstractDao[Problem]
   def courseProblems(courseId: Int): TranzactIO[List[Problem]] =
     selectWhereList(fr"courseId = $courseId")
 
-
   def updateScore(problemId: Int, score: ProblemScore): TranzactIO[Boolean] =
     updateById(problemId, fr"scoreNormalized=${score.percentage}, score=${score.toJson}::jsonb")
+
+  sealed trait ProblemFilter
+  object ProblemFilter {
+    case class ByUsers(userId: Int*) extends ProblemFilter
+    case class ByGroup(groupId: Int) extends ProblemFilter
+    case class ByCourses(courseId: Int*) extends ProblemFilter
+    case class ByCourseAliases(courseId: String*) extends ProblemFilter
+  }
+
+  def filterToFragment(f: ProblemFilter) = f match
+    case ProblemFilter.ByUsers(userId@_*) =>
+      Fragments.in("C.userId", userId.map(id => fr"$id"))
+    case ProblemFilter.ByGroup(groupId) => fr"TRUE"
+    case ProblemFilter.ByCourses(courseId@_*) =>
+      Fragments.in("P.courseId", courseId.map(id => fr"$id"))
+    case ProblemFilter.ByCourseAliases(courseAliases@_*) =>
+      Fragments.in("C.templateAlias", courseAliases.map(alias => fr"$alias"))
+
+  case class ProblemMeta(userId: Int, courseAlias: String, answers: Int, rejectedAnswers: Int, verifiedAnswers: Int, confirmed: Int, reviews: Int /*, confirmedNonRejected: Int*/)
+  def queryProblems(filter: ProblemFilter*): TranzactIO[Seq[(Problem, ProblemMeta)]] = {
+    val q = Fragment.const(
+      s"""SELECT $fieldStringWithTable, C.id, 
+         |       COUNT(A.id), COUNT(R.answerId), COUNT(V.answerId), COUNT(VC.answerId), COUNT(Rev.answerId) 
+         |FROM $tableName as P
+         |LEFT JOIN ${CourseDao.tableName} as C ON C.id = P.courseId
+         |LEFT JOIN ${AnswerDao.tableName} as A ON A.problemId = P.id
+         |LEFT JOIN ${AnswerRejectionDao.tableName} as R on R.answerId = id
+         |LEFT JOIN ${AnswerVerificationDao.tableName} as V on V.answerId = id
+         |LEFT JOIN ${AnswerVerificationConfirmationDao.tableName} as VC on VC.answerId = id
+         |LEFT JOIN ${AnswerReviewDao.tableName} as Rev on Rev.answerId = id
+         |""".stripMargin) ++ Fragments.whereAnd(filter.map(filterToFragment)) ++
+      fr"GROUP BY P.id"
+    println(q)
+    q.query[(Problem, ProblemMeta)].to[List]
+  }
+
+
 }
 
