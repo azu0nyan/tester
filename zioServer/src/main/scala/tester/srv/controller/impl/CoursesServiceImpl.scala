@@ -11,7 +11,7 @@ import zio.*
 case class CoursesServiceImpl(bus: MessageBus,
                               problemService: ProblemService,
                               templateRegistry: CourseTemplateRegistry
-                                   ) extends CoursesService {
+                             ) extends CoursesService {
 
   /** Returns courseId */
   def startCourseForUser(alias: String, userId: Int): TranzactIO[Int] =
@@ -45,17 +45,30 @@ case class CoursesServiceImpl(bus: MessageBus,
   def byId(courseId: Int): TranzactIO[Course] = CourseDao.byId(courseId)
 
   def courseViewData(courseId: Int): TranzactIO[viewData.CourseViewData] =
-    for{
+    for {
       course <- byId(courseId)
-      template <- templateRegistry.courseTemplate(course.templateAlias).map(_.get) //todo optimize
+      template <- templateRegistry.courseTemplate(course.templateAlias).map(_.get) 
       problems <- courseProblems(courseId)
-      views <- ZIO.foreach(problems)(p => problemService.getViewData(p.id))
+      views <- ZIO.foreach(problems)(p => problemService.getViewData(p.id))//todo optimize
     } yield viewData.CourseViewData(courseId.toString, template.courseTitle, Passing(course.endedAt), template.courseData, views, template.description)
+
+  def partialCourseViewData(courseId: Int): TranzactIO[viewData.PartialCourseViewData] =
+    for {
+      course <- byId(courseId)
+      template <- templateRegistry.courseTemplate(course.templateAlias).map(_.get)
+      problems <- courseProblems(courseId)
+      views <- ZIO.foreach(problems)(p => problemService.getRefViewData(p.id)) //todo optimize
+    } yield viewData.PartialCourseViewData(courseId.toString, template.courseTitle, template.description, Passing(course.endedAt), template.courseData, views)
+  def userCourses(userId: Int): TranzactIO[Seq[viewData.CourseViewData]] =
+    for {
+      courses <- CourseDao.userCourses(userId)
+      res <- ZIO.foreach(courses)(course => courseViewData(course.id))
+    } yield res
 }
 
 object CoursesServiceImpl {
   def live: URIO[MessageBus & ProblemService & CourseTemplateRegistry, CoursesService] =
-    for{
+    for {
       bus <- ZIO.service[MessageBus]
       pr <- ZIO.service[ProblemService]
       reg <- ZIO.service[CourseTemplateRegistry]

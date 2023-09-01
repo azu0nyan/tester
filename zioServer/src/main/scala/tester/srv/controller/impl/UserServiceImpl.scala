@@ -83,6 +83,9 @@ case class UserServiceImpl(bus: MessageBus) extends UserService{
           else TokenOps.InvalidToken
       case other => ZIO.succeed(other)
   }
+
+  def byLogin(login: String): TranzactIO[Option[viewData.UserViewData]] =
+    RegisteredUserDao.byLogin(login).map(_.map(_.toViewData))
 }
 
 object UserServiceImpl{

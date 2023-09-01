@@ -13,5 +13,12 @@ trait CoursesService {
   def courseProblems(courseId: Int): TranzactIO[Seq[Problem]]
 
   def byId(courseId: Int): TranzactIO[Course]
+
+  def courseViewData(courseId: Int): TranzactIO[viewData.CourseViewData]
+
+  def partialCourseViewData(courseId: Int): TranzactIO[viewData.PartialCourseViewData]
+
+  def userCourses(userId: Int): TranzactIO[Seq[viewData.CourseViewData]]
+
 }
 

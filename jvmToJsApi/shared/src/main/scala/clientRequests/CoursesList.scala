@@ -23,7 +23,7 @@ object CoursesList  extends Route[CoursesListRequest, CoursesListResponse] {
 }
 
 //REQ
-case class CoursesListRequest(token:String) extends WithToken
+case class CoursesListRequest(token:String, userId: String) extends WithToken
 
 //RES
 sealed trait CoursesListResponse

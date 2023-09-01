@@ -15,6 +15,8 @@ trait ProblemService {
   def reportAnswerConfirmed(problemId: Int, asnwerId:Int, score: ProblemScore): TranzactIO[Unit]
   
   def setScore(problemId: Int,  score: ProblemScore): TranzactIO[Boolean]
+
+  def getRefViewData(problemId: Int): TranzactIO[viewData.ProblemRefViewData]
   
   def getViewData(problemId: Int): TranzactIO[ProblemViewData]
 }

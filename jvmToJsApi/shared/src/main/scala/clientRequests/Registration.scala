@@ -31,5 +31,7 @@ sealed trait RegistrationFailure
 case class RegistrationSuccess() extends RegistrationResponse
 case class RegistrationFailureUserAlreadyExistsResponse() extends RegistrationResponse with RegistrationFailure
 case class RegistrationFailureLoginToShortResponse(minLength:Int) extends RegistrationResponse with RegistrationFailure
+case class RegistrationFailurePasswordToShortResponse(minLength:Int) extends RegistrationResponse with RegistrationFailure
+case class RegistrationFailureWrongCharsInLoginResponse() extends RegistrationResponse with RegistrationFailure
 case class RegistrationFailureUnknownErrorResponse() extends RegistrationResponse with RegistrationFailure
-case class RegistrationFailureFrontendException(t:Throwable) extends RegistrationFailure
+case class RegistrationFailureFrontendException(t:Throwable) extends RegistrationFailure //todo purge

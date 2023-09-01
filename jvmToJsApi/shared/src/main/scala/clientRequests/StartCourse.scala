@@ -21,11 +21,11 @@ object StartCourse extends Route[StartCourseRequest, StartCourseResponse] {
   
 }
 //REQ
-case class StartCourseRequest(token:String, courseTemplateAlias:String) extends WithToken
+case class StartCourseRequest(token:String, courseTemplateAlias:String, userId: String) extends WithToken
 
 //RES
 sealed trait StartCourseResponse
-case class RequestStartCourseSuccess(courseHexId: String) extends StartCourseResponse
+case class RequestStartCourseSuccess(courseId: String) extends StartCourseResponse
 
 case class MaximumCourseAttemptsLimitExceeded(attempts:Int) extends StartCourseResponse
 case class CourseTemplateNotAvailableForYou() extends StartCourseResponse

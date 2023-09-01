@@ -16,15 +16,18 @@ import AbstractDao.ById
 import java.time.Instant
 
 
-object RegisteredUserDao extends AbstractDao [RegisteredUser]
- with ById[RegisteredUser]{
+object RegisteredUserDao extends AbstractDao[RegisteredUser]
+  with ById[RegisteredUser] {
   case class RegisteredUser(id: Int, login: String, firstName: String, lastName: String, email: String,
-                            passwordHash: String, passwordSalt: String, registeredAt: Instant)
+                            passwordHash: String, passwordSalt: String, registeredAt: Instant) {
+    def toViewData: viewData.UserViewData = viewData.UserViewData(id.toString, login,
+      Some(firstName), Some(lastName), Some(email), Seq(), "{}", registeredAt)
+  }
 
   override val schema: Schema[RegisteredUser] = DeriveSchema.gen[RegisteredUser]
   override val tableName: String = "RegisteredUser"
 
-  def byLogin(login: String): TranzactIO[Option[RegisteredUser]] = 
+  def byLogin(login: String): TranzactIO[Option[RegisteredUser]] =
     selectWhereOption(fr"login ILIKE ${login}")
 
 
