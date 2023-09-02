@@ -9,9 +9,9 @@ import clientRequests.admin.{AddCourseToGroup, AddCourseToGroupRequest}
 import tester.srv.controller.Application
 import tester.srv.controller.impl.ApplicationImpl
 
-object HttpServer extends ZIOAppDefault {
+object HttpServer  {
 
-  type AppContext = Application
+  type HttpServerContext = Application
 
   def makeHttpFromRoute[REQ, RES](route: Route[REQ, RES], func: REQ => ZIO[Any, Throwable, RES]
                                   ): Http[Any, Response, Request, Response] =
@@ -22,18 +22,15 @@ object HttpServer extends ZIOAppDefault {
           req = route.decodeRequest(body)
           res <- func(req)
         } yield Response.json(route.encodeResponse(res)))
-          .tapError(err => ZIO.logError(s"Error processing request tp ${route.route} $err"))
+          .tapErrorCause(err => ZIO.logErrorCause(s"""Error processing request to '${route.route}'"""", err))
           .mapError(err => Response.fromHttpError(InternalServerError()))
-          .catchAllDefect(t =>
-            for{
-              _ <- ZIO.logError(s"Defect when processing request to ${route.route} $t")
-            } yield Response.fromHttpError(InternalServerError())
-          )
+          .tapDefect(err => ZIO.logErrorCause(s"Defect when processing request to ${route.route}", err))
+          .catchAllDefect(t => ZIO.succeed(Response.fromHttpError(InternalServerError())))
     }
   def httpFromSeq(seq:Http[Any, Response, Request, Response]*): Http[Any, Response, Request, Response] =
     seq.reduce(_ ++ _)
 
-  def  httpServer(a: AppContext): Http[Any, Response, Request, Response] =
+  def  httpServer(a: HttpServerContext): Http[Any, Response, Request, Response] =
     httpFromSeq(
       makeHttpFromRoute(CourseData, req => a.courseData(req)),
       makeHttpFromRoute(CoursesList, req => a.coursesList(req)),
@@ -73,8 +70,15 @@ object HttpServer extends ZIOAppDefault {
       makeHttpFromRoute(admin.UserList, req => a.userList(req)),
     )
 
-  override def run = for{
+
+  def startServer: ZIO[HttpServerContext, Any, Any] = for{
     _ <- ZIO.log(s"Starting server")
-    _ <- Server.serve(httpServer(new ApplicationImpl(/*todo*/???, ???, ???, ???, ???, ???, ???))).provide(Server.defaultWithPort(8080))
+    app <- ZIO.service[HttpServerContext]
+    _ <- Server.serve(httpServer(app)).provide(Server.defaultWithPort(8080))
   } yield ()
+
+//  override def run = for{
+//    _ <- ZIO.log(s"Starting server")
+//    _ <- Server.serve(httpServer(new ApplicationImpl(/*todo*/???, ???, ???, ???, ???, ???, ???))).provide(Server.defaultWithPort(8080))
+//  } yield ()
 }

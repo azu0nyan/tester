@@ -25,7 +25,7 @@ object ConnectionPool {
 
   type Conf = Any
 
-  val live: ZLayer[Conf, Throwable, DataSource] = ZLayer.fromZIO(
+  val layer: ZLayer[Conf, Throwable, DataSource] = ZLayer.fromZIO(
     ZIO.serviceWithZIO[Conf] { conf =>
       ZIO.attemptBlocking {
         val ds = new PGSimpleDataSource
