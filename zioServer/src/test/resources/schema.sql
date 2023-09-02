@@ -169,7 +169,8 @@ CREATE TABLE tester.problem (
     maxattempts integer,
     deadline timestamp without time zone,
     scorenormalized double precision,
-    requireconfirmation boolean DEFAULT false NOT NULL
+    requireconfirmation boolean DEFAULT false NOT NULL,
+    addedat timestamp without time zone NOT NULL DEFAULT now()::TIMESTAMP
 );
 
 

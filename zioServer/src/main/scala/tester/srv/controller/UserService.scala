@@ -37,7 +37,7 @@ object UserService {
   def validateToken(token: String): ZIO[Transactor[Task] & UserService, Throwable, TokenOps.ValidationResult] =
     ZIO.serviceWithZIO[UserService](_.validateToken(token))
 
-  def byLogin(login: String): ZIO[Transactor[Task] & UserService, Throwable, viewData.UserViewData] =
+  def byLogin(login: String): ZIO[Transactor[Task] & UserService, Throwable, Option[viewData.UserViewData]] =
     ZIO.serviceWithZIO[UserService](_.byLogin(login))
 
   def byId(id: Int): ZIO[Transactor[Task] & UserService, Throwable, viewData.UserViewData] =

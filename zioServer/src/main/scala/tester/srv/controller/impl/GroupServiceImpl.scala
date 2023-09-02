@@ -10,10 +10,11 @@ import doobie.postgres.implicits.*
 import doobie.postgres.pgisimplicits.*
 import io.github.gaelrenoux.tranzactio.{DbException, doobie}
 import doobie.{Connection, Database, TranzactIO, tzio}
-import tester.srv.controller.{CoursesService, GroupService, MessageBus, UserService}
+import otsbridge.ProblemScore
+import tester.srv.controller.{CourseTemplateRegistry, CoursesService, GroupService, MessageBus, UserService}
 import tester.srv.controller.impl.CoursesServiceImpl
 import tester.srv.dao.CourseTemplateForGroupDao.CourseTemplateForGroup
-import tester.srv.dao.{CourseTemplateForGroupDao, UserToGroupDao, GroupDao}
+import tester.srv.dao.{CourseTemplateForGroupDao, GroupDao, UserToGroupDao}
 import tester.srv.dao.ProblemDao
 import tester.srv.dao.UserToGroupDao.UserToGroup
 import tester.srv.dao.UserToGroupDao.UserToGroup
@@ -22,7 +23,8 @@ import tester.srv.dao.UserToGroupDao.UserToGroup
 case class GroupServiceImpl(
                              bus: MessageBus,
                              coursesService: CoursesService,
-                             userService: UserService
+                             userService: UserService,
+                             templateRegistry: CourseTemplateRegistry
                            ) extends GroupService {
 
   def newGroup(title: String, description: String): TranzactIO[Int] =
@@ -31,7 +33,7 @@ case class GroupServiceImpl(
   def addUserToGroup(userId: Int, groupId: Int): TranzactIO[Boolean] =
     for {
       res <- addUserToGroupQuery(userId, groupId)
-      courses <- CourseTemplateForGroupDao.groupCourses(groupId)
+      courses <- CourseTemplateForGroupDao.groupCourses(groupId, true)
       _ <- ZIO.foreach(courses)(course => coursesService.startCourseForUser(course.templateAlias, userId))
     } yield res
 
@@ -76,7 +78,7 @@ case class GroupServiceImpl(
   def groupUsers(groupId: Int): TranzactIO[Seq[viewData.UserViewData]] =
     for {
       ids <- UserToGroupDao.usersInGroup(groupId)
-      users <- ZIO.foreach(ids)(id => UserService.byId(id))
+      users <- ZIO.foreach(ids)(id => userService.byId(id))
     } yield users
 
   def groupCourses(groupId: Int, forced: Boolean): TranzactIO[Seq[CourseTemplateForGroup]] =
@@ -86,42 +88,45 @@ case class GroupServiceImpl(
     for {
       group <- GroupDao.byId(groupId)
       courses <- groupCourses(groupId, false)
-      coursesViews <- ZIO.foreach(courses)(c => coursesService.courseViewData(c.templateAlias))
+      coursesViews <- ZIO.foreach(courses)(c => templateRegistry.courseTemplate(c.templateAlias).map(_.get)
+        .map(ct => viewData.CourseTemplateViewData(ct.uniqueAlias, ct.courseTitle, ct.description, ct.problemAliasesToGenerate)))
       users <- groupUsers(groupId)
     } yield viewData.GroupDetailedInfoViewData(groupId.toString, group.title, group.description, coursesViews, users)
 
-  def groupList(): TranzactIO[Seq[viewData.GroupInfoViewData]] =
+  def groupList(): TranzactIO[Seq[viewData.GroupDetailedInfoViewData]] =
     for {
       groups <- GroupDao.all
-      res <- ZIO.foreach(groups)(g => groupInfo(g.id))
+      res <- ZIO.foreach(groups)(g => groupDetailedInfo(g.id)) //todo do in one request
     } yield res
 
   def groupScores(groupId: Int, courseAliases: Seq[String], userIds: Seq[Int]): TranzactIO[clientRequests.watcher.LightGroupScores.UserScores] =
-    ProblemDao.queryProblems(Seq(
-      ProblemDao.ProblemFilter.ByGroup(groupId),
-      ProblemDao.ProblemFilter.ByCourseAliases(courseAliases: _*),
-      ProblemDao.ProblemFilter.ByUsers(userIds: _*))
-    ).map { s =>
-      s.groupBy(_._2.userId).map {
-        case (userId, problems) =>
-          val groupedByCourse = problems.groupBy(_._2.courseAlias).map {
-            case (courseAlias, courseProblems) =>
-              (courseAlias, courseProblems.map(p => (p._1.templateAlias, p._1.score)).toMap)
-          }
-          (userId.toString, groupedByCourse)
+    ProblemDao.queryProblems(
+        ProblemDao.ProblemFilter.ByGroup(groupId),
+        ProblemDao.ProblemFilter.ByCourseAliases(courseAliases: _*),
+        ProblemDao.ProblemFilter.ByUsers(userIds: _*))
+      .map { s =>
+        s.groupBy(_._2.userId).map {
+          case (userId, problems) =>
+            val groupedByCourse = problems.groupBy(_._2.courseAlias).map {
+              case (courseAlias, courseProblems) =>
+                (courseAlias, courseProblems.map(p => (p._1.templateAlias, ProblemScore.fromJson(p._1.score))).toMap)
+            }
+            (userId.toString, groupedByCourse)
+        }
       }
-    }
 
 }
 
 object GroupServiceImpl {
-  def live: URIO[MessageBus & CoursesService, GroupService] =
+  def live: URIO[MessageBus & CoursesService & UserService & CourseTemplateRegistry, GroupService] =
     for {
       bus <- ZIO.service[MessageBus]
       ver <- ZIO.service[CoursesService]
-    } yield GroupServiceImpl(bus, ver)
+      usr <- ZIO.service[UserService]
+      reg <- ZIO.service[CourseTemplateRegistry]
+    } yield GroupServiceImpl(bus, ver, usr, reg)
 
 
-  def layer: URLayer[MessageBus & CoursesService, GroupService] =
+  def layer: URLayer[MessageBus & CoursesService & UserService & CourseTemplateRegistry, GroupService] =
     ZLayer.fromZIO(live)
 }

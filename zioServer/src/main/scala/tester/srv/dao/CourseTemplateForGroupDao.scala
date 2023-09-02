@@ -23,7 +23,7 @@ object CourseTemplateForGroupDao extends AbstractDao[CourseTemplateForGroup] {
 
   /** forced Курсы, которые должны стартовать для всех участников группы автоматически */
   def groupCourses(groupId: Int, forced: Boolean): TranzactIO[List[CourseTemplateForGroup]] =
-    selectWhereOptList(Some(fr"groupId = $groupId"), Option.when(forced)(fr"forceStartForGroupMembers = TRUE"))
+    selectWhereAndOptList(Some(fr"groupId = $groupId"), Option.when(forced)(fr"forceStartForGroupMembers = TRUE"))
 
 }
 

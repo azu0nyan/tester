@@ -87,11 +87,11 @@ case class UserServiceImpl(bus: MessageBus) extends UserService {
     RegisteredUserDao.byLogin(login).map(_.map(_.toViewData))
 
   def byId(id: Int): TranzactIO[viewData.UserViewData] =
-    RegisteredUserDao.byId(id).map(_.map(_.toViewData))
+    RegisteredUserDao.byId(id).map(_.toViewData)
 
   def byFilterInOrder(filters: Seq[UserFilter], order: Seq[UserOrder],
                       itemsPerPage: Int, page: Int): TranzactIO[Seq[RegisteredUser]] =
-    RegisteredUserDao.byFilterInOrder
+    RegisteredUserDao.byFilterInOrder(filters, order, itemsPerPage, page)
 }
 
 object UserServiceImpl {

@@ -110,7 +110,7 @@ object AbstractDao {
   def orderByOpt(ords: Option[Ord]*): Fragment = ords.foldLeft(fr0"") {
     case (left, Some(Ord(expr, true))) => left ++ (if (left.toString.isEmpty) fr0"" else fr0",") ++ expr ++ fr"ASC"
     case (left, Some(Ord(expr, false))) => left ++ (if (left.toString.isEmpty) fr0"" else fr0",") ++ expr ++ fr"DESC"
-    case (left, None) if !asc => left
+    case (left, None) => left
   }
 
   def orderBy(ords: Ord*): Fragment = ords.foldLeft(fr0"") {

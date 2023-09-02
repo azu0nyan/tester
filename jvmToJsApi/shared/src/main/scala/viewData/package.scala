@@ -97,7 +97,9 @@ package object viewData {
 
 
   /** Вся информация о курсе, отображаемая во время его выполнения */
-  case class CourseViewData(courseId: String, title: String, status: CourseStatus, courseData: CourseRoot, problems: Seq[ProblemViewData], description: String)
+  case class CourseViewData(courseId: String, title: String, status: CourseStatus, courseData: CourseRoot, problems: Seq[ProblemViewData], description: String) {
+    def toInfo: CourseInfoViewData = CourseInfoViewData(courseId, title, status, description)
+  }
 
   /** Информация видная в списке активных курсов */
   case class CourseInfoViewData(courseId: String, title: String, status: CourseStatus, description: String)

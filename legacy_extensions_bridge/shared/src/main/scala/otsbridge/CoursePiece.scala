@@ -5,9 +5,12 @@ import otsbridge.DisplayMe.{Inline, OwnPage}
 object CoursePiece {
 
   import io.circe.syntax.*, io.circe.*, io.circe.generic.semiauto.*
-  implicit val reqDec: Decoder[CoursePiece] = deriveDecoder[CoursePiece]
-  implicit val resEnc: Encoder[CoursePiece] = deriveEncoder[CoursePiece]
- 
+
+  implicit val reqDec11: Decoder[CoursePiece] = deriveDecoder[CoursePiece]
+  implicit val resEnc11: Encoder[CoursePiece] = deriveEncoder[CoursePiece]
+  implicit val reqDec: Decoder[CourseRoot] = deriveDecoder[CourseRoot]
+  implicit val resEnc: Encoder[CourseRoot] = deriveEncoder[CourseRoot]
+
   def fromJson(json: String): CourseRoot = {
     import io.circe.parser.decode
     decode[CourseRoot](json) match
@@ -16,7 +19,7 @@ object CoursePiece {
   }
 
 
-  
+
 
   val emptyCourse: CourseRoot = CourseRoot("", "", Seq())
 

@@ -16,8 +16,11 @@ object UserListJson{
   implicit val resDec: Decoder[UserListResponse] = deriveDecoder[UserListResponse]
   implicit val resEnc: Encoder[UserListResponse] = deriveEncoder[UserListResponse]
 
-  implicit val reqDec1: Decoder[clientRequests.admin.UserListFilter] = deriveDecoder[clientRequests.admin.UserListFilter]
-  implicit val reqEnc1: Encoder[clientRequests.admin.UserListFilter] = deriveEncoder[clientRequests.admin.UserListFilter]
+  implicit val reqDec1: Decoder[clientRequests.admin.UserList.UserFilter] = deriveDecoder[clientRequests.admin.UserList.UserFilter]
+  implicit val reqEnc1: Encoder[clientRequests.admin.UserList.UserFilter] = deriveEncoder[clientRequests.admin.UserList.UserFilter]
+
+  implicit val reqDec2: Decoder[clientRequests.admin.UserList.UserOrder] = deriveDecoder[clientRequests.admin.UserList.UserOrder]
+  implicit val reqEnc2: Encoder[clientRequests.admin.UserList.UserOrder] = deriveEncoder[clientRequests.admin.UserList.UserOrder]
 
 }
 
@@ -49,7 +52,7 @@ object UserList extends Route[UserListRequest, UserListResponse] {
 }
 
 //REQ
-case class UserListRequest(token:String, filters: Seq[UserFilter], itemsPerPage: Int = 200, page:Int = 0, order: UserListOrder = Seq[UserOrder]) extends WithToken
+case class UserListRequest(token:String, filters: Seq[UserFilter], itemsPerPage: Int = 200, page:Int = 0, order: Seq[UserOrder]) extends WithToken
 
 //RES
 sealed trait UserListResponse

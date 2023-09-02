@@ -1,6 +1,7 @@
 package tester.srv.controller
 
 import io.github.gaelrenoux.tranzactio.doobie.TranzactIO
+import tester.srv.dao.CourseTemplateForGroupDao.CourseTemplateForGroup
 trait GroupService {
   
   def newGroup(title: String, description: String): TranzactIO[Int]
@@ -15,13 +16,13 @@ trait GroupService {
   
   def groupDetailedInfo(groupId: Int): TranzactIO[viewData.GroupDetailedInfoViewData]
   
-  def groupCourses(groupId: Int, forced: Boolean): TranzactIO[Seq[String]]
+  def groupCourses(groupId: Int, forced: Boolean): TranzactIO[Seq[CourseTemplateForGroup]]
 
   def groupInfo(groupId: Int): TranzactIO[viewData.GroupInfoViewData]
   
   def groupUsers(groupId: Int): TranzactIO[Seq[viewData.UserViewData]]
   
-  def groupList(): TranzactIO[Seq[viewData.GroupInfoViewData]]
+  def groupList(): TranzactIO[Seq[viewData.GroupDetailedInfoViewData]]
 
   def groupScores(groupId: Int, courseAliases: Seq[String], userIds: Seq[Int]): TranzactIO[clientRequests.watcher.LightGroupScores.UserScores]
 }

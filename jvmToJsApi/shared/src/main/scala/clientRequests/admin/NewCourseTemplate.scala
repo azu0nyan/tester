@@ -28,7 +28,7 @@ case class NewCourseTemplateRequest(token: String, uniqueAlias: String) extends 
 sealed trait NewCourseTemplateResponse
 case class NewCourseTemplateSuccess() extends NewCourseTemplateResponse
 sealed trait NewCourseTemplateFailure extends NewCourseTemplateResponse
-case class AliasNotUnique() extends NewCourseTemplateFailure
-case class UnknownFailure(failure: GenericRequestFailure) extends NewCourseTemplateFailure
+case class NewCourseTemplateAliasNotUnique() extends NewCourseTemplateFailure
+case class NewCourseTemplateUnknownFailure() extends NewCourseTemplateFailure
 
 

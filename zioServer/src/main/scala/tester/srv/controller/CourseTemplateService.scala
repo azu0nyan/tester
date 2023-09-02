@@ -18,7 +18,7 @@ trait CourseTemplateService{
 
   def getViewData(courseAlias: String): TranzactIO[viewData.CourseTemplateViewData]
 
-  def updateCourse(courseAlias: String, description: Option[String], data: Option[CourseRoot])
+  def updateCourse(courseAlias: String, description: Option[String], data: Option[CourseRoot]): TranzactIO[Boolean]
 }
 
 
