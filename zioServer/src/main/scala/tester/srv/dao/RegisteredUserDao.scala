@@ -40,7 +40,7 @@ object RegisteredUserDao extends AbstractDao[RegisteredUser]
     }
 
   def filterToFrag(f: UserFilter): Fragment = f match
-    case UserFilter.MatchesRegex(regex) => f"(login ILIKE $regex OR firstName ILIKE $regex OR lastName ILIKE $regex OR email ILIKE $regex)"
+    case UserFilter.MatchesRegex(regex) => fr"(login ILIKE $regex OR firstName ILIKE $regex OR lastName ILIKE $regex OR email ILIKE $regex)"
     case UserFilter.Teacher => ???
     case UserFilter.User => ???
     case UserFilter.Admin => ???
@@ -54,10 +54,12 @@ object RegisteredUserDao extends AbstractDao[RegisteredUser]
     case UserOrder.ByEmail(asc) => Ord(fr"email", asc)
 
   def byFilterInOrder(filters: Seq[UserFilter], order: Seq[UserOrder],
-                      itemsPerPage: Int, page: Int): TranzactIO[Seq[RegisteredUser]] =
-    selectFragment ++ fr"WHERE" ++ Fragments.and(filters.map(filterToFrag): _ *) ++
-      AbstractDao.orderBy(order.map(orderToFrag)) ++
-      Fragment.const(s"LIMIT $itemsPerPage OFFSET ${itemsPerPage * page}")
+                      itemsPerPage: Int, page: Int): TranzactIO[Seq[RegisteredUser]] = tzio {
+    (selectFragment ++ fr"WHERE" ++ Fragments.and(filters.map(filterToFrag): _ *) ++
+      AbstractDao.orderBy(order.map(orderToFrag): _ *) ++
+      Fragment.const(s"LIMIT $itemsPerPage OFFSET ${itemsPerPage * page}"))
+      .query[RegisteredUser].to[List]
+  }
 
 }
 

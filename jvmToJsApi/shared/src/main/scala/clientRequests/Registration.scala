@@ -23,7 +23,7 @@ object Registration extends Route[RegistrationRequest, RegistrationResponse] {
 
 
 
-case class RegistrationRequest(login:String, password:String, firstName:Option[String], lastName:Option[String], email: Option[String])
+case class RegistrationRequest(login:String, password:String, firstName:String, lastName:String, email: String)
 
 sealed trait RegistrationResponse
 sealed trait RegistrationFailure

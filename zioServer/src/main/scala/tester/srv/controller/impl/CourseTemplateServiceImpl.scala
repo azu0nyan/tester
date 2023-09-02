@@ -47,8 +47,8 @@ case class CourseTemplateServiceImpl(
 
   def updateCourse(courseAlias: String, description: Option[String], data: Option[CourseRoot]): TranzactIO[Boolean] =
     for{
-      a <- ZIO.when(description.nonEmpty)(CourseTemplateDao.setDescription(description.get))
-      b <- ZIO.when(data.nonEmpty)(CourseTemplateDao.setCourseRoot(data.ge))
+      a <- ZIO.when(description.nonEmpty)(CourseTemplateDao.setDescription(courseAlias, description.get))
+      b <- ZIO.when(data.nonEmpty)(CourseTemplateDao.setCourseRoot(courseAlias, data.get))
     } yield (a.nonEmpty == description.nonEmpty) && (b.nonEmpty == data.nonEmpty)
     
 }

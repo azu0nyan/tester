@@ -11,6 +11,7 @@ import doobie.postgres.implicits.*
 import doobie.postgres.pgisimplicits.*
 import AbstractDao.*
 import ProblemDao.Problem
+import cats.syntax.all.catsSyntaxSeqs
 import otsbridge.ProblemScore.ProblemScore
 
 import java.time.Instant
@@ -45,20 +46,20 @@ object ProblemDao extends AbstractDao[Problem]
     case class ByCourseAliases(courseId: String*) extends ProblemFilter
   }
 
-  def filterToFragment(f: ProblemFilter) = f match
-    case ProblemFilter.ByUsers(userId@_*) =>
-      Fragments.in("C.userId", userId.map(id => fr"$id"))
+  def filterToFragment(f: ProblemFilter): Fragment = f match
+    case ProblemFilter.ByUsers(userIds*) =>
+      Fragments.in(fr"C.userId", userIds.toNeSeq.get)
     case ProblemFilter.ByGroup(groupId) => fr"TRUE"
-    case ProblemFilter.ByCourses(courseId@_*) =>
-      Fragments.in("P.courseId", courseId.map(id => fr"$id"))
-    case ProblemFilter.ByCourseAliases(courseAliases@_*) =>
-      Fragments.in("C.templateAlias", courseAliases.map(alias => fr"$alias"))
+    case ProblemFilter.ByCourses(courseIds*) =>
+      Fragments.in(fr"P.courseId", courseIds.toNeSeq.get)
+    case ProblemFilter.ByCourseAliases(courseAliases*) =>
+      Fragments.in(fr"C.templateAlias", courseAliases.toNeSeq.get)
 
   case class ProblemMeta(userId: Int, courseAlias: String, answers: Int, rejectedAnswers: Int, verifiedAnswers: Int, confirmed: Int, reviews: Int /*, confirmedNonRejected: Int*/)
-  def queryProblems(filter: ProblemFilter*): TranzactIO[Seq[(Problem, ProblemMeta)]] = {
+  def queryProblems(filter: ProblemFilter*): TranzactIO[Seq[(Problem, ProblemMeta)]] = tzio{
     val q = Fragment.const(
-      s"""SELECT $fieldStringWithTable, C.id, 
-         |       COUNT(A.id), COUNT(R.answerId), COUNT(V.answerId), COUNT(VC.answerId), COUNT(Rev.answerId) 
+      s"""SELECT $fieldStringWithTable, C.id,
+         |       COUNT(A.id), COUNT(R.answerId), COUNT(V.answerId), COUNT(VC.answerId), COUNT(Rev.answerId)
          |FROM $tableName as P
          |LEFT JOIN ${CourseDao.tableName} as C ON C.id = P.courseId
          |LEFT JOIN ${AnswerDao.tableName} as A ON A.problemId = P.id
@@ -66,7 +67,7 @@ object ProblemDao extends AbstractDao[Problem]
          |LEFT JOIN ${AnswerVerificationDao.tableName} as V on V.answerId = id
          |LEFT JOIN ${AnswerVerificationConfirmationDao.tableName} as VC on VC.answerId = id
          |LEFT JOIN ${AnswerReviewDao.tableName} as Rev on Rev.answerId = id
-         |""".stripMargin) ++ Fragments.whereAnd(filter.map(filterToFragment)) ++
+         |""".stripMargin) ++ Fragments.whereAnd(filter.map(filterToFragment): _ *) ++
       fr"GROUP BY P.id"
     println(q)
     q.query[(Problem, ProblemMeta)].to[List]

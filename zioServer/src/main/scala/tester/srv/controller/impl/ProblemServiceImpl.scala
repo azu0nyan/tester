@@ -57,7 +57,7 @@ case class ProblemServiceImpl private(
     for{
       problem <- ProblemDao.byId(problemId)
       template <- infoRegistryZIO.problemInfo(problem.templateAlias).map(_.get)
-    } yield viewData.ProblemRefViewData(problemId.toInt, problem.templateAlias, template.title(problem.seed), problem.score)
+    } yield viewData.ProblemRefViewData(problemId.toString, problem.templateAlias, template.title(problem.seed), ProblemScore.fromJson(problem.score))
   
   def getViewData(problemId: Int): TranzactIO[ProblemViewData] =
     for{

@@ -44,8 +44,7 @@ object StubsAndMakers {
 
   def makeCourseTemplateService: ZIO[MessageBus & ProblemService, Nothing, CourseTemplateService] =
     for {
-      stub <- StubsAndMakers.problemRegistryStub
-      srvv <- CourseTemplateServiceImpl.live
+      srvv <- CourseTemplateServiceImpl.live.provideSomeLayer(courseTemplateRegistryLayer)
     } yield srvv
 
   def makeProblemService: ZIO[MessageBus, Nothing, ProblemService] =
@@ -77,6 +76,7 @@ object StubsAndMakers {
       courseId <- courses.startCourseForUser("alias", userId)
       problemIds <- courses.courseProblems(courseId)
     } yield (userId, courseId, problemIds))
+      .tapErrorCause(e => ZIO.logError(e))
       .mapError(_ => DbException.Wrapped(new Exception("")))
 
 

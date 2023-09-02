@@ -5,6 +5,7 @@ import CourseTemplateDao.CourseTemplate
 import doobie.implicits.*
 import otsbridge.CoursePiece.CourseRoot
 import zio.schema.{DeriveSchema, Schema}
+import io.github.gaelrenoux.tranzactio.doobie.TranzactIO
 
 object CourseTemplateDao extends AbstractDao[CourseTemplate]
   with ByAlias[CourseTemplate] {
@@ -18,8 +19,9 @@ object CourseTemplateDao extends AbstractDao[CourseTemplate]
   def setDescription(alias: String, description: String): TranzactIO[Boolean] =
     updateByAlias(alias, fr"description=$description")
 
-  def setCourseRoot(alias: String, courseRoot: CourseRoot): AbstractDao[Boolean] =
+  def setCourseRoot(alias: String, courseRoot: CourseRoot): TranzactIO[Boolean] =
     updateByAlias(alias, fr"courseData=${courseRoot.toJson}::json")
 
+    
 }
 
