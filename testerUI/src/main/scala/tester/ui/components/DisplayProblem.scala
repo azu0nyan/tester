@@ -1,7 +1,7 @@
 package tester.ui.components
 
-import DbViewsShared.CourseShared
-import DbViewsShared.CourseShared.{AnswerStatus, VerifiedAwaitingConfirmation}
+import DbViewsShared.CourseStatus
+import DbViewsShared.AnswerStatus
 import clientRequests.SubmitAnswerResponse
 import otsbridge.{AnswerField, ProblemScore, ProgramRunResult, ProgrammingLanguage}
 import otsbridge.AnswerField.{AnswerField, ProgramAnswer}
@@ -63,17 +63,17 @@ import java.time.Instant
     }
 
     def answerSubmitSuccess(avd: AnswerViewData): Unit = avd match {
-      case AnswerViewData(answerId, problemId, answerText, answeredAt, status) =>
+      case AnswerViewData(answerId, problemId, answerText, answeredAt, status, userId, courseId) =>
         status match {
-          case VerifiedAwaitingConfirmation(score, systemMessage, verifiedAt) =>
+          case AnswerStatus.VerifiedAwaitingConfirmation(score, systemMessage, verifiedAt) =>
             Notifications.renderNotificationReactElement(div(ProblemScoreDisplay(score, true, true)))
-          case CourseShared.Verified(score, review, systemMessage, verifiedAt, confirmedAt) =>
+          case AnswerStatus.Verified(score, review, systemMessage, verifiedAt, confirmedAt) =>
             Notifications.renderNotificationReactElement(div(ProblemScoreDisplay(score, true, false)))
-          case CourseShared.Rejected(systemMessage, rejectedAt) =>
+          case AnswerStatus.Rejected(systemMessage, rejectedAt) =>
             Notifications.showError(s"Отклонено. " + (if (systemMessage.nonEmpty) "Подробности в таблице ответов" else ""))
-          case CourseShared.BeingVerified() =>
+          case AnswerStatus.BeingVerified() =>
             Notifications.showInfo(s"Проверяется...")
-          case CourseShared.VerificationDelayed(systemMessage) =>
+          case AnswerStatus.VerificationDelayed(systemMessage) =>
             Notifications.showWarning(s"Проверка отложена. " + systemMessage.getOrElse(""))
         }
 
@@ -88,7 +88,7 @@ import java.time.Instant
         .setPadding(5)
         .setMargin(20)
         .setDisplay(js.|.from("inline"))
-      )(ProblemScoreDisplay(pvd.score, pvd.answers.nonEmpty, pvd.answers.exists(_.status.isInstanceOf[VerifiedAwaitingConfirmation])))
+      )(ProblemScoreDisplay(pvd.score, pvd.answers.nonEmpty, pvd.answers.exists(_.status.isInstanceOf[AnswerStatus.VerifiedAwaitingConfirmation])))
 
     //
     val problemDescription = div(
@@ -149,11 +149,11 @@ import java.time.Instant
                          val review: Option[String], val answerText: String) extends js.Object
   def toAnswersTableItem(awd: AnswerViewData, id: Int): AnswersTableItem = {
     val review = awd.status match {
-      case CourseShared.Verified(score, review, systemMessage, verifiedAt, confirmedAt) => review
+      case AnswerStatus.Verified(score, review, systemMessage, verifiedAt, confirmedAt) => review
       case _ => None
     }
 
-    new AnswersTableItem(id, awd.answeredAt, awd.score, awd.status, awd.status.isInstanceOf[VerifiedAwaitingConfirmation],
+    new AnswersTableItem(id, awd.answeredAt, awd.score, awd.status, awd.status.isInstanceOf[AnswerStatus.VerifiedAwaitingConfirmation],
       review, awd.answerText) //todo
   }
 
@@ -271,6 +271,7 @@ import java.time.Instant
       import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
       import io.circe._, io.circe.parser._
       import io.circe.generic.auto._, io.circe.syntax._
+      import AnswerField._
       val answer = decode[ProgramAnswer](tableItem.answerText) match {
         case Left(value) =>
           tableItem.answerText
@@ -312,9 +313,9 @@ import java.time.Instant
 
 
     def answerStatusColumn(status: AnswerStatus) = div(status match {
-      case VerifiedAwaitingConfirmation(score, systemMessage, verifiedAt) =>
+      case AnswerStatus.VerifiedAwaitingConfirmation(score, systemMessage, verifiedAt) =>
         p(style := js.Dynamic.literal(color = Helpers.customWarningColor))("Ожидает подтвержденя преподавателем")
-      case CourseShared.Verified(score, review, systemMessage, verifiedAt, confirmedAt) =>
+      case AnswerStatus.Verified(score, review, systemMessage, verifiedAt, confirmedAt) =>
         score match {
           case ProblemScore.MultipleRunsResultScore(runResults) =>
             div(
@@ -323,7 +324,7 @@ import java.time.Instant
             )
           case score => div(style := js.Dynamic.literal(maxWidth = "300px", margin = "5px"))(ProblemScoreDisplay(score, true, false))
         }
-      case CourseShared.Rejected(systemMessage, rejectedAt) =>
+      case AnswerStatus.Rejected(systemMessage, rejectedAt) =>
         systemMessage match {
           case Some(value) =>
             div(
@@ -340,9 +341,9 @@ import java.time.Instant
             )
           case None => (p(style := js.Dynamic.literal(color = Helpers.customErrorColor))("Отклонено"))
         }
-      case CourseShared.BeingVerified() =>
+      case AnswerStatus.BeingVerified() =>
         p(style := js.Dynamic.literal(color = Helpers.customWarningColor))("Проверяется")
-      case CourseShared.VerificationDelayed(systemMessage) =>
+      case AnswerStatus.VerificationDelayed(systemMessage) =>
         p(style := js.Dynamic.literal(color = Helpers.customWarningColor))("Проверка отложена. " + systemMessage.getOrElse(""))
     })
 

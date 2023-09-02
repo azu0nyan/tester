@@ -1,6 +1,6 @@
 import java.time.Instant
+import DbViewsShared.CourseStatus
 import DbViewsShared.AnswerStatus
-import DbViewsShared.AnswerStatus.{ CourseStatus}
 import otsbridge.{AnswerField, ProblemScore}
 import io.circe.generic.auto._
 import otsbridge.CoursePiece.{CoursePiece, CourseRoot}

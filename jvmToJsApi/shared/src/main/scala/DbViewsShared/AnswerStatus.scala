@@ -7,11 +7,6 @@ import otsbridge.ProblemScore.ProblemScore
 sealed trait AnswerStatus
 
 object AnswerStatus {
-  sealed trait CourseStatus
-  case class Passing(endsAt: Option[Instant]) extends CourseStatus
-  case class Finished(/*score: Option[ProblemListScore]*/) extends CourseStatus
-
-
 
   case class VerifiedAwaitingConfirmation(score:ProblemScore,
                                           systemMessage: Option[String] = None,

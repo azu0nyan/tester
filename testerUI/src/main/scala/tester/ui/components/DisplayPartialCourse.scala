@@ -81,9 +81,9 @@ import viewData.{CourseInfoViewData, PartialCourseViewData, ProblemRefViewData, 
         case Some(problemRef) =>
           loadedProblems.get(problemRef.templateAlias) match {
             case Some(loadedData) => DisplayProblem(props.loggedInUser, loadedData, () => {
-              sendRequest(clientRequests.GetProblemData, clientRequests.GetProblemDataRequest(props.loggedInUser.token, problemRef.problemId))(onComplete = {
-                case clientRequests.GetProblemDataSuccess(pwd) => onProblemLoaded(problemRef, pwd)
-                case clientRequests.UnknownGetProblemDataFailure() => Notifications.showError(s"Не могу загрузить задачу")
+              sendRequest(clientRequests.ProblemData, clientRequests.ProblemDataRequest(props.loggedInUser.token, problemRef.problemId))(onComplete = {
+                case clientRequests.ProblemDataSuccess(pwd) => onProblemLoaded(problemRef, pwd)
+                case clientRequests.UnknownProblemDataFailure() => Notifications.showError(s"Не могу загрузить задачу")
               })
             }).withKey(problemRef.problemId)
             case None =>
@@ -162,9 +162,9 @@ import viewData.{CourseInfoViewData, PartialCourseViewData, ProblemRefViewData, 
 
     val component = FunctionalComponent[Props] { props =>
       useEffect(() => {
-        sendRequest(clientRequests.GetProblemData, clientRequests.GetProblemDataRequest(props.loggedInUser.token, props.problemId))(onComplete = {
-          case clientRequests.GetProblemDataSuccess(pwd) => props.onLoad(pwd)
-          case clientRequests.UnknownGetProblemDataFailure() => Notifications.showError(s"Не могу загрузить задачу")
+        sendRequest(clientRequests.ProblemData, clientRequests.ProblemDataRequest(props.loggedInUser.token, props.problemId))(onComplete = {
+          case clientRequests.ProblemDataSuccess(pwd) => props.onLoad(pwd)
+          case clientRequests.UnknownProblemDataFailure() => Notifications.showError(s"Не могу загрузить задачу")
         })
       })
       Space().style(CSSProperties().setWidth("100%").setHeight("100%").setJustifyContent("center"))(

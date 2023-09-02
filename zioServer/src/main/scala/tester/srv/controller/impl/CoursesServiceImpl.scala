@@ -1,6 +1,6 @@
 package tester.srv.controller.impl
 
-import DbViewsShared.AnswerStatus.Passing
+import DbViewsShared.{AnswerStatus, CourseStatus}
 import io.github.gaelrenoux.tranzactio.doobie.TranzactIO
 import tester.srv.controller.{CourseTemplateRegistry, CoursesService, MessageBus, ProblemService}
 import tester.srv.dao.CourseDao.Course
@@ -51,7 +51,7 @@ case class CoursesServiceImpl(bus: MessageBus,
       template <- templateRegistry.courseTemplate(course.templateAlias).map(_.get) 
       problems <- courseProblems(courseId)
       views <- ZIO.foreach(problems)(p => problemService.getViewData(p.id))//todo optimize
-    } yield viewData.CourseViewData(courseId.toString, template.courseTitle, Passing(course.endedAt), template.courseData, views, template.description)
+    } yield viewData.CourseViewData(courseId.toString, template.courseTitle, CourseStatus.Passing(course.endedAt), template.courseData, views, template.description)
 
   def partialCourseViewData(courseId: Int): TranzactIO[viewData.PartialCourseViewData] =
     for {
@@ -59,7 +59,7 @@ case class CoursesServiceImpl(bus: MessageBus,
       template <- templateRegistry.courseTemplate(course.templateAlias).map(_.get)
       problems <- courseProblems(courseId)
       views <- ZIO.foreach(problems)(p => problemService.getRefViewData(p.id)) //todo optimize
-    } yield viewData.PartialCourseViewData(courseId.toString, template.courseTitle, template.description, Passing(course.endedAt), template.courseData, views)
+    } yield viewData.PartialCourseViewData(courseId.toString, template.courseTitle, template.description, CourseStatus.Passing(course.endedAt), template.courseData, views)
   def userCourses(userId: Int): TranzactIO[Seq[viewData.CourseViewData]] =
     for {
       courses <- CourseDao.userCourses(userId)

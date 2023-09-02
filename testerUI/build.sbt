@@ -1,10 +1,10 @@
 import org.scalajs.linker.interface.ModuleSplitStyle
 
 
-val slinkyVersion = "0.7.3"
+val slinkyVersion = "0.7.4"
 
 
-lazy val contentProject = ProjectRef(file("../online-test-suite"), "fooJS")
+lazy val contentProject = ProjectRef(file("../jvmToJsApi"), "fooJS")
 
 lazy val basicLibs: Project => Project = _.settings(
   libraryDependencies += "org.scala-js" %%% "scalajs-dom" % "2.4.0",
@@ -27,6 +27,7 @@ lazy val baseSettings: Project => Project =
       /* disabled because it somehow triggers many warnings */
       scalaJSLinkerConfig := scalaJSLinkerConfig.value.withSourceMap(false),
       /* for slinky */
+      scalacOptions += "-Ytasty-reader",
       scalacOptions += "-Ymacro-annotations",
       scalacOptions += "-Ylog-classpath",
       stFlavour := Flavour.Slinky,

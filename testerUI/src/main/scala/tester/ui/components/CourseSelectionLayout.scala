@@ -1,6 +1,6 @@
 package tester.ui.components
 
-import DbViewsShared.CourseShared
+import DbViewsShared.CourseStatus.*
 import clientRequests.GetCoursesList
 import clientRequests.admin.{CourseList, CourseListSuccess}
 
@@ -58,11 +58,11 @@ import viewData.CourseInfoViewData
               h1(course.title),
               p(course.description),
               p(course.status match {
-                case CourseShared.Passing(endsAt) => endsAt match {
+                case CourseStatus.Passing(endsAt) => endsAt match {
                   case Some(value) => div("Активен до " + DateFormat.dateFormatter.format(value))
                   case None => div("Активен")
                 }
-                case CourseShared.Finished() => div("Завершен")
+                case CourseStatus.Finished() => div("Завершен")
               }),
               Button()
                 .`type`(primary)

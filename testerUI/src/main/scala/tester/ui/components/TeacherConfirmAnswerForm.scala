@@ -1,7 +1,7 @@
 package tester.ui.components
 
 
-import DbViewsShared.CourseShared
+import DbViewsShared.AnswerStatus
 import clientRequests.teacher.TeacherConfirmAnswerSuccess
 import otsbridge.AnswerField.ProgramAnswer
 import otsbridge.ProblemScore
@@ -26,7 +26,7 @@ import viewData.AnswerViewData
 
   val component = FunctionalComponent[Props] { props =>
     val (review, setReview) = useState[Option[String]](props.avd.status match {
-      case CourseShared.Verified(score, review, systemMessage, verifiedAt, confirmedAt) => review
+      case AnswerStatus.Verified(score, review, systemMessage, verifiedAt, confirmedAt) => review
       case _ => None
     })
 

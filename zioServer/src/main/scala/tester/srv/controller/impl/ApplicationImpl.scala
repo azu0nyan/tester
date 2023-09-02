@@ -27,7 +27,7 @@ case class ApplicationImpl(
                           ) extends Application {
   override def answerForConfirmationList(req: AnswerForConfirmationListRequest): Task[AnswerForConfirmationListResponse] =
     db.transactionOrWiden(
-      answers.unconfirmedAnswers(AnswerFilterParams(groupId = req.groupId, teacherId = req.teacherId))
+      answers.unconfirmedAnswers(AnswerFilterParams(groupId = req.groupId.map(_.toInt), teacherId = req.teacherId.map(_.toInt)))
     ).map(list =>
       list.groupBy(_._2.userId).toSeq.map((userId, answs) => UserConfirmationInfo(userId.toString,
         answs.groupBy(_._2.courseAlias).toSeq.map((alias, answs) => CourseAnswersConfirmationInfo(

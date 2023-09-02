@@ -40,7 +40,7 @@ case class UserConfirmationInfo(userId: String, courses: Seq[CourseAnswersConfir
 
 
 //REQ
-case class AnswerForConfirmationListRequest(token: String, groupId: Option[Int], teacherId: Option[Int]) extends WithToken
+case class AnswerForConfirmationListRequest(token: String, groupId: Option[String], teacherId: Option[String]) extends WithToken
 
 //RES
 sealed trait AnswerForConfirmationListResponse

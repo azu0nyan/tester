@@ -1,6 +1,6 @@
 package tester.ui.components
 
-import clientRequests.GetPartialCourseData
+import clientRequests.{GetPartialCourseData, PartialCourseData}
 
 import scala.scalajs.js
 import slinky.core._
@@ -23,13 +23,13 @@ import viewData.{CourseInfoViewData, PartialCourseViewData}
     val (courseData, setCourseData) = useState[Option[PartialCourseViewData]](None)
 
     useEffect(() => {
-      sendRequest(GetPartialCourseData, clientRequests.GetPartialCourseDataRequest(props.loggedInUser.token, props.courseInfo.courseId))(onComplete = {
-        case clientRequests.GetPartialCourseDataSuccess(data) =>
+      sendRequest(PartialCourseData, clientRequests.PartialCourseDataRequest(props.loggedInUser.token, props.courseInfo.courseId))(onComplete = {
+        case clientRequests.PartialCourseDataSuccess(data) =>
           setCourseData(Some(data))
-        case clientRequests.GetPartialCourseNotOwnedByYou() => Notifications.showError(s"Это не ваш курс") //todo
-        case clientRequests.GetPartialCourseNotFound() => Notifications.showError(s"Курс не найден") //todo
-        case clientRequests.GetPartialCourseDataFailure(clientRequests.BadToken()) => Notifications.showError(s"Полохой токен") //todo
-        case clientRequests.GetPartialCourseDataFailure(fal) => Notifications.showError(s"Ошибка 501") //todo
+        case clientRequests.PartialCourseNotOwnedByYou() => Notifications.showError(s"Это не ваш курс") //todo
+        case clientRequests.PartialCourseNotFound() => Notifications.showError(s"Курс не найден") //todo
+        case clientRequests.PartialCourseDataFailure(clientRequests.BadToken()) => Notifications.showError(s"Полохой токен") //todo
+        case clientRequests.PartialCourseDataFailure(fal) => Notifications.showError(s"Ошибка 501") //todo
       }, onFailure = {
         x => Notifications.showError(s"Ошибка клиента")
       })
