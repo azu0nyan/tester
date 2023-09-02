@@ -268,9 +268,9 @@ import java.time.Instant
     def answerColumn(tableItem: AnswersTableItem): WithAttrs[_ >: div.tag.type with section.tag.type <: TagElement] = {
       val (modalOpen, setModalOpen) = useState[Boolean](false)
       val (modalContent, setModalContent) = useState[String]("")
-      import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+//      import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
       import io.circe._, io.circe.parser._
-      import io.circe.generic.auto._, io.circe.syntax._
+     // import io.circe.generic.auto._, io.circe.syntax._
       import AnswerField._
       val answer = decode[ProgramAnswer](tableItem.answerText) match {
         case Left(value) =>

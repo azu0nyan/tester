@@ -1,8 +1,8 @@
 package tester.ui.components
 
-import DbViewsShared.CourseStatus.*
-import clientRequests.GetCoursesList
-import clientRequests.admin.{CourseList, CourseListSuccess}
+import DbViewsShared.CourseStatus
+import clientRequests.{CoursesList}
+
 
 import scala.scalajs.js
 import slinky.core._
@@ -78,7 +78,7 @@ import viewData.CourseInfoViewData
     val (coursesList, setCoursesList) = useState[Seq[CourseInfoViewData]](Seq())
     val (selectedCourse, setSelectedCourse) = useState[Option[CourseInfoViewData]](None)
     useEffect(() => {
-      sendRequest(GetCoursesList, clientRequests.RequestCoursesList(props.loggedInUser.token))(onComplete = {
+      sendRequest(CoursesList, clientRequests.CoursesListRequest(props.loggedInUser.token, props.loggedInUser.userViewData.id))(onComplete = {
         case clientRequests.GetCoursesListSuccess(courses) =>
           setCoursesList(courses.existing)
           setSelectedCourse(courses.existing.headOption)

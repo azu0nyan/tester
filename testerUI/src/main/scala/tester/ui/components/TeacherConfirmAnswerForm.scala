@@ -44,9 +44,9 @@ import viewData.AnswerViewData
       case None => p("Не оценено")
     }
 
-    import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+//    import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
     import io.circe._, io.circe.parser._
-    import io.circe.generic.auto._, io.circe.syntax._
+//    import io.circe.generic.auto._, io.circe.syntax._
     val answer = decode[ProgramAnswer](props.avd.answerText) match {
       case Left(prog) =>   props.avd.answerText
       case Right(ProgramAnswer(prog, lang)) => prog
@@ -90,7 +90,7 @@ import viewData.AnswerViewData
 
     def submit(forceDeny: Boolean) : Unit = {
       Request.sendRequest(clientRequests.teacher.TeacherConfirmAnswer,
-        clientRequests.teacher.TeacherConfirmAnswerRequest(props.loggedInUser.token, props.avd.answerId, if(forceDeny) BinaryScore(false) else score, review))(
+        clientRequests.teacher.TeacherConfirmAnswerRequest(props.loggedInUser.token, props.avd.answerId, props.avd.answerId, if(forceDeny) BinaryScore(false) else score, review, props.loggedInUser.userViewData.id))(
         onComplete = {
           case TeacherConfirmAnswerSuccess() =>
             Notifications.showSuccess(s"Оценено")

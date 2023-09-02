@@ -1,6 +1,6 @@
 package tester.ui.components
 
-import clientRequests.{GetPartialCourseData, PartialCourseData}
+import clientRequests.{ PartialCourseData}
 
 import scala.scalajs.js
 import slinky.core._

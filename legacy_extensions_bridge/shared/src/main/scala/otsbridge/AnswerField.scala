@@ -12,6 +12,9 @@ object AnswerField{
 
   implicit val resDec: Decoder[AnswerField] = deriveDecoder[AnswerField]
   implicit val resEnc: Encoder[AnswerField] = deriveEncoder[AnswerField]
+  implicit val resDec1: Decoder[ProgramAnswer] = deriveDecoder[ProgramAnswer]
+  implicit val resEnc1: Encoder[ProgramAnswer] = deriveEncoder[ProgramAnswer]
+
 
 
   sealed trait AnswerField {

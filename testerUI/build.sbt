@@ -10,7 +10,7 @@ lazy val basicLibs: Project => Project = _.settings(
   libraryDependencies += "org.scala-js" %%% "scalajs-dom" % "2.4.0",
   libraryDependencies += "me.shadaj" %%% "slinky-core" % slinkyVersion, // core React functionality, no React DOM
   libraryDependencies += "me.shadaj" %%% "slinky-web" % slinkyVersion, // React DOM, HTML and SVG tags
-  libraryDependencies += "me.shadaj" %%% "slinky-native" % slinkyVersion, // React Native components
+//  libraryDependencies += "me.shadaj" %%% "slinky-native" % slinkyVersion, // React Native components
   libraryDependencies += "me.shadaj" %%% "slinky-hot" % slinkyVersion, // Hot loading, requires react-proxy package
   //libraryDependencies += "me.shadaj" %%% "slinky-scalajsreact-interop" % slinkyVersion // Interop with japgolly/scalajs-react
 )

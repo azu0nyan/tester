@@ -1,5 +1,6 @@
 package tester.ui.components
 
+
 import otsbridge.AnswerField.ProgramAnswer
 import otsbridge.ProgrammingLanguage.ProgrammingLanguage
 import otsbridge.ProgrammingLanguage
@@ -77,9 +78,10 @@ import typings.antd.antdStrings.{horizontal, primary, topRight}
   )
 
   val component = FunctionalComponent[Props] { props =>
-    import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+//    import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
     import io.circe._, io.circe.parser._
-    import io.circe.generic.auto._, io.circe.syntax._
+    //    import io.circe.generic.auto._, io.circe.syntax._
+    import io.circe.syntax._
 
     val toParse = Storage.readUserAnswer(props.uniqueId) match {
       case Some(answ) => answ
