@@ -5,8 +5,8 @@ import io.github.gaelrenoux.tranzactio.DbException
 import io.github.gaelrenoux.tranzactio.doobie.TranzactIO
 import tester.srv.controller.UserService.{RegistrationData, RegistrationResult}
 import tester.srv.controller.impl.{CourseTemplateServiceImpl, CoursesServiceImpl, ProblemServiceImpl, UserServiceImpl}
-import tester.srv.dao.{CourseDao, CourseTemplateDao, ProblemDao}
-import tester.srv.dao.CourseTemplateDao.CourseTemplate
+import tester.srv.dao.{CourseDao, DbCourseTemplateDao, ProblemDao}
+import tester.srv.dao.DbCourseTemplateDao.DbCourseTemplate
 import zio.*
 import zio.test.*
 import zio.test.Assertion.*

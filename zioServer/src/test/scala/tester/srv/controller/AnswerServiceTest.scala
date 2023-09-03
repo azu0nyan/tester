@@ -6,8 +6,8 @@ import io.github.gaelrenoux.tranzactio.doobie.TranzactIO
 import tester.srv.controller.AnswerService.{AnswerFilterParams, AnswerSubmitted, SubmitAnswerResult}
 import tester.srv.controller.UserService.{RegistrationData, RegistrationResult}
 import tester.srv.controller.impl.{AnswerServiceImpl, CourseTemplateServiceImpl, CoursesServiceImpl, ProblemServiceImpl, UserServiceImpl, VerificationServiceImpl}
-import tester.srv.dao.CourseTemplateDao.CourseTemplate
-import tester.srv.dao.{CourseTemplateDao, CourseTemplateProblemDao, UserSessionDao}
+import tester.srv.dao.DbCourseTemplateDao.DbCourseTemplate
+import tester.srv.dao.{DbCourseTemplateDao, CourseTemplateProblemDao, UserSessionDao}
 import tester.srv.dao.CourseTemplateProblemDao.CourseTemplateProblem
 import tester.srv.dao.ProblemDao.Problem
 import zio.*

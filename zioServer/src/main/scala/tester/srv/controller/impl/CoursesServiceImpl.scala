@@ -5,7 +5,7 @@ import io.github.gaelrenoux.tranzactio.doobie.TranzactIO
 import tester.srv.controller.{CourseTemplateRegistry, CoursesService, MessageBus, ProblemService}
 import tester.srv.dao.CourseDao.Course
 import tester.srv.dao.ProblemDao.Problem
-import tester.srv.dao.{CourseDao, CourseTemplateDao, CourseTemplateProblemDao, ProblemDao}
+import tester.srv.dao.{CourseDao, DbCourseTemplateDao, CourseTemplateProblemDao, ProblemDao}
 import zio.*
 
 case class CoursesServiceImpl(bus: MessageBus,
@@ -17,7 +17,7 @@ case class CoursesServiceImpl(bus: MessageBus,
   /** Returns courseId */
   def startCourseForUser(alias: String, userId: Int): TranzactIO[Int] =
     for {
-      courseTemplate <- CourseTemplateDao.byAliasOption(alias).map(_.get)
+      courseTemplate <- DbCourseTemplateDao.byAliasOption(alias).map(_.get)
       course = CourseDao.Course(0, userId, courseTemplate.alias,
         scala.util.Random.nextInt(), Some(java.time.Clock.systemUTC().instant()), None)
       courseId <- CourseDao.insertReturnId(course)

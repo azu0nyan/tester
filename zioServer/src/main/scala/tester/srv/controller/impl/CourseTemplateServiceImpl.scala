@@ -6,9 +6,9 @@ import io.github.gaelrenoux.tranzactio.doobie.TranzactIO
 import otsbridge.CoursePiece.CourseRoot
 import otsbridge.CourseTemplate
 import tester.srv.controller.{CourseTemplateRegistry, CourseTemplateService, MessageBus, ProblemService}
-import tester.srv.dao.CourseTemplateDao.CourseTemplate
+import tester.srv.dao.DbCourseTemplateDao.DbCourseTemplate
 import tester.srv.dao.CourseTemplateProblemDao.CourseTemplateProblem
-import tester.srv.dao.{CourseDao, CourseTemplateDao, CourseTemplateProblemDao}
+import tester.srv.dao.{CourseDao, DbCourseTemplateDao, CourseTemplateProblemDao}
 import zio.*
 
 case class CourseTemplateServiceImpl(
@@ -21,7 +21,7 @@ case class CourseTemplateServiceImpl(
     CourseTemplateProblemDao.templateProblemAliases(alias)
 
   def createNewTemplate(alias: String, description: String): TranzactIO[Boolean] =
-    CourseTemplateDao.insert(CourseTemplateDao.CourseTemplate(alias, description, otsbridge.CoursePiece.CourseRoot(alias, "", Seq()).toJson))
+    DbCourseTemplateDao.insert(DbCourseTemplateDao.DbCourseTemplate(alias, description, otsbridge.CoursePiece.CourseRoot(alias, "", Seq()).toJson))
 
   def addProblemToTemplateAndUpdateCourses(courseAlias: String, problemAlias: String): TranzactIO[Boolean] =
     for {
@@ -41,19 +41,20 @@ case class CourseTemplateServiceImpl(
 
   def getViewData(courseAlias: String): TranzactIO[viewData.CourseTemplateViewData] =
     for{
-      ct <- CourseTemplateDao.byAlias(courseAlias)
+      ct <- DbCourseTemplateDao.byAlias(courseAlias)
       os <- templateProblemAliases(courseAlias)
     }  yield viewData.CourseTemplateViewData(courseAlias, otsbridge.CoursePiece.fromJson(ct.courseData).title, ct.description, os.map(_.problemAlias))
 
 
   def updateCourse(courseAlias: String, description: Option[String], data: Option[CourseRoot]): TranzactIO[Boolean] =
     for{
-      a <- ZIO.when(description.nonEmpty)(CourseTemplateDao.setDescription(courseAlias, description.get))
-      b <- ZIO.when(data.nonEmpty)(CourseTemplateDao.setCourseRoot(courseAlias, data.get))
+      a <- ZIO.when(description.nonEmpty)(DbCourseTemplateDao.setDescription(courseAlias, description.get))
+      b <- ZIO.when(data.nonEmpty)(DbCourseTemplateDao.setCourseRoot(courseAlias, data.get))
     } yield (a.nonEmpty == description.nonEmpty) && (b.nonEmpty == data.nonEmpty)
 
   def registerTemplate(ct: otsbridge.CourseTemplate): UIO[Unit] = 
     registryImpl.registerCourseTemplate(ct)
+      .tap(_ => ZIO.log(s"Registering course template ${ct.uniqueAlias} ${ct.courseTitle} (${ct.problemAliasesToGenerate.size})"))
 }
 
 object CourseTemplateServiceImpl {

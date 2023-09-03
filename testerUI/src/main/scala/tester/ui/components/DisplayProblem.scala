@@ -6,7 +6,7 @@ import clientRequests.SubmitAnswerResponse
 import otsbridge.{AnswerField, ProblemScore, ProgramRunResult, ProgrammingLanguage}
 import otsbridge.AnswerField.{AnswerField, ProgramAnswer}
 import otsbridge.ProblemScore.ProblemScore
-import otsbridge.ProgrammingLanguage.ProgrammingLanguage
+import otsbridge.ProgrammingLanguage
 import slinky.core.WithAttrs.build
 
 import scala.scalajs.js
@@ -24,7 +24,7 @@ import typings.betterReactMathjax.mathJaxContextMathJaxContextMod.MathJaxContext
 import typings.betterReactMathjax.mathJaxContextMod
 import viewData.AnswerViewData
 import clientRequests._
-import otsbridge.ProgramRunResult.ProgramRunResult
+import otsbridge.ProgramRunResult
 import slinky.core.facade.{Fragment, React, ReactElement}
 import tester.ui.components.Helpers.SetInnerHtml
 import tester.ui.{DateFormat, Storage}

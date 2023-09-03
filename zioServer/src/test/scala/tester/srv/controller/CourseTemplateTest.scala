@@ -2,8 +2,8 @@ package tester.srv.controller
 
 import EmbeddedPG.EmbeddedPG
 import tester.srv.controller.impl.{CourseTemplateServiceImpl, ProblemInfoRegistryImpl, ProblemServiceImpl, UserServiceImpl}
-import tester.srv.dao.CourseTemplateDao.CourseTemplate
-import tester.srv.dao.{CourseTemplateDao, CourseTemplateProblemDao, UserSessionDao}
+import tester.srv.dao.DbCourseTemplateDao.DbCourseTemplate
+import tester.srv.dao.{DbCourseTemplateDao, CourseTemplateProblemDao, UserSessionDao}
 import tester.srv.dao.CourseTemplateProblemDao.CourseTemplateProblem
 import zio.*
 import zio.test.*
@@ -32,7 +32,7 @@ object CourseTemplateTest extends ZIOSpecDefault {
     for{
       srv <- StubsAndMakers.makeCourseTemplateService
       _ <- srv.createNewTemplate("alias", "description")
-      ct <- CourseTemplateDao.byAliasOption("alias")
+      ct <- DbCourseTemplateDao.byAliasOption("alias")
     } yield assertTrue(
       ct.nonEmpty,
       ct.get.description == "description",

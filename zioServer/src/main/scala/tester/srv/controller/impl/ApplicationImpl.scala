@@ -6,11 +6,13 @@ import clientRequests.teacher.{AnswerForConfirmationListRequest, AnswerForConfir
 import clientRequests.watcher.{GroupScoresRequest, GroupScoresResponse, LightGroupScoresRequest, LightGroupScoresResponse}
 import io.github.gaelrenoux.tranzactio.doobie.{Database, TranzactIO}
 import otsbridge.AnswerVerificationResult
+import otsbridge.CourseTemplate.CourseTemplateData
 import tester.srv.controller.AnswerService.{AnswerFilterParams, AnswerSubmitted}
 import tester.srv.controller.UserService.{LoginResult, RegistrationResult}
 import tester.srv.controller.{AnswerService, AnswerVerificatorRegistry, Application, CourseTemplateRegistry, CourseTemplateService, CoursesService, GroupService, MessageBus, ProblemInfoRegistry, ProblemService, UserService, VerificationService}
-import tester.srv.dao.AnswerDao
+import tester.srv.dao.{AnswerDao, DbCourseTemplateDao, DbProblemTemplateDao}
 import tester.srv.dao.AnswerVerificationDao.AnswerVerification
+import tester.srv.dao.DbProblemTemplateDao.DbProblemTemplate
 import viewData.AnswerViewData
 import zio.*
 
@@ -201,6 +203,22 @@ case class ApplicationImpl(
   override def userList(req: UserListRequest): Task[UserListResponse] =
     db.transactionOrWiden(users.byFilterInOrder(req.filters, req.order, req.itemsPerPage, req.page))
       .map(l => UserListResponseSuccess(l.map(_.toViewData)))
+
+
+  override def loadCourseTemplatesFromDb: Task[Unit] =
+    db.transactionOrWiden(
+      for{
+        courses <- DbCourseTemplateDao.all
+        _ <- ZIO.foreach(courses)(c => courseTemplates.registerTemplate(DbCourseTemplateDao.toCourseTemplate(c)))
+      } yield ()
+    )
+  override def loadProblemTemplatesFromDb: Task[Unit]  =
+    db.transactionOrWiden(
+      for {
+        ps <- DbProblemTemplateDao.all
+        _ <- ZIO.foreach(ps)(p => problems.registerInfo(DbProblemTemplateDao.toProblemInfo(p)))
+      } yield ()
+    )
 }
 
 object ApplicationImpl {

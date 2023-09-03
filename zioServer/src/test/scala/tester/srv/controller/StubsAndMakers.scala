@@ -9,8 +9,8 @@ import otsbridge.ProblemScore.{BinaryScore, ProblemScore}
 import tester.srv.controller.UserService.{RegistrationData, RegistrationResult}
 import tester.srv.controller.VerificationService
 import tester.srv.controller.impl.{CourseTemplateRegistryImpl, CourseTemplateServiceImpl, CoursesServiceImpl, ProblemInfoRegistryImpl, ProblemServiceImpl, UserServiceImpl}
-import tester.srv.dao.CourseTemplateDao
-import tester.srv.dao.CourseTemplateDao.CourseTemplate
+import tester.srv.dao.DbCourseTemplateDao
+import tester.srv.dao.DbCourseTemplateDao.DbCourseTemplate
 import tester.srv.dao.ProblemDao.Problem
 import zio.*
 

@@ -56,19 +56,21 @@ case class ProblemServiceImpl private(
   def getRefViewData(problemId: Int): TranzactIO[viewData.ProblemRefViewData] =
     for{
       problem <- ProblemDao.byId(problemId)
-      template <- infoRegistryZIO.problemInfo(problem.templateAlias).map(_.get)
+      template <- infoRegistryZIO.problemInfo(problem.templateAlias).map(_.get) //todo account for not found
     } yield viewData.ProblemRefViewData(problemId.toString, problem.templateAlias, template.title(problem.seed), ProblemScore.fromJson(problem.score))
   
   def getViewData(problemId: Int): TranzactIO[ProblemViewData] =
     for{
       problem <- ProblemDao.byId(problemId)
-      template <- infoRegistryZIO.problemInfo(problem.templateAlias).map(_.get)
+      template <- infoRegistryZIO.problemInfo(problem.templateAlias).map(_.get) //todo account for not found
       answers <- AnswerDao.queryAnswers(AnswerFilterParams(problemId = Some(problemId)))()
     } yield ProblemViewData(problemId.toString, problem.templateAlias,
       template.title(problem.seed), template.problemHtml(problem.seed), template.answerField(problem.seed),
       ProblemScore.fromJson(problem.score), answers.lastOption.map(_._1.answer).getOrElse(""), answers.map{case (a,b,c) => AnswerMetaStatus(a, b, c.toStatus).toViewData})
 
-  def registerInfo(info: ProblemInfo): UIO[Unit] = infoRegistryZIO.registerProblemInfo(info)
+  def registerInfo(info: ProblemInfo): UIO[Unit] = 
+    infoRegistryZIO.registerProblemInfo(info)
+      .tap(_ => ZIO.log(s"Registered problem info ${info.alias} - ${info.title(0)}"))
 }
 
 object ProblemServiceImpl {

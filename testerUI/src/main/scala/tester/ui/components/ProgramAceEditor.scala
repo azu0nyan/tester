@@ -2,7 +2,6 @@ package tester.ui.components
 
 
 import otsbridge.AnswerField.ProgramAnswer
-import otsbridge.ProgrammingLanguage.ProgrammingLanguage
 import otsbridge.ProgrammingLanguage
 import typings.antd.components.Select
 
