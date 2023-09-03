@@ -17,7 +17,7 @@ object Main {
 //    val vd = UserViewData("sd","sa", None, None, None, Seq(), "noob", Instant.now())
     ReactDOM.render(
       div(
-        components.Application(components.Application.Props())
+        components.Application()
       ),
       document.getElementById("container")
     )

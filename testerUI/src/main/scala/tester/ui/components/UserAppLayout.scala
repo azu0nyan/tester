@@ -3,7 +3,6 @@ package tester.ui.components
 import scala.scalajs.js
 import slinky.core._
 import slinky.web.html._
-import slinky.core.annotations.react
 import slinky.core.facade.Hooks.useState
 import slinky.core.facade.ReactElement
 import tester.ui.components.Application.ApplicationState
@@ -13,10 +12,15 @@ import typings.csstype.mod.FloatProperty
 import typings.react.mod.CSSProperties
 import viewData.{CourseInfoViewData, PartialCourseViewData, ProblemRefViewData, UserViewData}
 
-@react object UserAppLayout {
+object UserAppLayout {
 
 
   case class Props(loggedInUser: LoggedInUser, logout: () => Unit, setAppState: ApplicationState => Unit)
+
+  def apply(loggedInUser: LoggedInUser, logout: () => Unit, setAppState: ApplicationState => Unit): ReactElement = {
+    import slinky.core.KeyAddingStage.build
+    build(component.apply(Props(loggedInUser, logout, setAppState)))
+  }
 
 
   val component = FunctionalComponent[Props] { props =>

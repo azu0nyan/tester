@@ -1,13 +1,12 @@
 package tester.ui.components
 
-import clientRequests.{ PartialCourseData}
+import clientRequests.PartialCourseData
 
 import scala.scalajs.js
 import slinky.core._
 import slinky.web.html._
-import slinky.core.annotations.react
 import slinky.core.facade.Hooks.{useEffect, useState}
-import slinky.core.facade.React
+import slinky.core.facade.{React, ReactElement}
 import slinky.core.facade.ReactContext.RichReactContext
 import tester.ui.components.Application.ApplicationState
 import tester.ui.requests.Request.sendRequest
@@ -16,8 +15,13 @@ import typings.antd.components.{List => AntList, _}
 import viewData.{CourseInfoViewData, PartialCourseViewData}
 
 
-@react object CourseLoaderLayout {
+object CourseLoaderLayout {
   case class Props(loggedInUser: LoggedInUser, courseInfo: CourseInfoViewData, logout: () => Unit, setAppState: ApplicationState => Unit)
+  def apply(loggedInUser: LoggedInUser, courseInfo: CourseInfoViewData, logout: () => Unit, setAppState: ApplicationState => Unit):  ReactElement = {
+    import slinky.core.KeyAddingStage.build
+    build(component.apply(Props(loggedInUser, courseInfo, logout, setAppState)))
+  }
+
 
   val component = FunctionalComponent[Props] { props =>
     val (courseData, setCourseData) = useState[Option[PartialCourseViewData]](None)

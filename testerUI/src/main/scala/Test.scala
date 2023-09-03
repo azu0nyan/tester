@@ -1,7 +1,7 @@
 import slinky.core._
 import slinky.web.ReactDOM
 import slinky.web.html._
-import slinky.core.annotations.react
+
 
 import org.scalajs.dom._
 import scala.scalajs.js

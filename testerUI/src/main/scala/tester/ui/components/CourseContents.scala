@@ -7,7 +7,7 @@ import otsbridge.CoursePiece.{Container, CoursePiece}
 import scala.scalajs.js
 import slinky.core._
 import slinky.web.html._
-import slinky.core.annotations.react
+
 import slinky.core.facade.Hooks.{useEffect, useState}
 import slinky.core.facade.ReactElement
 import typings.StBuildingComponent
@@ -16,9 +16,12 @@ import typings.antd.components._
 import typings.antd.libMenuMenuItemMod.MenuItem
 import viewData.PartialCourseViewData
 
-@react object CourseContents {
+object CourseContents {
   case class Props(pcvd: PartialCourseViewData, onPieceSelected: CoursePiece => Unit)
-
+  def apply(pcvd: PartialCourseViewData, onPieceSelected: CoursePiece => Unit): ReactElement = {
+    import slinky.core.KeyAddingStage.build
+    build(component.apply(Props(pcvd, onPieceSelected)))
+  }
 
   val component = FunctionalComponent[Props] { props =>
     //    val (name, setName) = useState[T](t)

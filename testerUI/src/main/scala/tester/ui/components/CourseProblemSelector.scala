@@ -6,7 +6,7 @@ import otsbridge.CoursePiece.{Container, CoursePiece, Problem}
 import scala.scalajs.js
 import slinky.core._
 import slinky.web.html.{b, div}
-import slinky.core.annotations.react
+
 import slinky.core.facade.Hooks.{useEffect, useState}
 import slinky.core.facade.ReactElement
 import typings.antDesignIcons.components.AntdIcon
@@ -19,10 +19,15 @@ import typings.antd.libUtilTypeMod.LiteralUnion
 import typings.react.mod.CSSProperties
 import viewData.{PartialCourseViewData, ProblemRefViewData}
 
-@react object CourseProblemSelector {
+object CourseProblemSelector {
 
 
   case class Props(pcvd: PartialCourseViewData, onProblemSelected: ProblemRefViewData => Unit)
+
+  def apply(pcvd: PartialCourseViewData, onProblemSelected: ProblemRefViewData => Unit): ReactElement = {
+    import slinky.core.KeyAddingStage.build
+    build(component.apply(Props(pcvd, onProblemSelected)))
+  }
 
   val component = FunctionalComponent[Props] { props =>
     def problemsInPiece(cp: CoursePiece): Int = cp.allProblems.flatMap(p => props.pcvd.refByAlias(p.problemAlias)).size

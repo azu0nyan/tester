@@ -5,12 +5,17 @@ import otsbridge.ProblemScore.ProblemScore
 
 import scala.scalajs.js
 import slinky.core._
+import slinky.core.facade.ReactElement
 import slinky.web.html._
-import slinky.core.annotations.react
 
 
-@react object SmallProblemScoreDisplay {
+
+object SmallProblemScoreDisplay {
   case class Props(ps: ProblemScore)
+  def apply(ps: ProblemScore): ReactElement = {
+    import slinky.core.KeyAddingStage.build
+    build(component.apply(Props(ps)))
+  }
 
   def acceptNotAcceptText(passed: Boolean) =
     if (passed) b(style := js.Dynamic.literal(color = Helpers.customSuccessColor))("\uD83D\uDDF8")

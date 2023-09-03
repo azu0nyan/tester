@@ -2,16 +2,20 @@ package tester.ui.components
 
 import scala.scalajs.js
 import slinky.core._
+import slinky.core.facade.ReactElement
 import slinky.web.ReactDOM
 import slinky.web.html._
-import slinky.core.annotations.react
 import typings.antd.antdStrings
 import typings.antd.components.{List => AntList, _}
 import typings.react.mod.CSSProperties
 import viewData.UserViewData
 
-@react object UserInfoBox {
+object UserInfoBox {
   case class Props(u: UserViewData)
+  def apply(u: UserViewData): ReactElement = {
+    import slinky.core.KeyAddingStage.build
+    build(component.apply(Props(u)))
+  }
 
   val component = FunctionalComponent[Props] { props =>
     Card()

@@ -12,7 +12,7 @@ import slinky.core.WithAttrs.build
 import scala.scalajs.js
 import slinky.core._
 import slinky.web.html._
-import slinky.core.annotations.react
+
 import slinky.core.facade.Hooks.{useEffect, useState}
 import tester.ui.components.DisplayPartialCourse.LoadedProblemData
 import tester.ui.requests.Request.sendRequest
@@ -40,9 +40,14 @@ import typings.reactAce.libAceMod
 import java.time.Instant
 
 
-@react object DisplayProblem {
+object DisplayProblem {
   case class Props(loggedInUser: LoggedInUser, loadedData: LoadedProblemData, updateLoadedData: () => Unit)
-  
+  def apply(loggedInUser: LoggedInUser, loadedData: LoadedProblemData, updateLoadedData: () => Unit): ReactElement = {
+    import slinky.core.KeyAddingStage.build
+    build(component.apply(Props(loggedInUser, loadedData, updateLoadedData)))
+  }
+
+
   val component = FunctionalComponent[Props] { props =>
     val pvd = props.loadedData.pvd
 
@@ -236,7 +241,7 @@ import java.time.Instant
     }
     import typings.antd.libTableInterfaceMod.{ColumnGroupType, ColumnType}
 
-    Table[RunResultsTableItem]
+    Table[RunResultsTableItem]()
       .bordered(true)
       .dataSourceVarargs(results.zipWithIndex.map { case (r, i) => toItem(i, r) }: _ *)
       .pagination(antdBooleans.`false`)
@@ -268,9 +273,7 @@ import java.time.Instant
     def answerColumn(tableItem: AnswersTableItem): WithAttrs[_ >: div.tag.type with section.tag.type <: TagElement] = {
       val (modalOpen, setModalOpen) = useState[Boolean](false)
       val (modalContent, setModalContent) = useState[String]("")
-//      import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
-      import io.circe._, io.circe.parser._
-     // import io.circe.generic.auto._, io.circe.syntax._
+      import io.circe.syntax._, io.circe.parser.decode
       import AnswerField._
       val answer = decode[ProgramAnswer](tableItem.answerText) match {
         case Left(value) =>
@@ -355,7 +358,7 @@ import java.time.Instant
     else {
       import typings.antd.libTableInterfaceMod.{ColumnGroupType, ColumnType}
       section(
-        Table[AnswersTableItem]
+        Table[AnswersTableItem]()
           .bordered(true)
           //        .dataSourceVarargs(toTableItem(a.head, 1))
           .dataSourceVarargs(a.zipWithIndex.reverse.map { case (ans, i) => toAnswersTableItem(ans, i) }: _ *)

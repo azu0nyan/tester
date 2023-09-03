@@ -8,7 +8,7 @@ import slinky.core._
 import slinky.web.html._
 import typings.antd.components._
 import typings.antd.{antdInts, antdStrings}
-import slinky.core.annotations.react
+
 import slinky.core.facade.Hooks.{useEffect, useState}
 import slinky.core.facade.ReactElement
 import tester.ui.requests.Request
@@ -18,8 +18,13 @@ import typings.rcMenu.esInterfaceMod
 import typings.react.mod.CSSProperties
 import viewData.GroupDetailedInfoViewData
 
-@react object TeacherAppLayout {
+object TeacherAppLayout {
   case class Props(loggedInUser: LoggedInUser, logout: () => Unit)
+
+  def apply(loggedInUser: LoggedInUser, logout: () => Unit): ReactElement = {
+    import slinky.core.KeyAddingStage.build
+    build(component.apply(Props(loggedInUser, logout)))
+  }
 
   sealed trait TeacherAppState
   case object WelcomeScreenTeacherAppState extends TeacherAppState
@@ -54,7 +59,7 @@ import viewData.GroupDetailedInfoViewData
           groups.map(group => SubMenu.withKey(group.groupId).title(group.groupTitle)(
             MenuItem.withKey(group.groupId + "about").onClick(_ => setState(GroupInfoTeacherAppState(group.groupId)))("О группе"),
             MenuItem.withKey(group.groupId + "results").onClick(_ => setState(GroupResultsTableTeacherAppState(group.groupId)))("Результаты"),
-          ))
+          ).build)
         ),
         MenuItem.withKey("worksChecking").onClick(_ => setState(AnswerConfirmationAppState) ).icon(AntdIcon( typings.antDesignIconsSvg.esAsnAuditOutlinedMod.default))("Проверка работ"),
         MenuItem.withKey("logout").onClick(_ => props.logout() ).icon(AntdIcon( typings.antDesignIconsSvg.esAsnLogoutOutlinedMod.default))("Выход")

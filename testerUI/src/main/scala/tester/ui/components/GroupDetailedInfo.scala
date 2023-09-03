@@ -6,13 +6,17 @@ import slinky.core._
 import slinky.web.html._
 import typings.antd.components._
 import typings.antd.{antdInts, antdStrings}
-import slinky.core.annotations.react
 import slinky.core.facade.Hooks.{useEffect, useState}
+import slinky.core.facade.ReactElement
 import typings.react.mod.CSSProperties
 import viewData.GroupDetailedInfoViewData
 
-@react object GroupDetailedInfo {
+object GroupDetailedInfo {
   case class Props(data:GroupDetailedInfoViewData)
+  def apply(data:GroupDetailedInfoViewData): ReactElement = {
+    import slinky.core.KeyAddingStage.build
+    build(component.apply(Props(data)))
+  }
 
   val component = FunctionalComponent[Props] { props =>
     // val (name, setName) = useState[T](t)

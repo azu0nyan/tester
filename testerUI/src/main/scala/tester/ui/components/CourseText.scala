@@ -8,7 +8,7 @@ import scala.scalajs.js
 import slinky.core._
 import slinky.web.html._
 import typings.antd.components._
-import slinky.core.annotations.react
+
 import slinky.core.facade.Hooks.{useEffect, useState}
 import slinky.core.facade.ReactElement
 import tester.ui.components.Helpers.SetInnerHtml
@@ -16,9 +16,13 @@ import typings.antd.{antdInts, antdStrings}
 import typings.react.mod.CSSProperties
 import viewData.{PartialCourseViewData, ProblemRefViewData}
 
-@react object CourseText {
+object CourseText {
   case class Props(partialCourse: PartialCourseViewData, selectedPiece: CoursePiece, setSelectedProblem: ProblemRefViewData => Unit, setSelectedCoursePiece: CoursePiece => Unit)
 
+  def apply(partialCourse: PartialCourseViewData, selectedPiece: CoursePiece, setSelectedProblem: ProblemRefViewData => Unit, setSelectedCoursePiece: CoursePiece => Unit): ReactElement = {
+    import slinky.core.KeyAddingStage.build
+    build(component.apply(Props(partialCourse, selectedPiece, setSelectedProblem, setSelectedCoursePiece)))
+  }
 
   def cont(r: ReactElement) = div(style := js.Dynamic.literal(
     width = "-webkit-fill-available",

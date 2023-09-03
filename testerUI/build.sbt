@@ -6,6 +6,14 @@ val slinkyVersion = "0.7.4"
 
 lazy val contentProject = ProjectRef(file("../jvmToJsApi"), "fooJS")
 
+val circeVersion = "0.14.5"
+lazy val circe: Project => Project = _.settings(
+  libraryDependencies ++= Seq(
+    "io.circe" %%% "circe-core",
+    "io.circe" %%% "circe-generic",
+    "io.circe" %%% "circe-parser"
+  ).map(_ % circeVersion)
+)
 lazy val basicLibs: Project => Project = _.settings(
   libraryDependencies += "org.scala-js" %%% "scalajs-dom" % "2.4.0",
   libraryDependencies += "me.shadaj" %%% "slinky-core" % slinkyVersion, // core React functionality, no React DOM
@@ -13,6 +21,7 @@ lazy val basicLibs: Project => Project = _.settings(
 //  libraryDependencies += "me.shadaj" %%% "slinky-native" % slinkyVersion, // React Native components
   libraryDependencies += "me.shadaj" %%% "slinky-hot" % slinkyVersion, // Hot loading, requires react-proxy package
   //libraryDependencies += "me.shadaj" %%% "slinky-scalajsreact-interop" % slinkyVersion // Interop with japgolly/scalajs-react
+  libraryDependencies += "io.github.cquiroz" %%% "scala-java-time" % "2.5.0"
 )
 
 
@@ -21,11 +30,11 @@ lazy val baseSettings: Project => Project =
     .settings(
       version := "0.2",
       name := "testerUI",
-      scalaVersion := "2.13.10",
+      scalaVersion := "3.2.2",
     //scalacOptions ++= ScalacOptions.flags,
       scalaJSUseMainModuleInitializer := true,
       /* disabled because it somehow triggers many warnings */
-      scalaJSLinkerConfig := scalaJSLinkerConfig.value.withSourceMap(false),
+//      scalaJSLinkerConfig := scalaJSLinkerConfig.value.withSourceMap(false),
       /* for slinky */
       scalacOptions += "-Ytasty-reader",
       scalacOptions += "-Ymacro-annotations",
@@ -163,4 +172,4 @@ lazy val hotReloadingSettings: Project => Project =
 
 
 
-lazy val root = (project in file(".")).configure(baseSettings, basicLibs, npmDeps, withLoaders, browserProject, bundlerSettings, hotReloadingSettings)
+lazy val root = (project in file(".")).configure(baseSettings, basicLibs,circe, npmDeps, withLoaders, browserProject, bundlerSettings, hotReloadingSettings)

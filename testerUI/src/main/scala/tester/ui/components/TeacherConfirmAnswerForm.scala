@@ -12,7 +12,7 @@ import slinky.core._
 import slinky.web.html._
 import typings.antd.components._
 import typings.antd.{antdInts, antdStrings}
-import slinky.core.annotations.react
+
 import slinky.core.facade.Hooks.{useEffect, useState}
 import slinky.core.facade.ReactElement
 import tester.ui.DateFormat
@@ -21,8 +21,12 @@ import tester.ui.requests.Request
 import typings.react.mod.CSSProperties
 import viewData.AnswerViewData
 
-@react object TeacherConfirmAnswerForm {
+object TeacherConfirmAnswerForm {
   case class Props(loggedInUser: LoggedInUser, avd: AnswerViewData)
+  def apply(loggedInUser: LoggedInUser, avd: AnswerViewData): ReactElement = {
+    import slinky.core.KeyAddingStage.build
+    build(component.apply(Props(loggedInUser, avd)))
+  }
 
   val component = FunctionalComponent[Props] { props =>
     val (review, setReview) = useState[Option[String]](props.avd.status match {
@@ -44,9 +48,7 @@ import viewData.AnswerViewData
       case None => p("Не оценено")
     }
 
-//    import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
-    import io.circe._, io.circe.parser._
-//    import io.circe.generic.auto._, io.circe.syntax._
+    import io.circe.syntax._, io.circe.parser.decode
     val answer = decode[ProgramAnswer](props.avd.answerText) match {
       case Left(prog) =>   props.avd.answerText
       case Right(ProgramAnswer(prog, lang)) => prog
@@ -79,13 +81,13 @@ import viewData.AnswerViewData
         scores.map(sc => Select.Option(sc.toPrettyString)(sc.toPrettyString).withKey(sc.toPrettyString))
       )*/
     //FUCK JS
-    val selectScore = Select[String]
+    val selectScore = Select[String]()
       .defaultValue(score.toPrettyString)
       .style(CSSProperties().setWidth("100px"))
       .onChange((newVal, _) => {
           setScore(scores.find(_.toPrettyString == newVal).get)
       })(
-        scores.map(sc => Select.Option(sc.toPrettyString)(sc.toPrettyString))
+        scores.map(sc => Select.Option(sc.toPrettyString)(sc.toPrettyString).build)
       )
 
     def submit(forceDeny: Boolean) : Unit = {

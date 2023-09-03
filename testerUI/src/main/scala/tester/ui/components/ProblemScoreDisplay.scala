@@ -6,14 +6,22 @@ import otsbridge.ProblemScore.ProblemScore
 import scala.scalajs.js
 import slinky.core._
 import slinky.web.html._
-import slinky.core.annotations.react
 import slinky.core.facade.Hooks.{useEffect, useState}
+import slinky.core.facade.ReactElement
 import typings.antd.antdStrings
 import typings.antd.components.Progress
 import typings.antd.libProgressProgressMod.ProgressSize
 import typings.react.mod.CSSProperties
 
-@react object ProblemScoreDisplay {
+object ProblemScoreDisplay {
+
+  case class Props(ps: ProblemScore, hasAnswers: Boolean, haveWaitingConfirmAnswer: Boolean)
+
+
+  def apply(ps: ProblemScore, hasAnswers: Boolean, haveWaitingConfirmAnswer: Boolean): ReactElement = {
+    import slinky.core.KeyAddingStage.build
+    build(component.apply(Props(ps, hasAnswers, haveWaitingConfirmAnswer)))
+  }
 
   def problemScoreElement(text: String, pct: Double, color: String) =
     Progress()
@@ -23,12 +31,10 @@ import typings.react.mod.CSSProperties
       .format((_, _) => div(b(style := js.Dynamic.literal(color = color))(text)))
       .strokeColor(color)
 
-
-  case class Props(ps: ProblemScore, hasAnswers: Boolean, haveWaitingConfirmAnswer: Boolean)
-
   def acceptNotAcceptText(passed: Boolean) =
     if (passed) b(style := js.Dynamic.literal(color = Helpers.customSuccessColor))("Зачтено")
     else b(style := js.Dynamic.literal(color = Helpers.customErrorColor))("Не зачтено")
+
 
   val component = FunctionalComponent[Props] { props =>
     //    val text = props.ps match {

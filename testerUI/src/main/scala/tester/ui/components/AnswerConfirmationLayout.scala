@@ -8,7 +8,7 @@ import slinky.core._
 import slinky.web.html._
 import typings.antd.components._
 import typings.antd.{antdInts, antdStrings, libCarouselMod}
-import slinky.core.annotations.react
+
 import slinky.core.facade.Hooks.{useEffect, useState}
 import slinky.core.facade.ReactElement
 import tester.ui.components.Helpers.SetInnerHtml
@@ -16,8 +16,14 @@ import tester.ui.requests.Request
 import typings.rcTabs.esInterfaceMod
 import viewData.AnswerViewData
 
-@react object AnswerConfirmationLayout {
+object AnswerConfirmationLayout {
   case class Props(loggedInUser: LoggedInUser, groups: Seq[viewData.GroupDetailedInfoViewData])
+
+  def apply(loggedInUser: LoggedInUser, groups: Seq[viewData.GroupDetailedInfoViewData]): ReactElement = {
+    import slinky.core.KeyAddingStage.build
+    build(component.apply(Props(loggedInUser, groups)))
+  }
+
 
   val component = FunctionalComponent[Props] { props =>
     val (userAnswers, setUserAnswers) = useState[Seq[UserConfirmationInfo]](Seq())
@@ -66,7 +72,7 @@ import viewData.AnswerViewData
           s.zipWithIndex.reverse.map { case (a, i) =>
             Tabs.TabPane.tab(i.toString).withKey(i.toString)(
               TeacherConfirmAnswerForm(props.loggedInUser, a)
-            )
+            ).build
           }
         )
       } else {
@@ -79,7 +85,7 @@ import viewData.AnswerViewData
         u.courses.flatMap(_.answer).groupBy(_.problemId).map { case (problemId, answers) =>
           Tabs.TabPane.tab(getProblemName(u, problemId)).withKey(problemId)(
             userAnswersCarousel(answers)
-          )
+          ).build
         }
       )
     }
@@ -90,7 +96,7 @@ import viewData.AnswerViewData
         userAnswers.collect { case u@UserConfirmationInfo(uid, courses) if haveAnswers(courses) =>
           Tabs.TabPane.tab(getName(uid)).withKey(uid)(
             userAnswersTab(u)
-          )
+          ).build
         }
       )
 

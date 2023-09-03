@@ -5,7 +5,7 @@ import otsbridge.CoursePiece.CoursePiece
 import scala.scalajs.js
 import slinky.core._
 import slinky.web.html._
-import slinky.core.annotations.react
+
 import slinky.core.facade.Hooks.{useEffect, useState}
 import slinky.core.facade.{React, ReactElement}
 import slinky.core.facade.ReactContext.RichReactContext
@@ -19,8 +19,13 @@ import typings.react.mod.CSSProperties
 import viewData.{CourseInfoViewData, PartialCourseViewData, ProblemRefViewData, ProblemViewData}
 
 
-@react object DisplayPartialCourse {
+object DisplayPartialCourse {
   case class Props(loggedInUser: LoggedInUser, partialCourse: PartialCourseViewData, logout: () => Unit, setAppState: ApplicationState => Unit)
+  def apply(loggedInUser: LoggedInUser, partialCourse: PartialCourseViewData, logout: () => Unit, setAppState: ApplicationState => Unit): ReactElement = {
+    import slinky.core.KeyAddingStage.build
+    build(component.apply(Props(loggedInUser, partialCourse, logout, setAppState)))
+  }
+
 
   case class LoadedProblemData(pvd: ProblemViewData, answerInField: String)
 
@@ -44,7 +49,7 @@ import viewData.{CourseInfoViewData, PartialCourseViewData, ProblemRefViewData, 
       setSelectedProblemInner(pref)
       (pref, appMode) match {
         case (Some(_), DisplayCourseMode) => setAppMode(DisplayProblemMode)
-        case (None, DisplayProblemMode) =>  setAppMode(DisplayCourseMode)
+        case (None, DisplayProblemMode) => setAppMode(DisplayCourseMode)
         case _ =>
       }
     }
@@ -85,7 +90,7 @@ import viewData.{CourseInfoViewData, PartialCourseViewData, ProblemRefViewData, 
                 case clientRequests.ProblemDataSuccess(pwd) => onProblemLoaded(problemRef, pwd)
                 case clientRequests.UnknownProblemDataFailure() => Notifications.showError(s"Не могу загрузить задачу")
               })
-            }).withKey(problemRef.problemId)
+            })//.withKey(problemRef.problemId) todo ????
             case None =>
               ProblemLoader(props.loggedInUser, problemRef.problemId, p => onProblemLoaded(problemRef, p))
           }
@@ -112,7 +117,7 @@ import viewData.{CourseInfoViewData, PartialCourseViewData, ProblemRefViewData, 
             )
         )
       case _ => println(s"Unknown mode $appMode")
-      div()
+        div()
     })
 
 
@@ -123,9 +128,9 @@ import viewData.{CourseInfoViewData, PartialCourseViewData, ProblemRefViewData, 
         .onCollapse((b, _) => setLeftCollapsed(b))
         .collapsedWidth(0)
         .width(300)
-        .zeroWidthTriggerStyle(CSSProperties().setTop("0px"))        (
-        CourseContents(props.partialCourse, cp => setSelectedCoursePiece(cp))
-      ),
+        .zeroWidthTriggerStyle(CSSProperties().setTop("0px"))(
+          CourseContents(props.partialCourse, cp => setSelectedCoursePiece(cp))
+        ),
       displayContent(),
 
       Layout.Sider()
@@ -134,18 +139,18 @@ import viewData.{CourseInfoViewData, PartialCourseViewData, ProblemRefViewData, 
         .collapsedWidth(0)
         .width(300)
         .zeroWidthTriggerStyle(CSSProperties().setRight("0px").setTop("0px"))
-//        .trigger(div("Показать"))
+        //        .trigger(div("Показать"))
         .onCollapse((b, _) => setRightCollapsed(b))(
-        CourseProblemSelector(props.partialCourse, spRef => setSelectedProblem(Some(spRef)))
-      ),
+          CourseProblemSelector(props.partialCourse, spRef => setSelectedProblem(Some(spRef)))
+        ),
     )
 
     val headerContent = Button().`type`(primary).onClick(_ => appMode match {
       case DisplayCourseMode => setAppMode(DisplayCourseAndProblem)
       case DisplayProblemMode => setAppMode(DisplayCourseAndProblem)
-      case DisplayCourseAndProblem  =>
-        if (selectedProblem.nonEmpty )setAppMode(DisplayProblemMode)
-        else  setAppMode(DisplayCourseMode)
+      case DisplayCourseAndProblem =>
+        if (selectedProblem.nonEmpty) setAppMode(DisplayProblemMode)
+        else setAppMode(DisplayCourseMode)
     })(appMode match {
       case DisplayCourseMode => "Двойное отображение"
       case DisplayProblemMode => "Двойное отображение"
@@ -157,8 +162,12 @@ import viewData.{CourseInfoViewData, PartialCourseViewData, ProblemRefViewData, 
   }
 
 
-  @react object ProblemLoader {
+  object ProblemLoader {
     case class Props(loggedInUser: LoggedInUser, problemId: String, onLoad: ProblemViewData => Unit)
+    def apply(loggedInUser: LoggedInUser, problemId: String, onLoad: ProblemViewData => Unit): ReactElement = {
+      import slinky.core.KeyAddingStage.build
+      build(component.apply(Props(loggedInUser, problemId, onLoad)))
+    }
 
     val component = FunctionalComponent[Props] { props =>
       useEffect(() => {

@@ -1,14 +1,14 @@
 package tester.ui.components
 
 import DbViewsShared.CourseStatus
-import clientRequests.{CoursesList}
-
+import clientRequests.CoursesList
+import slinky.core.KeyAddingStage.build
 
 import scala.scalajs.js
 import slinky.core._
 import slinky.web.html._
-import slinky.core.annotations.react
 import slinky.core.facade.Hooks.{useEffect, useState}
+import slinky.core.facade.ReactElement
 import tester.ui.DateFormat
 import tester.ui.requests.Request.sendRequest
 import typings.antd.antdStrings.{dark, large, primary}
@@ -20,11 +20,10 @@ import viewData.{PartialCourseViewData, ProblemRefViewData, UserViewData}
 import viewData.CourseInfoViewData
 
 
-@react object CourseSelectionLayout {
+object CourseSelectionLayout {
   case class Props(loggedInUser: LoggedInUser, onSelected: CourseInfoViewData => Unit)
-
-
-
+  def apply(loggedInUser: LoggedInUser, onSelected: CourseInfoViewData => Unit): ReactElement =
+    build(component.apply(Props(loggedInUser, onSelected)))
 
   val component = FunctionalComponent[Props] { props =>
 
@@ -45,7 +44,7 @@ import viewData.CourseInfoViewData
         case Seq() =>  Spin().tip(s"Загрузка списка курсов...").size(large)
         case courses =>
           Menu().theme(dark).mode(inline) /*.defaultSelectedKeys(js.Array("1"))*/ (
-            courses.map(course => MenuItem("")(course.title).onClick(_ => setSelected(course)))
+            courses.map(course => MenuItem("")(course.title).onClick(_ => setSelected(course)).build)
           )
       })
     }

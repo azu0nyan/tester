@@ -9,9 +9,8 @@ import typings.antd.components.Select
 import scala.scalajs.js
 import slinky.core._
 import slinky.web.html.{code, _}
-import slinky.core.annotations.react
 import slinky.core.facade.Hooks.{useEffect, useState}
-import slinky.core.facade.React
+import slinky.core.facade.{React, ReactElement}
 import tester.ui.Storage
 import typings.antd.components.{List => AntList, _}
 import tester.ui.components.DisplayPartialCourse.LoadedProblemData
@@ -21,8 +20,12 @@ import typings.reactAce.components.{Ace, ReactAce}
 import typings.reactAce.libAceMod.IAceEditorProps
 import typings.antd.antdStrings.{horizontal, primary, topRight}
 
-@react object ProgramAceEditor {
+object ProgramAceEditor {
   case class Props(uniqueId: String, initialValue: String, allowedLanguages: Seq[ProgrammingLanguage], submit: String => Unit)
+  def apply(uniqueId: String, initialValue: String, allowedLanguages: Seq[ProgrammingLanguage], submit: String => Unit): ReactElement = {
+    import slinky.core.KeyAddingStage.build
+    build(component.apply(Props(uniqueId, initialValue, allowedLanguages, submit)))
+  }
 
   def langToAceName(p: ProgrammingLanguage): String = p match {
     case ProgrammingLanguage.Java => "java"
@@ -78,10 +81,7 @@ import typings.antd.antdStrings.{horizontal, primary, topRight}
   )
 
   val component = FunctionalComponent[Props] { props =>
-//    import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
-    import io.circe._, io.circe.parser._
-    //    import io.circe.generic.auto._, io.circe.syntax._
-    import io.circe.syntax._
+    import io.circe.syntax._, io.circe.parser.decode
 
     val toParse = Storage.readUserAnswer(props.uniqueId) match {
       case Some(answ) => answ
@@ -94,36 +94,36 @@ import typings.antd.antdStrings.{horizontal, primary, topRight}
       }
 
     val (language, setLanguage) = useState[ProgrammingLanguage](lang)
-    val selectLangMenu = Select[String]
+    val selectLangMenu = Select[String]()
       .defaultValue(langToAceName(language))
       .style(CSSProperties().setWidth("150px"))
       .onChange((newVal, _) => setLanguage(aceNameToLang(newVal)))(
-        props.allowedLanguages.map(lang => Select.Option(langToAceName(lang))(langToDisplayName(lang)))
+        props.allowedLanguages.map(lang => Select.Option(langToAceName(lang))(langToDisplayName(lang)).build)
       )
 
 
     val (theme, setTheme) = useState[String](Storage.getTheme())
 
-    val selectThemeMenu = Select[String]
+    val selectThemeMenu = Select[String]()
       .defaultValue(theme)
       .style(CSSProperties().setWidth("150px"))
       .onChange((newVal, _) => {
         Storage.setTheme(newVal)
         setTheme(newVal)
       })(
-        aceThemes.map(th => Select.Option(th)(th))
+        aceThemes.map(th => Select.Option(th)(th).build)
       )
 
     val (fontSize, setFontSize) = useState[Int](Storage.getFontSize())
     val fontSizes = Seq(8, 10, 12, 14, 16, 20, 24, 32, 48, 72)
-    val selectFontSize = Select[Int]
+    val selectFontSize = Select[Int]()
       .defaultValue(fontSize)
       .style(CSSProperties().setWidth("75px"))
       .onChange((newVal, _) => {
         Storage.setFontSize(newVal)
         setFontSize(newVal)
       })(
-        fontSizes.map(th => Select.Option(th)(th))
+        fontSizes.map(th => Select.Option(th)(th).build)
       )
 
 

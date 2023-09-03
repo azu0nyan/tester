@@ -4,7 +4,7 @@ import scala.scalajs.js
 import slinky.core._
 import slinky.web.ReactDOM
 import slinky.web.html._
-import slinky.core.annotations.react
+
 import org.scalajs.dom._
 import slinky.core.facade.Hooks.useState
 import slinky.core.facade.ReactElement
@@ -22,8 +22,13 @@ import typings.rcFieldForm.esUtilsMessagesMod.defaultValidateMessages
 import typings.react.mod.CSSProperties
 
 
-@react object LoginForm {
-  class Props(val tryLogin: LoginPassword => Unit)
+object LoginForm {
+  case class Props( tryLogin: LoginPassword => Unit)
+  def apply( tryLogin: LoginPassword => Unit): ReactElement = {
+    import slinky.core.KeyAddingStage.build
+    build(component.apply(Props(tryLogin)))
+  }
+
 
   class LoginPassword(val login: String, val password: String) extends js.Object
 

@@ -11,8 +11,8 @@ import slinky.core._
 import slinky.web.html.{h5, _}
 import typings.antd.components._
 import typings.antd.{antdBooleans, antdInts, antdStrings}
-import slinky.core.annotations.react
 import slinky.core.facade.Hooks.{useEffect, useState}
+import slinky.core.facade.ReactElement
 import tester.ui.requests.Request
 import typings.antd.anon.ScrollToFirstRowOnChange
 import typings.antd.antdStrings.large
@@ -25,11 +25,16 @@ import viewData.{CourseTemplateViewData, GroupDetailedInfoViewData, UserViewData
 
 import scala.scalajs.js.|
 
-@react object GroupResultsTable {
+object GroupResultsTable {
 
   //AdminCourseInfo
 
   case class Props(loggedInUser: LoggedInUser, data: GroupDetailedInfoViewData)
+
+  def apply(loggedInUser: LoggedInUser, data: GroupDetailedInfoViewData): ReactElement = {
+    import slinky.core.KeyAddingStage.build
+    build(component.apply(Props(loggedInUser, data)))
+  }
 
   val component = FunctionalComponent[Props] { props =>
     val (loaded, setLoaded) = useState[Boolean](false)
@@ -130,7 +135,7 @@ import scala.scalajs.js.|
 
       class ScrollSettings(val x: String, val y: String) extends js.Object
 
-      Table[UserTableItem]
+      Table[UserTableItem]()
         .size(antdStrings.small)
         //        .style(CSSProperties().setWhiteSpace(nowrap))
         .bordered(true)
