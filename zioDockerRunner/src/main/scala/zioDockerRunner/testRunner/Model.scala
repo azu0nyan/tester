@@ -1,7 +1,7 @@
 package zioDockerRunner.testRunner
 
 import zioDockerRunner.testRunner
-
+import otsbridge.ProgrammingLanguage
 type CompileAndRunMultipleResult = CompilationFailure | MultipleRunsResultScore
 
 case class ProgramSource(src: String)
@@ -66,8 +66,8 @@ object RunVerificationResult {
 
 
 
-enum ProgrammingLanguage:
-  case  Java, Haskell, Scala,  Kojo, Cpp
+//enum ProgrammingLanguage:
+//  case  Java, Haskell, Scala,  Kojo, Cpp
 
 type Memory = Long
 case class HardwareLimitations(memoryLimit: Memory = 128, timeLimitSeconds: Double = 2, cpuLimit: Double = 1)

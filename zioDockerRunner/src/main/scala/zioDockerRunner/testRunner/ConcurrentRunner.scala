@@ -10,21 +10,21 @@ import zioDockerRunner.testRunner.ConcurrentRunner.*
 
 
 
-case class ConcurrentRunner(queue: Queue[TaskAndPromise], configs: Seq[ConcurrentRunnerConfig]) {
+case class ConcurrentRunner(queue: Queue[ConcurrentRunnerTask], configs: Seq[ConcurrentRunnerConfig]) {
   //  def addTaskExternal(crm: CompileAndRunMultiple): scala.concurrent.Future[DockerFailure | TaskResultPromise] =
   //    addTask(crm).toFuture.map(_.)
 
   def addTask(crm: CompileAndRunMultiple): UIO[TaskResultPromise] =
     for {
       prom <- Promise.make[DockerFailure, CompileAndRunMultipleResult]
-      succ <- queue.offer(TaskAndPromise(crm, prom))
+      succ <- queue.offer(ConcurrentRunnerTask(crm, prom))
       _ <- ZIO.when(!succ)(prom.fail(WorkQueueIsFull))
       _ <- ZIO.logInfo(s"Adding task to queue $succ")
     } yield prom
 
 
   //todo mb ZIO.scoped here
-  def runTask(taskAndPromise: TaskAndPromise, config: ConcurrentRunnerConfig): ZIO[Any, Nothing, Unit] =
+  def runTask(taskAndPromise: ConcurrentRunnerTask, config: ConcurrentRunnerConfig): ZIO[Any, Nothing, Unit] =
     for {
       _ <- ZIO.logInfo(s"Task succeed 1")
       resExit: Exit[DockerFailure, CompileAndRunMultipleResult] <- Runner.compileAndRunMultiple(taskAndPromise.task)
@@ -69,7 +69,11 @@ object ConcurrentRunner {
                                    )
 
   type TaskResultPromise = Promise[DockerFailure, CompileAndRunMultipleResult]
-  case class TaskAndPromise(task: CompileAndRunMultiple, promise: TaskResultPromise)
+  case class ConcurrentRunnerTask(task: CompileAndRunMultiple, promise: TaskResultPromise)
+//  def taskFromCompileRunMultiple(task: CompileAndRunMultiple) =
+//    for{
+//      pr <- Promise.make[DockerFailure, CompileAndRunMultipleResult]
+//    } yield ConcurrentRunnerTask(task, pr)
 
   def live(config: Seq[ConcurrentRunnerConfig], queueSize: Int): ZIO[Any, Nothing, ConcurrentRunner] =
     for {

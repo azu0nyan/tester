@@ -4,6 +4,7 @@ import zioDockerRunner.dockerIntegration.DockerOps.{DockerClientContext, Running
 import zio.*
 import zioDockerRunner.testRunner.RunResult.{CorrectAnswer, NotTested, WrongAnswer}
 import RunVerificationResult.*
+import otsbridge.ProgrammingLanguage
 
 trait LanguageRunner[L <: ProgrammingLanguage] {
   type CompilationSuccessL <: CompilationSuccess[L]

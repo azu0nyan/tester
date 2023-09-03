@@ -3,7 +3,8 @@ package zioDockerRunner.testRunner
 import zio.*
 import zioDockerRunner.dockerIntegration.DockerOps
 import zioDockerRunner.testRunner.CompileResult.CppCompilationSuccess
-
+import otsbridge.ProgrammingLanguage
+import otsbridge.ProgrammingLanguage.*
 given CppRunner: LanguageRunner[ProgrammingLanguage.Cpp.type] with {
   override type CompilationSuccessL = CppCompilationSuccess
   override def compile(source: ProgramSource): ZIO[DockerOps.DockerClientContext, CompilationFailure, CppCompilationSuccess] = ???
