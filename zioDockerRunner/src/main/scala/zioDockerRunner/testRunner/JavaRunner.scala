@@ -10,6 +10,9 @@ import zioDockerRunner.dockerIntegration.{CompressOps, DockerOps}
 import java.util.concurrent.TimeUnit
 import java.io.ByteArrayInputStream
 
+import otsbridge.ProgrammingLanguage
+import otsbridge.ProgrammingLanguage.*
+
 given JavaRunner: LanguageRunner [ProgrammingLanguage.Java.type] with {
   override type CompilationSuccessL = JavaCompilationSuccess
 

@@ -4,6 +4,7 @@ import zioDockerRunner.dockerIntegration.DockerOps.{DockerClientContext, Running
 import zio.*
 import zioDockerRunner.testRunner.RunResult.{CorrectAnswer, NotTested, WrongAnswer}
 import RunVerificationResult.*
+import otsbridge.ProgrammingLanguage
 
 trait LanguageRunner[L <: ProgrammingLanguage] {
   type CompilationSuccessL <: CompilationSuccess[L]
@@ -23,7 +24,7 @@ trait LanguageRunner[L <: ProgrammingLanguage] {
           case RunVerificationWrongAnswer(message) => WrongAnswer(message)
   }
 
-  def runTestsInCompiled(crm: CompileAndRunMultiple, succ: CompilationSuccessL): ZIO[DockerClientContext, RunningContainerFailure, MultipleRunsResultScore] = {
+  def runTestsInCompiled(crm: CompileAndRunMultiple, succ: CompilationSuccessL): ZIO[DockerClientContext, RunningContainerFailure, MultipleRunsResultSeq] = {
     case class Acc(continue: Boolean = true, acc: Seq[UserRunResult] = Seq())
 
     ZIO.foldLeft(crm.runs)(Acc()) {

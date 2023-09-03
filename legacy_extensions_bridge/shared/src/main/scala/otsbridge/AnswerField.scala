@@ -4,7 +4,7 @@ import io.circe._
 import io.circe.parser._
 import io.circe.generic.auto._
 import io.circe.syntax._
-import otsbridge.ProgrammingLanguage.ProgrammingLanguage
+import otsbridge.ProgrammingLanguage
 //case class ProgramAnswer(program: String, language: ProgrammingLanguage)
 object AnswerField{
 

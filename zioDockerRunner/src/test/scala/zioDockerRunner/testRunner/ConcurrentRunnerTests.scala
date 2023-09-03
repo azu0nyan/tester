@@ -1,5 +1,6 @@
 package zioDockerRunner.testRunner
 
+import otsbridge.ProgrammingLanguage
 import zio.*
 import zio.test.*
 import zio.test.Assertion.*
@@ -53,8 +54,8 @@ object ConcurrentRunnerTests extends ZIOSpecDefault{
 //      _ <- ZIO.foreachDiscard(0 to 2)(_ => concurrentRunner.addTask(crm))
       prom <- concurrentRunner.addTask(crm)
       res <- prom.await.exit
-    } yield assert(res)(succeeds(isSubtype[MultipleRunsResultScore](
-      hasField[MultipleRunsResultScore, Int]("size", _.size, equalTo(4)) &&
+    } yield assert(res)(succeeds(isSubtype[MultipleRunsResultSeq](
+      hasField[MultipleRunsResultSeq, Int]("size", _.size, equalTo(4)) &&
         hasField("el0", s => s(0), isSubtype[CorrectAnswer](anything)) &&
         hasField("el1", s => s(1), isSubtype[CorrectAnswer](anything)) &&
         hasField("el2", s => s(2), isSubtype[WrongAnswer](anything)) &&
@@ -74,8 +75,8 @@ object ConcurrentRunnerTests extends ZIOSpecDefault{
        _ <- ZIO.foreach(0 to 16)(_ => concurrentRunner.addTask(crm))
       prom <- concurrentRunner.addTask(crm)
       res <- prom.await.exit
-    } yield assert(res)(succeeds(isSubtype[MultipleRunsResultScore](
-      hasField[MultipleRunsResultScore, Int]("size", _.size, equalTo(4)) &&
+    } yield assert(res)(succeeds(isSubtype[MultipleRunsResultSeq](
+      hasField[MultipleRunsResultSeq, Int]("size", _.size, equalTo(4)) &&
         hasField("el0", s => s(0), isSubtype[CorrectAnswer](anything)) &&
         hasField("el1", s => s(1), isSubtype[CorrectAnswer](anything)) &&
         hasField("el2", s => s(2), isSubtype[WrongAnswer](anything)) &&

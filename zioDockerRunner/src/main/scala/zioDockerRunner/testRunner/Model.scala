@@ -1,8 +1,8 @@
 package zioDockerRunner.testRunner
 
 import zioDockerRunner.testRunner
-
-type CompileAndRunMultipleResult = CompilationFailure | MultipleRunsResultScore
+import otsbridge.ProgrammingLanguage
+type CompileAndRunMultipleResult = CompilationFailure | MultipleRunsResultSeq
 
 case class ProgramSource(src: String)
 case class CompileAndRunMultiple(
@@ -66,12 +66,12 @@ object RunVerificationResult {
 
 
 
-enum ProgrammingLanguage:
-  case  Java, Haskell, Scala,  Kojo, Cpp
+//enum ProgrammingLanguage:
+//  case  Java, Haskell, Scala,  Kojo, Cpp
 
 type Memory = Long
 case class HardwareLimitations(memoryLimit: Memory = 128, timeLimitSeconds: Double = 2, cpuLimit: Double = 1)
-type MultipleRunsResultScore = Seq[UserRunResult]
+type MultipleRunsResultSeq = Seq[UserRunResult]
 
 
 

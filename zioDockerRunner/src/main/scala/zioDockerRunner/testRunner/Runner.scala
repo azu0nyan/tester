@@ -1,7 +1,8 @@
 package zioDockerRunner.testRunner
 
 import zio.*
-import ProgrammingLanguage.*
+import otsbridge.ProgrammingLanguage
+import otsbridge.ProgrammingLanguage.*
 import zioDockerRunner.dockerIntegration.DockerOps.DockerClientContext
 import zioDockerRunner.dockerIntegration.DockerOps.{DockerClientContext, RunningContainerFailure}
 
