@@ -69,8 +69,8 @@ object Main {
       val toIns = CustomCourseTemplate(accIds(c._id.toHexString), c.uniqueAlias, c.description, JsonbValue(c.courseData))
 
       val q = quote { (c: CustomCourseTemplate) =>
-        sql"""INSERT INTO "CustomCourseTemplate" ("id", "templateAlias", "description","courseData")
-             VALUES (${c.id}, ${c.templateAlias}, ${c.description}, ${c.courseData}::jsonb)"""
+        sql"""INSERT INTO "CourseTemplate" ("templateAlias", "description","courseData")
+             VALUES ( ${c.templateAlias}, ${c.description}, ${c.courseData}::json)"""
           .as[Insert[CustomCourseTemplate]].onConflictIgnore
       }
       ctx.run(q(ctx.lift(toIns)))
@@ -210,9 +210,9 @@ object Main {
 
       val req =
         quote { (ru: RegisteredUser) =>
-          sql"""INSERT INTO "RegisteredUser" ("id","login","passwordHash","passwordSalt","firstName","lastName","email","registeredAt","lastLogin","role")
+          sql"""INSERT INTO "RegisteredUser" ("id","login","passwordHash","passwordSalt","firstName","lastName","email","registeredAt","lastLogin")
                VALUES (${ru.id}, ${ru.login}, ${ru.passwordHash}, ${ru.passwordSalt}, ${ru.firstName}, ${ru.lastName}, ${ru.email},
-               ${ru.registeredAt}, ${ru.lastLogin}, ${ru.role}::jsonb)"""
+               ${ru.registeredAt}, ${ru.lastLogin})"""
             .as[Insert[RegisteredUser]].onConflictIgnore
         }
 

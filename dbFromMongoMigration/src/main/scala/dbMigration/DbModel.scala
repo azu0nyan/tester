@@ -10,8 +10,7 @@ import otsbridge.ProblemScore.ProblemScore
 object DbModel {
   case class RegisteredUser(id: Int, login: String, passwordHash: String, passwordSalt: String,
                             firstName: Option[String], lastName: Option[String], email: Option[String],
-                            registeredAt: java.time.LocalDateTime, lastLogin: Option[java.time.LocalDateTime],
-                            role: JsonbValue[UserRole])
+                            registeredAt: java.time.LocalDateTime, lastLogin: Option[java.time.LocalDateTime]                          )
 
   case class UserGroup(id: Int, title: String, description: String)
 
@@ -28,7 +27,7 @@ object DbModel {
   case class CustomProblemTemplate(alias: String, title: String, html: String,
                                    answerField: JsonbValue[AnswerField], initialScore: JsonbValue[ProblemScore])
 
-  case class CustomCourseTemplate(id: Int, templateAlias: String, description: String, courseData: JsonbValue[CourseRoot])
+  case class CustomCourseTemplate(templateAlias: String, description: String, courseData: JsonbValue[CourseRoot])
 
   case class CustomCourseTemplateProblemAlias(courseId: Int, problemAlias: String)
 }
