@@ -66,7 +66,7 @@ case class UserServiceImpl(bus: MessageBus) extends UserService {
             val start = java.time.Clock.systemUTC().instant()
             val end = java.time.Clock.systemUTC().instant().plus(java.time.Duration.ofSeconds(data.sessionLengthSec))
             for {
-              _ <- UserSessionDao.insert(UserSession(0, user.id, token, data.ip,
+              _ <- UserSessionDao.insertReturnId(UserSession(0, user.id, token, data.ip,
                 data.userAgent, data.platform, data.locale, start, end))
               _ <- bus.publish(MessageBus.UserLoggedIn(user.id, start))
             } yield LoggedIn(token)

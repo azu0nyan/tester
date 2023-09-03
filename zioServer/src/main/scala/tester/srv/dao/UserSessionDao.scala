@@ -22,10 +22,10 @@ object UserSessionDao extends AbstractDao[UserSession]
 
   case class UserSession(id: Int, userId: Int, token: String,
                          ip: Option[String], userAgent: Option[String], platform: Option[String], locale: Option[String],
-                         start: Instant, end: Instant, valid: Boolean = true)
+                         startAt: Instant, endAt: Instant, valid: Boolean = true)
 
   override val schema: Schema[UserSession] = DeriveSchema.gen[UserSession]
-  override val tableName: String = "UserSession"
+  override val tableName: String = "Session"
 
 
   def getValidUserSessions(id: Int): TranzactIO[List[UserSession]] =

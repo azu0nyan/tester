@@ -3,6 +3,11 @@ package main
 import zio.*
 import zio.http.*
 import zio.http.HttpError.{InternalServerError, NotFound}
+import zio.http.Header.{AccessControlAllowMethods, AccessControlAllowOrigin, Origin}
+import zio.http.HttpAppMiddleware.cors
+import zio.http.internal.middlewares.Cors.CorsConfig
+
+
 import clientRequests.{CourseNotOwnedByYou, Route}
 import clientRequests.*
 import clientRequests.admin.{AddCourseToGroup, AddCourseToGroupRequest}
@@ -12,6 +17,15 @@ import tester.srv.controller.impl.ApplicationImpl
 object HttpServer  {
 
   type HttpServerContext = Application
+
+
+  // Create CORS configuration
+  val config: CorsConfig =
+    CorsConfig(
+      allowedOrigin = _ => Some(AccessControlAllowOrigin.All),
+      allowedMethods = AccessControlAllowMethods(Method.PUT, Method.DELETE, Method.GET, Method.POST),
+    )
+
 
   def makeHttpFromRoute[REQ, RES](route: Route[REQ, RES], func: REQ => ZIO[Any, Throwable, RES]
                                   ): Http[Any, Response, Request, Response] =
@@ -68,7 +82,7 @@ object HttpServer  {
       makeHttpFromRoute(admin.UpdateCustomCourse, req => a.updateCustomCourse(req)),
       makeHttpFromRoute(admin.UpdateCustomProblemTemplate, req => a.updateCustomProblemTemplate(req)),
       makeHttpFromRoute(admin.UserList, req => a.userList(req)),
-    )
+    ) @@ cors(config)
 
 
   def startServer: ZIO[HttpServerContext, Any, Any] = for{
