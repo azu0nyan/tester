@@ -5,6 +5,8 @@ import tester.srv.dao.CourseTemplateProblemDao.CourseTemplateProblem
 import tester.srv.dao.{AbstractDao, CourseDao, CourseTemplateProblemDao}
 import io.github.gaelrenoux.tranzactio.doobie.TranzactIO
 import otsbridge.CoursePiece.CourseRoot
+import otsbridge.CourseTemplate
+import zio.*
 
 trait CourseTemplateService{
 
@@ -19,6 +21,8 @@ trait CourseTemplateService{
   def getViewData(courseAlias: String): TranzactIO[viewData.CourseTemplateViewData]
 
   def updateCourse(courseAlias: String, description: Option[String], data: Option[CourseRoot]): TranzactIO[Boolean]
+  
+  def registerTemplate(ct: otsbridge.CourseTemplate): UIO[Unit]
 }
 
 

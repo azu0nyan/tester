@@ -3,6 +3,7 @@ package tester.srv.controller
 import otsbridge.ProblemScore.ProblemScore
 import zio.*
 import io.github.gaelrenoux.tranzactio.doobie.TranzactIO
+import otsbridge.ProblemInfo
 import viewData.ProblemViewData
 
 trait ProblemService {
@@ -19,4 +20,6 @@ trait ProblemService {
   def getRefViewData(problemId: Int): TranzactIO[viewData.ProblemRefViewData]
   
   def getViewData(problemId: Int): TranzactIO[ProblemViewData]
+  
+  def registerInfo(info: ProblemInfo): UIO[Unit]
 }

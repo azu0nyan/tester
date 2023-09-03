@@ -12,11 +12,11 @@ object UpdateCustomProblemTemplateJson {
   import io.circe.syntax.*, io.circe.*, io.circe.generic.semiauto.*
 
 
-  implicit val reqDec1: Decoder[otsbridge.ProgrammingLanguage.ProgrammingLanguage] = deriveDecoder[otsbridge.ProgrammingLanguage.ProgrammingLanguage]
-  implicit val reqEnc1: Encoder[otsbridge.ProgrammingLanguage.ProgrammingLanguage] = deriveEncoder[otsbridge.ProgrammingLanguage.ProgrammingLanguage]
+  implicit val reqDec1: Decoder[otsbridge.ProgrammingLanguage] = deriveDecoder[otsbridge.ProgrammingLanguage]
+  implicit val reqEnc1: Encoder[otsbridge.ProgrammingLanguage] = deriveEncoder[otsbridge.ProgrammingLanguage]
 
-  implicit val reqDec2: Decoder[otsbridge.ProgramRunResult.ProgramRunResult] = deriveDecoder[otsbridge.ProgramRunResult.ProgramRunResult]
-  implicit val reqEnc2: Encoder[otsbridge.ProgramRunResult.ProgramRunResult] = deriveEncoder[otsbridge.ProgramRunResult.ProgramRunResult]
+  implicit val reqDec2: Decoder[otsbridge.ProgramRunResult] = deriveDecoder[otsbridge.ProgramRunResult]
+  implicit val reqEnc2: Encoder[otsbridge.ProgramRunResult] = deriveEncoder[otsbridge.ProgramRunResult]
 
 
   implicit val reqDec: Decoder[UpdateCustomProblemTemplateRequest] = deriveDecoder[UpdateCustomProblemTemplateRequest]

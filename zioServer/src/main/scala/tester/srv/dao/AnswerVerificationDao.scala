@@ -13,7 +13,7 @@ import doobie.postgres.pgisimplicits.*
 import AbstractDao.ById
 import tester.srv.dao.AnswerDao.Answer
 import AnswerVerificationDao.AnswerVerification
-import otsbridge.ProgramRunResult.ProgramRunResult
+import otsbridge.ProgramRunResult
 import tester.srv.dao.ProblemDao.ScoreJsonString
 
 import java.time.Instant

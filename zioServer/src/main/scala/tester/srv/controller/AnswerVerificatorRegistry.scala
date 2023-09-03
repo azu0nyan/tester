@@ -1,8 +1,8 @@
 package tester.srv.controller
 
-import io.github.gaelrenoux.tranzactio.doobie.TranzactIO
+import zio.*
 
 trait AnswerVerificatorRegistry {
-    def getVerificator(alias: String): TranzactIO[Option[AnswerVerificator]]
-    def registerVerificator(alias: String, answerVerificator: AnswerVerificator): TranzactIO[Unit]
+    def getVerificator(alias: String): UIO[Option[AnswerVerificator]]
+    def registerVerificator(alias: String, answerVerificator: AnswerVerificator): UIO[Unit]
 }

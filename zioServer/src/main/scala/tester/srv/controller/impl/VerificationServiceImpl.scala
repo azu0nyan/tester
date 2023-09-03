@@ -66,6 +66,9 @@ case class VerificationServiceImpl(
     } yield ()
 
   }
+
+  def registerVerificator(alias: String, ver: AnswerVerificator): UIO[Unit] =
+    registry.registerVerificator(alias, ver)
 }
 
 

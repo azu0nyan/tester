@@ -10,7 +10,7 @@ import doobie.postgres.implicits.*
 import doobie.postgres.pgisimplicits.*
 import io.github.gaelrenoux.tranzactio.{DbException, doobie}
 import doobie.{Connection, Database, TranzactIO, tzio}
-import otsbridge.ProblemScore
+import otsbridge.{ProblemInfo, ProblemScore}
 import otsbridge.ProblemScore.{BinaryScore, ProblemScore}
 import tester.srv.controller.AnswerService.{AnswerFilterParams, AnswerMetaStatus}
 import tester.srv.controller.{MessageBus, ProblemInfoRegistry, ProblemService}
@@ -68,6 +68,7 @@ case class ProblemServiceImpl private(
       template.title(problem.seed), template.problemHtml(problem.seed), template.answerField(problem.seed),
       ProblemScore.fromJson(problem.score), answers.lastOption.map(_._1.answer).getOrElse(""), answers.map{case (a,b,c) => AnswerMetaStatus(a, b, c.toStatus).toViewData})
 
+  def registerInfo(info: ProblemInfo): UIO[Unit] = infoRegistryZIO.registerProblemInfo(info)
 }
 
 object ProblemServiceImpl {

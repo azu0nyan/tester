@@ -67,7 +67,7 @@ val circe =  Seq(
 
 
 
-//lazy val zioDockerRunner = RootProject(file("zioDockerRunner"))
+lazy val zioDockerRunner = RootProject(file("zioDockerRunner"))
 /*lazy val jvmToJsApi = (project in file("jvmToJsApi"))
   .settings(
     scalaVersion := scalaVer,
@@ -118,6 +118,7 @@ lazy val protos = crossProject(JSPlatform, JVMPlatform)
     )
   )
 
+
 val zioServer = (project in file("zioServer"))
   .dependsOn(jvmToJsApi, /*zioDockerRunner,*/ protos.jvm, legacyExtensionBridge)
   .settings(
@@ -146,3 +147,13 @@ val zioServer = (project in file("zioServer"))
 //    envVars in Test ++= Map("LC_ALL" -> "en_US.UTF-8" , "LC_CTYPE" -> "en_US.UTF-8")
     //LC_ALL=en_US.UTF-8;LC_CTYPE=en_US.UTF-8
   )
+
+
+
+val problems = RootProject(file("../problemsAndTests"))
+
+val zioTester = (project in file("zioTester"))
+  .settings(version := "2.0.5",
+    scalaVersion := scalaVer,
+    name := "zioTester")
+  .dependsOn(zioServer, problems, zioDockerRunner)

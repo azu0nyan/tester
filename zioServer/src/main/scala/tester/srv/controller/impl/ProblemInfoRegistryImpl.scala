@@ -10,7 +10,7 @@ case class ProblemInfoRegistryImpl(map: ConcurrentMap[String, ProblemInfo]) exte
     map.get(alias)
 
   override def registerProblemInfo(info: ProblemInfo): UIO[Unit] =
-    map.put(info.uniqueAlias, info).map(_ => ())
+    map.put(info.alias, info).map(_ => ())
 }
 
 object ProblemInfoRegistryImpl {

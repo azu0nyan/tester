@@ -8,7 +8,7 @@ import clientRequests.teacher.*
 import clientRequests.watcher.*
 
 /** Binds old api to new one */
-trait Application extends UserApp with TeacherApp with WatcherApp with AdminApp
+trait Application extends UserApp with TeacherApp with WatcherApp with AdminApp 
 
 trait UserApp {
   def courseData(req: CourseDataRequest): Task[CourseDataResponse]

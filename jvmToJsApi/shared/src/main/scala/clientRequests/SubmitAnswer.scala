@@ -9,8 +9,8 @@ object SubmitAnswerJson{
   import viewData.*
   import io.circe.syntax.*, io.circe.*, io.circe.generic.semiauto.*
 
-  implicit val reqDec12: Decoder[otsbridge.ProgramRunResult.ProgramRunResult] = deriveDecoder[otsbridge.ProgramRunResult.ProgramRunResult]
-  implicit val resEnc12: Encoder[otsbridge.ProgramRunResult.ProgramRunResult] = deriveEncoder[otsbridge.ProgramRunResult.ProgramRunResult]
+  implicit val reqDec12: Decoder[otsbridge.ProgramRunResult] = deriveDecoder[otsbridge.ProgramRunResult]
+  implicit val resEnc12: Encoder[otsbridge.ProgramRunResult] = deriveEncoder[otsbridge.ProgramRunResult]
 
 
   implicit val reqDec: Decoder[SubmitAnswerRequest] = deriveDecoder[SubmitAnswerRequest]

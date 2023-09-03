@@ -10,11 +10,11 @@ import tester.srv.controller.Application
 import tester.srv.controller.impl.ApplicationImpl
 
 
-object FullApp extends ZIOAppDefault{
+object AppBootstrap {
 
   val datasource = ConnectionPool.layer
   val database: ZLayer[Any, Throwable, Database] = datasource >>> Database.fromDatasource
-  val app: ZLayer[Any, Throwable, Application] = database >>> ApplicationImpl.layer
+  val layer: ZLayer[Any, Throwable, Application] = database >>> ApplicationImpl.layer
 
-  override def run = HttpServer.startServer.provideLayer(app)
+
 }

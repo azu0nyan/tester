@@ -23,7 +23,7 @@ object StubsAndMakers {
   }
 
   def acceptAllRegistryStub = new AnswerVerificatorRegistry {
-    override def getVerificator(verificatorAlias: String): TranzactIO[Option[AnswerVerificator]] =
+    override def getVerificator(verificatorAlias: String): UIO[Option[AnswerVerificator]] =
       ZIO.succeed(Some(acceptAllVerificator))
     override def registerVerificator(verificatorAlias: String, answerVerificator: AnswerVerificator): ZIO[transactor.Transactor[Task], DbException, Unit] =
       ZIO.succeed(())
@@ -36,7 +36,7 @@ object StubsAndMakers {
   }
 
   def rejectAllRegistryStub = new AnswerVerificatorRegistry {
-    override def getVerificator(verificatorAlias: String): TranzactIO[Option[AnswerVerificator]] =
+    override def getVerificator(verificatorAlias: String): UIO[Option[AnswerVerificator]] =
       ZIO.succeed(Some(rejectAllVerificator))
 
     override def registerVerificator(verificatorAlias: String, answerVerificator: AnswerVerificator): ZIO[transactor.Transactor[Task], DbException, Unit] =
