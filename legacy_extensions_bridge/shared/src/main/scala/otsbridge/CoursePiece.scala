@@ -226,7 +226,7 @@ object CoursePiece {
 
   object Problem {
     def apply(pt: ProblemTemplate, displayMe: DisplayMe, inContents: Option[String] = None): Problem =
-      Problem(pt.uniqueAlias, displayMe, inContents)
+      Problem(pt.alias, displayMe, inContents)
   }
 
   case class Problem(problemAlias: String, displayMe: DisplayMe, override val displayInContentsHtml: Option[String]) extends CoursePiece {

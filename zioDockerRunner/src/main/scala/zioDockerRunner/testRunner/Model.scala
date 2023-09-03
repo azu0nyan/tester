@@ -1,7 +1,7 @@
 package zioDockerRunner.testRunner
 
 import zioDockerRunner.testRunner
-import otsbridge.ProgrammingLanguage
+import otsbridge.{ProgrammingLanguage, mem}
 type CompileAndRunMultipleResult = CompilationFailure | MultipleRunsResultSeq
 
 case class ProgramSource(src: String)
@@ -45,15 +45,15 @@ sealed trait RawRunResult
 
 object RunResult {
   final case class SuccessffulRun(output: String, timeMs: Long) extends RawRunResult
-  
+
   final case class RuntimeError(errorMessage: String) extends RawRunResult with UserRunResult
   final case class UnknownRunError(cause: String) extends RawRunResult with UserRunResult
   final case class TimeLimitExceeded(timeMs: Long) extends RawRunResult with UserRunResult
   final case class MemoryLimitExceeded(memory: Memory) extends RawRunResult with UserRunResult
 
   final case class CorrectAnswer(timeMS: Long, message: Option[String]) extends UserRunResult
-  final case class WrongAnswer(message: Option[String]) extends UserRunResult  
-  final case class NotTested(message: Option[String]) extends UserRunResult  
+  final case class WrongAnswer(message: Option[String]) extends UserRunResult
+  final case class NotTested(message: Option[String]) extends UserRunResult
 }
 
 /**Результат проверки ответа */
@@ -69,8 +69,9 @@ object RunVerificationResult {
 //enum ProgrammingLanguage:
 //  case  Java, Haskell, Scala,  Kojo, Cpp
 
-type Memory = Long
-case class HardwareLimitations(memoryLimit: Memory = 128, timeLimitSeconds: Double = 2, cpuLimit: Double = 1)
+import otsbridge.mem._
+type Memory = mem.Data
+case class HardwareLimitations(memoryLimit: Memory = 256.MiB, timeLimitSeconds: Double = 2, cpuLimit: Double = 1)
 type MultipleRunsResultSeq = Seq[UserRunResult]
 
 

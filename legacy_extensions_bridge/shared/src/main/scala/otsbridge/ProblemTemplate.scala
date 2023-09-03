@@ -21,7 +21,6 @@ object ProblemTemplate {
 trait ProblemInfo {
   def title(seed: Int): String
   def alias: String
-  def uniqueAlias: String = alias
   def maxAttempts: Option[Int] = allowedAttempts
   def allowedAttempts: Option[Int] = None
   def initialScore: ProblemScore
@@ -33,7 +32,7 @@ trait ProblemInfo {
   def editable:Boolean = false
 }
 
-@deprecated
+
 trait ProblemTemplate extends ProblemInfo {
   def verifyAnswer(seed: Int, answer: String): AnswerVerificationResult
 }

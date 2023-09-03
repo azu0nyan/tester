@@ -3,7 +3,7 @@ package helpers
 import helpers.MultipleRunsProgramProblemTemplate.maxSystemOrErrorMessageLength
 import otsbridge.AnswerField.*
 import otsbridge.ProblemScore.*
-import otsbridge.{AnswerVerificationResult, ProblemScore, ProblemTemplate, ProgramRunResult, ProgrammingLanguage}
+import otsbridge.{AnswerVerificationResult, ProblemScore, ProblemTemplate, ProgrammingLanguage}
 import otsbridge.ProgrammingLanguage.*
 import otsbridge.AnswerVerificationResult.*
 import otsbridge.ProgramRunResult
