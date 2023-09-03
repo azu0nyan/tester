@@ -8,26 +8,9 @@ import zioDockerRunner.dockerIntegration.DockerOps.DockerFailure.{UnknownDockerF
 import zioDockerRunner.dockerIntegration.DockerOps.{DockerClientContext, DockerFailure}
 import zioDockerRunner.testRunner.ConcurrentRunner.*
 
-object ConcurrentRunner {
-  case class ConcurrentRunnerConfig(
-                                     fibersMax: Int,
-                                     containerName: String,
-                                     dockerClientConfig: DockerClientConfig = DefaultDockerClientConfig.createDefaultConfigBuilder().build(),
-                                     runnerName: String = "Default runner"
-                                   )
 
-  type TaskResultPromise = Promise[DockerFailure, CompileAndRunMultipleResult]
-  case class TaskAndPromise(task: CompileAndRunMultiple, promise: TaskResultPromise)
-
-  def makeRunner(config: Seq[ConcurrentRunnerConfig], queueSize: Int): ZIO[Any, Nothing, ConcurrentRunner] =
-    for {
-      _ <- ZIO.logInfo(s"Creating concurrent runner with ${config.size} runners. And ${config.map(_.fibersMax).sum} fibers total.")
-      q <- Queue.dropping(queueSize)
-    } yield ConcurrentRunner(q, config)
-}
 
 case class ConcurrentRunner(queue: Queue[TaskAndPromise], configs: Seq[ConcurrentRunnerConfig]) {
-
   //  def addTaskExternal(crm: CompileAndRunMultiple): scala.concurrent.Future[DockerFailure | TaskResultPromise] =
   //    addTask(crm).toFuture.map(_.)
 
@@ -75,4 +58,24 @@ case class ConcurrentRunner(queue: Queue[TaskAndPromise], configs: Seq[Concurren
     }
 
 
+}
+
+object ConcurrentRunner {
+  case class ConcurrentRunnerConfig(
+                                     fibersMax: Int,
+                                     containerName: String,
+                                     dockerClientConfig: DockerClientConfig = DefaultDockerClientConfig.createDefaultConfigBuilder().build(),
+                                     runnerName: String = "Default runner"
+                                   )
+
+  type TaskResultPromise = Promise[DockerFailure, CompileAndRunMultipleResult]
+  case class TaskAndPromise(task: CompileAndRunMultiple, promise: TaskResultPromise)
+
+  def live(config: Seq[ConcurrentRunnerConfig], queueSize: Int): ZIO[Any, Nothing, ConcurrentRunner] =
+    for {
+      _ <- ZIO.logInfo(s"Creating concurrent runner with ${config.size} runners. And ${config.map(_.fibersMax).sum} fibers total.")
+      q <- Queue.dropping(queueSize)
+    } yield ConcurrentRunner(q, config)
+
+  def layer(config: Seq[ConcurrentRunnerConfig], queueSize: Int) = ZLayer.fromZIO(live(config, queueSize))
 }

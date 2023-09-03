@@ -48,7 +48,7 @@ object ConcurrentRunnerTests extends ZIOSpecDefault{
     val crm = nonTrivialCrM
 
     for {
-      concurrentRunner <- ConcurrentRunner.makeRunner(Seq(conf), 16)
+      concurrentRunner <- ConcurrentRunner.live(Seq(conf), 16)
       _ <- concurrentRunner.startWorkers
 //      _ <- ZIO.foreachDiscard(0 to 2)(_ => concurrentRunner.addTask(crm))
       prom <- concurrentRunner.addTask(crm)
@@ -69,7 +69,7 @@ object ConcurrentRunnerTests extends ZIOSpecDefault{
     val crm = nonTrivialCrM
 
     for {
-      concurrentRunner <- ConcurrentRunner.makeRunner(Seq(conf), 16)
+      concurrentRunner <- ConcurrentRunner.live(Seq(conf), 16)
       _ <- concurrentRunner.startWorkers
        _ <- ZIO.foreach(0 to 16)(_ => concurrentRunner.addTask(crm))
       prom <- concurrentRunner.addTask(crm)
