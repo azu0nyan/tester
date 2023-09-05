@@ -30,5 +30,6 @@ case class ProblemDataRequest(token:String, problemId:String) extends WithToken
 sealed trait ProblemDataResponse
 case class ProblemDataSuccess(problemViewData: ProblemViewData) extends ProblemDataResponse
 sealed trait ProblemDataFailure extends ProblemDataResponse
+case class ProblemDataNotFound() extends ProblemDataFailure
 case class UnknownProblemDataFailure() extends ProblemDataFailure
 

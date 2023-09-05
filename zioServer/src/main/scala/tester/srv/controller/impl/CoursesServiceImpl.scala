@@ -45,13 +45,13 @@ case class CoursesServiceImpl(bus: MessageBus,
 
   def byId(courseId: Int): TranzactIO[Course] = CourseDao.byId(courseId)
 
-  def courseViewData(courseId: Int): TranzactIO[viewData.CourseViewData] =
+  def courseViewData(courseId: Int): TranzactIO[Option[viewData.CourseViewData]] =
     for {
       course <- byId(courseId)
-      template <- templateRegistry.courseTemplate(course.templateAlias).map(_.get) //todo None
+      templateOpt <- templateRegistry.courseTemplate(course.templateAlias)
       problems <- courseProblems(courseId)
       views <- ZIO.foreach(problems)(p => problemService.getViewData(p.id))//todo optimize
-    } yield viewData.CourseViewData(courseId.toString, template.courseTitle, CourseStatus.Passing(course.endedAt), template.courseData, views, template.description)
+    } yield templateOpt.map(template => viewData.CourseViewData(courseId.toString, template.courseTitle, CourseStatus.Passing(course.endedAt), template.courseData, views.flatten, template.description))
 
   def partialCourseViewData(courseId: Int): TranzactIO[viewData.PartialCourseViewData] =
     for {
@@ -59,12 +59,12 @@ case class CoursesServiceImpl(bus: MessageBus,
       template <- templateRegistry.courseTemplate(course.templateAlias).map(_.get)
       problems <- courseProblems(courseId)
       views <- ZIO.foreach(problems)(p => problemService.getRefViewData(p.id)) //todo optimize
-    } yield viewData.PartialCourseViewData(courseId.toString, template.courseTitle, template.description, CourseStatus.Passing(course.endedAt), template.courseData, views)
+    } yield viewData.PartialCourseViewData(courseId.toString, template.courseTitle, template.description, CourseStatus.Passing(course.endedAt), template.courseData, views.flatten)
   def userCourses(userId: Int): TranzactIO[Seq[viewData.CourseViewData]] =
     for {
       courses <- CourseDao.userCourses(userId)
       res <- ZIO.foreach(courses)(course => courseViewData(course.id))
-    } yield res
+    } yield res.flatten
 }
 
 object CoursesServiceImpl {

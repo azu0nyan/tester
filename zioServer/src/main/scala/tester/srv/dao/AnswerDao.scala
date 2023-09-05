@@ -91,7 +91,6 @@ object AnswerDao extends AbstractDao[Answer]
         andFrag
       )
       )
-      println(q)
       q.query[(Answer, AnswerMeta)].to[List].map(l => l.map { case (a, b) => (a, b, AnswerStatusUnion(None, None, None, None)) })
   }
 

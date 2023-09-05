@@ -69,7 +69,6 @@ object ProblemDao extends AbstractDao[Problem]
          |LEFT JOIN ${AnswerReviewDao.tableName} as Rev on Rev.answerId = id
          |""".stripMargin) ++ Fragments.whereAnd(filter.map(filterToFragment): _ *) ++
       fr"GROUP BY P.id"
-    println(q)
     q.query[(Problem, ProblemMeta)].to[List]
   }
 

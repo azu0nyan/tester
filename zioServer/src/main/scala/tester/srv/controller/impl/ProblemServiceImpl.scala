@@ -53,22 +53,43 @@ case class ProblemServiceImpl private(
   def setScore(problemId: Int, score: ProblemScore): TranzactIO[Boolean] =
     ProblemDao.updateScore(problemId, score)
 
-  def getRefViewData(problemId: Int): TranzactIO[viewData.ProblemRefViewData] =
-    for{
+  def getRefViewData(problemId: Int): TranzactIO[Option[viewData.ProblemRefViewData]] =
+    for {
       problem <- ProblemDao.byId(problemId)
-      template <- infoRegistryZIO.problemInfo(problem.templateAlias).map(_.get) //todo account for not found
-    } yield viewData.ProblemRefViewData(problemId.toString, problem.templateAlias, template.title(problem.seed), ProblemScore.fromJson(problem.score))
-  
-  def getViewData(problemId: Int): TranzactIO[ProblemViewData] =
-    for{
-      problem <- ProblemDao.byId(problemId)
-      template <- infoRegistryZIO.problemInfo(problem.templateAlias).map(_.get) //todo account for not found
-      answers <- AnswerDao.queryAnswers(AnswerFilterParams(problemId = Some(problemId)))()
-    } yield ProblemViewData(problemId.toString, problem.templateAlias,
-      template.title(problem.seed), template.problemHtml(problem.seed), template.answerField(problem.seed),
-      ProblemScore.fromJson(problem.score), answers.lastOption.map(_._1.answer).getOrElse(""), answers.map{case (a,b,c) => AnswerMetaStatus(a, b, c.toStatus).toViewData})
+      templateOpt <- infoRegistryZIO.problemInfo(problem.templateAlias)
+    } yield templateOpt.map(template =>
+      viewData.ProblemRefViewData(problemId.toString, problem.templateAlias, template.title(problem.seed),
+        ProblemScore.fromJson(problem.score)))
 
-  def registerInfo(info: ProblemInfo): UIO[Unit] = 
+  def getViewData(problemId: Int): TranzactIO[Option[ProblemViewData]] =
+    (for {
+      problemOpt <- ProblemDao
+        .byIdOption(problemId)
+        .tapSome{case None => ZIO.logError(s"Problem with id $problemId requested but not found in DB")}
+      templateAlias = problemOpt.get.templateAlias
+      templateOpt <- infoRegistryZIO
+        .problemInfo(templateAlias)
+        .tapSome{case None => ZIO.logError(s"Course template with with alias $templateAlias alias requested but not found in registry")}
+    } yield (problemOpt, templateOpt)).flatMap {
+      case (Some(problem), Some(template)) =>
+        (for {
+          answers <- AnswerDao.queryAnswers(AnswerFilterParams(problemId = Some(problemId)))()
+          title <- ZIO.attempt(template.title(problem.seed))
+          html <- ZIO.attempt(template.problemHtml(problem.seed))
+          answerField <- ZIO.attempt(template.answerField(problem.seed))
+        } yield Some(ProblemViewData(problemId.toString, problem.templateAlias,
+          title, html, answerField,
+          ProblemScore.fromJson(problem.score), answers.lastOption.map(_._1.answer).getOrElse(""),
+          answers.map { case (a, b, c) => AnswerMetaStatus(a, b, c.toStatus).toViewData }
+        ))).catchAll {
+          case dbException: DbException => ZIO.fail(dbException)
+          case other: Throwable => ZIO.succeed(None)
+        }
+      case _ =>
+        ZIO.succeed(None)
+    }
+
+  def registerInfo(info: ProblemInfo): UIO[Unit] =
     infoRegistryZIO.registerProblemInfo(info)
       .tap(_ => ZIO.log(s"Registered problem info ${info.alias} - ${info.title(0)}"))
 }

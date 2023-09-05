@@ -39,11 +39,14 @@ trait AbstractDao[T: Read : Write] {
   lazy val deleteFragment: Fragment = Fragment.const(s"""DELETE FROM $tableName""")
   lazy val updateFragment = Fragment.const(s"""UPDATE $tableName SET""")
 
-  def insert(t: T): TranzactIO[Boolean] = tzio {
-    val up = Update[T](insertString).toUpdate0(t)
-    println(insertString)
-    up.run
-  }.map(_ == 1)
+  def insert(t: T): TranzactIO[Boolean] = 
+  ZIO.log(insertString).flatMap { _ =>     
+    tzio {
+      val up = Update[T](insertString).toUpdate0(t)
+      up.run
+    }.map(_ == 1)
+    
+  }
 
 
   def updateWhere(set: Fragment, where: Fragment): TranzactIO[Int] = tzio {
@@ -133,7 +136,7 @@ object AbstractDao {
         Fragment.const(s"($fieldString)") ++ fr"VALUES"
         ++ valuesStringDefaultIdFr(t))
         .update
-      println(update.sql)
+//      println(update.sql)
       update.withUniqueGeneratedKeys[Int]("id")
     }
 

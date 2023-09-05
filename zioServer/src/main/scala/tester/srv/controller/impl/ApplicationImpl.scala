@@ -1,6 +1,6 @@
 package tester.srv.controller.impl
 
-import clientRequests.{CourseDataRequest, CourseDataResponse, CourseDataSuccess, CoursesListRequest, CoursesListResponse, GetCoursesListSuccess, LoginFailureUserNotFoundResponse, LoginFailureWrongPasswordResponse, LoginRequest, LoginResponse, LoginSuccessResponse, PartialCourseDataRequest, PartialCourseDataResponse, PartialCourseDataSuccess, ProblemDataRequest, ProblemDataResponse, ProblemDataSuccess, RegistrationFailureLoginToShortResponse, RegistrationFailurePasswordToShortResponse, RegistrationFailureUnknownErrorResponse, RegistrationFailureUserAlreadyExistsResponse, RegistrationFailureWrongCharsInLoginResponse, RegistrationRequest, RegistrationResponse, RegistrationSuccess, RequestStartCourseSuccess, StartCourseRequest, StartCourseResponse, SubmitAnswerRequest, SubmitAnswerResponse, UpdateUserDataRequest, UpdateUserDataResponse, UserDataRequest, UserDataResponse, UserDataSuccess}
+import clientRequests.{CourseDataRequest, CourseDataResponse, CourseDataSuccess, CourseNotFound, CoursesListRequest, CoursesListResponse, GetCoursesListSuccess, LoginFailureUserNotFoundResponse, LoginFailureWrongPasswordResponse, LoginRequest, LoginResponse, LoginSuccessResponse, PartialCourseDataRequest, PartialCourseDataResponse, PartialCourseDataSuccess, ProblemDataNotFound, ProblemDataRequest, ProblemDataResponse, ProblemDataSuccess, RegistrationFailureLoginToShortResponse, RegistrationFailurePasswordToShortResponse, RegistrationFailureUnknownErrorResponse, RegistrationFailureUserAlreadyExistsResponse, RegistrationFailureWrongCharsInLoginResponse, RegistrationRequest, RegistrationResponse, RegistrationSuccess, RequestStartCourseSuccess, StartCourseRequest, StartCourseResponse, SubmitAnswerRequest, SubmitAnswerResponse, UpdateUserDataRequest, UpdateUserDataResponse, UserDataRequest, UserDataResponse, UserDataSuccess}
 import clientRequests.admin.{AddCourseToGroupRequest, AddCourseToGroupResponse, AddCourseToGroupSuccess, AddCustomProblemTemplateRequest, AddCustomProblemTemplateResponse, AddProblemToCourseTemplateRequest, AddProblemToCourseTemplateResponse, AddProblemToCourseTemplateSuccess, AddProblemToCourseTemplateUnknownFailure, AddUserToGroupFailure, AddUserToGroupRequest, AddUserToGroupResponse, AddUserToGroupSuccess, AdminActionRequest, AdminActionResponse, AdminCourseInfoRequest, AdminCourseInfoResponse, AdminCourseListRequest, AdminCourseListResponse, GroupInfoRequest, GroupInfoResponse, GroupInfoResponseSuccess, GroupListRequest, GroupListResponse, GroupListResponseSuccess, NewCourseTemplateRequest, NewCourseTemplateResponse, NewCourseTemplateSuccess, NewCourseTemplateUnknownFailure, NewGroupRequest, NewGroupResponse, NewGroupSuccess, ProblemTemplateListRequest, ProblemTemplateListResponse, RemoveCustomProblemTemplateRequest, RemoveCustomProblemTemplateResponse, RemoveProblemFromCourseTemplateRequest, RemoveProblemFromCourseTemplateResponse, RemoveProblemFromCourseTemplateSuccess, RemoveProblemFromCourseTemplateUnknownFailure, RemoveUserFromGroupFailure, RemoveUserFromGroupRequest, RemoveUserFromGroupResponse, RemoveUserFromGroupSuccess, UnknownAddCourseToGroupFailure, UnknownTemplateCourseToRemoveFrom, UnknownUpdateCustomCourseFailure, UpdateCustomCourseRequest, UpdateCustomCourseResponse, UpdateCustomCourseSuccess, UpdateCustomProblemTemplateRequest, UpdateCustomProblemTemplateResponse, UserListRequest, UserListResponse, UserListResponseSuccess}
 import clientRequests.teacher.{AnswerForConfirmationListRequest, AnswerForConfirmationListResponse, AnswerForConfirmationListSuccess, AnswersListRequest, AnswersListResponse, AnswersListSuccess, CourseAnswersConfirmationInfo, ModifyProblemRequest, ModifyProblemResponse, ModifyProblemSuccess, RejectAnswer, SetScore, ShortCourseInfo, TeacherConfirmAnswerRequest, TeacherConfirmAnswerResponse, TeacherConfirmAnswerSuccess, UserConfirmationInfo}
 import clientRequests.watcher.{GroupScoresRequest, GroupScoresResponse, LightGroupScoresRequest, LightGroupScoresResponse}
@@ -62,10 +62,14 @@ case class ApplicationImpl(
     }
 
   override def courseData(req: CourseDataRequest): Task[CourseDataResponse] =
-    db.transactionOrWiden(courses.courseViewData(req.courseId.toInt)).map(cd => CourseDataSuccess(cd))
+    db.transactionOrWiden(courses.courseViewData(req.courseId.toInt))
+      .map{
+        case Some(cd) => CourseDataSuccess(cd)
+        case None => CourseNotFound()
+      }
 
   override def coursesList(req: CoursesListRequest): Task[CoursesListResponse] =
-    db.transactionOrWiden(courses.userCourses(req.userId.toInt)).map(c => GetCoursesListSuccess(viewData.UserCoursesInfoViewData(Seq(), c.map(_.toInfo)))) //todo templates, faster query
+    db.transactionOrWiden(courses.userCourses(req.userId.toInt)).map(c => GetCoursesListSuccess(viewData.UserCoursesInfoViewData(Seq(), c.map(_.toInfo))))
 
   override def login(req: LoginRequest): Task[LoginResponse] = //todo add metadata logging
     db.transactionOrWiden(for {
@@ -83,7 +87,11 @@ case class ApplicationImpl(
     db.transactionOrWiden(courses.partialCourseViewData(req.courseId.toInt)).map(pcd => PartialCourseDataSuccess(pcd))
 
   override def problemData(req: ProblemDataRequest): Task[ProblemDataResponse] =
-    db.transactionOrWiden(problems.getViewData(req.problemId.toInt)).map(pd => ProblemDataSuccess(pd))
+    db.transactionOrWiden(problems.getViewData(req.problemId.toInt))
+      .map{
+        case Some(pd) => ProblemDataSuccess(pd)
+        case None => ProblemDataNotFound()
+      }
 
   override def registration(req: RegistrationRequest): Task[RegistrationResponse] =
     db.transactionOrWiden(users.registerUser(UserService.RegistrationData(req.login, req.password, req.firstName, req.lastName, req.email))).map {

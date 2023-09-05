@@ -48,7 +48,7 @@ case class VerificationServiceImpl(
         res <- verificator.verifyAnswer(seed, answerRaw)
         _ <- processResult(res)
       } yield ()).catchAllCause { e =>
-        for{
+        for {
           rand <- Random.nextLong.map(_.toHexString)
           _ <- ZIO.logCause(s"Error Id: rand", e)
           _ <- AnswerRejectionDao.insert(AnswerRejection(answerId, java.time.Clock.systemUTC().instant(), Some(s"Error $rand"), None))
@@ -61,10 +61,12 @@ case class VerificationServiceImpl(
         case Some(ver) =>
           verifyWith(ver)
         case None =>
-          AnswerRejectionDao.insert(AnswerRejection(answerId, java.time.Clock.systemUTC().instant(),
-            Some(s"Verificator for  $verificatorAlias not found."), None))
+          for {
+            _ <- ZIO.logError(s"Verificator with alias $verificatorAlias for answer problem $problemId answer $answerId not found.")
+            _ <- AnswerRejectionDao.insert(AnswerRejection(answerId, java.time.Clock.systemUTC().instant(),
+              Some(s"Verificator for  $verificatorAlias not found."), None))
+          } yield ()
     } yield ()
-
   }
 
   def registerVerificator(alias: String, ver: AnswerVerificator): UIO[Unit] =
