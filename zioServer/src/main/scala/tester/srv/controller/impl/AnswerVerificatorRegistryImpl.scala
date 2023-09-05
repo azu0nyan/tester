@@ -9,7 +9,10 @@ class AnswerVerificatorRegistryImpl(map: ConcurrentMap[String, AnswerVerificator
     map.get(alias)
 
   override def registerVerificator(alias: String, info: AnswerVerificator): UIO[Unit] =
-    map.put(alias, info).map(_ => ())
+    for{
+      _ <- ZIO.log(s"Registering answer verificator $alias")
+      _ <- map.put(alias, info)
+    } yield ()
 }
 
 object AnswerVerificatorRegistryImpl {

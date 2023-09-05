@@ -10,7 +10,15 @@ case class ProblemInfoRegistryImpl(map: ConcurrentMap[String, ProblemInfo]) exte
     map.get(alias)
 
   override def registerProblemInfo(info: ProblemInfo): UIO[Unit] =
-    map.put(info.alias, info).map(_ => ())
+    for {
+      _ <- ZIO.log(s"Registering problem info ${info.alias} ${
+        try {
+          info.title(0)
+        } catch
+          case t: Throwable => t.toString
+      }")
+      _ <- map.put(info.alias, info)
+    } yield ()
 }
 
 object ProblemInfoRegistryImpl {
@@ -18,6 +26,6 @@ object ProblemInfoRegistryImpl {
     for {
       map <- ConcurrentMap.make[String, ProblemInfo]()
     } yield ProblemInfoRegistryImpl(map)
-    
-  def layer: ULayer[ProblemInfoRegistry] = ZLayer.fromZIO(live)  
+
+  def layer: ULayer[ProblemInfoRegistry] = ZLayer.fromZIO(live)
 }

@@ -69,7 +69,7 @@ case class ProblemServiceImpl private(
       templateAlias = problemOpt.get.templateAlias
       templateOpt <- infoRegistryZIO
         .problemInfo(templateAlias)
-        .tapSome{case None => ZIO.logError(s"Course template with with alias $templateAlias alias requested but not found in registry")}
+        .tapSome{case None => ZIO.logError(s"Problem with alias $templateAlias alias requested but not found in registry")}
     } yield (problemOpt, templateOpt)).flatMap {
       case (Some(problem), Some(template)) =>
         (for {
