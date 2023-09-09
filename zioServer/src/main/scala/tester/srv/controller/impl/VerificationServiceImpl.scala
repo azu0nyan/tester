@@ -71,7 +71,7 @@ case class VerificationServiceImpl(
 
   def registerVerificator(alias: String, ver: AnswerVerificator): UIO[Unit] =
     registry.registerVerificator(alias, ver)
-      .tap(_ => ZIO.log(s"Registered verificator $alias"))
+   
 }
 
 

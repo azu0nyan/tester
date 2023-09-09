@@ -79,7 +79,7 @@ lazy val zioDockerRunner = RootProject(file("zioDockerRunner"))
     scalaVersion := scalaVer,
     name := "dbGenerated",
   )*/
-//lazy val legacyOts = ProjectRef(file("legacy_ots"), "fooJVM")
+
 
 /*
 lazy val dbFromMongoMigration = (project in file("dbFromMongoMigration"))
