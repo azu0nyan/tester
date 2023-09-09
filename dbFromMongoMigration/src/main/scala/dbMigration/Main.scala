@@ -27,6 +27,18 @@ object Main {
   import io.circe.syntax._
 
 
+  import io.circe.syntax._
+  import io.circe._
+  import io.circe.generic.semiauto._
+  import io.circe.parser.decode
+
+
+  import io.circe.generic.auto._
+  import io.circe._
+  import io.circe.generic.semiauto._
+  import io.circe.syntax._
+
+
   import dbMigration.DbModel._
 
   val ctx = new PostgresJdbcContext[CamelCase](CamelCase, "databaseConfig")
