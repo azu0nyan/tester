@@ -2,10 +2,36 @@ import main.{AppBootstrap, HttpServer}
 import tester.srv.controller.{Application, DataPackOps}
 import tester.srv.controller.impl.ApplicationImpl
 import zio.*
+import zio.logging.{ConsoleLoggerConfig, LogFilter, LogFormat}
+
+import java.time.format.DateTimeFormatter
+
 
 object TesterMain extends ZIOAppDefault {
 
+  import zio.logging.consoleLogger
+  import zio.logging.LogFormat._
+
+
+  val logFormat = {
+    val | = text("|")
+    timestamp(DateTimeFormatter.ofPattern("HH:mm:ss.SSS")).fixed(12) + | +
+      level.fixed(3).highlight + | + fiberId.fixed(15) + | + text(" ") + line
+  }
+  val logger = consoleLogger(ConsoleLoggerConfig(logFormat, LogFilter.logLevel(LogLevel.Info)))
+  override val bootstrap = Runtime.removeDefaultLoggers >>> logger
+
+  def checkLogs = for {
+    _ <- ZIO.logTrace("Checking log level TRACE")
+    _ <- ZIO.logDebug("Checking log level DEBUG")
+    _ <- ZIO.logInfo("Checking log level INFO")
+    _ <- ZIO.logWarning("Checking log level WARNING")
+    _ <- ZIO.logError("Checking log level ERROR")
+    _ <- ZIO.logFatal("Checking log level FATAL")
+  } yield ()
+
   override def run = (for {
+    _ <- checkLogs
     appI <- ZIO.service[Application]
     _ <- appI.loadProblemTemplatesFromDb
     _ <- appI.loadCourseTemplatesFromDb

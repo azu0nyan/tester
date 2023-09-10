@@ -45,7 +45,7 @@ case class AnswerServiceImpl(
       AnswerDao.unverifiedAnswers(problemId).map(_.isEmpty) //todo cache locally
 
     def submit(p: ProblemDao.Problem): TranzactIO[SubmitAnswerResult] = for {
-      id <- AnswerDao.insertReturnId(AnswerDao.Answer(0, problemId, answerRaw, "{}", java.time.Clock.systemUTC().instant()))
+      id <- AnswerDao.insertReturnId(AnswerDao.Answer(0, problemId, answerRaw, java.time.Clock.systemUTC().instant()))
       _ <- verificator.verify(problemId, p.templateAlias, id, answerRaw, p.seed, p.requireConfirmation)
       _ <- rejectNotConfirmed(id)
     } yield AnswerSubmitted(id)
