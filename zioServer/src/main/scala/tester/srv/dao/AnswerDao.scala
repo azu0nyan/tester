@@ -12,6 +12,11 @@ import doobie.postgres.pgisimplicits.*
 import AbstractDao.ById
 import AnswerDao.Answer
 import tester.srv.controller.AnswerService.{AnswerFilterParams, AnswerStatusUnion}
+import tester.srv.dao.AnswerRejectionDao.{AnswerRejection, answerRejection}
+import tester.srv.dao.AnswerReviewDao.AnswerReview
+import tester.srv.dao.AnswerVerificationConfirmationDao.AnswerVerificationConfirmation
+import tester.srv.dao.AnswerVerificationDao.AnswerVerification
+import zio.ZIO
 
 import java.time.Instant
 
@@ -65,17 +70,42 @@ object AnswerDao extends AbstractDao[Answer]
   }
 
   case class AnswerMeta(userId: Int, courseAlias: String, courseId: Int, problemId: Int)
-  val answerMetaFields = "U.id, Course.templateAlias, Course.id, P.id"
-  //todo correct status
+
+
+  case class AnswerRejectionOpt(answerId: Option[Int], rejectedAt: Option[Instant], message: Option[String], rejectedBy: Option[Int])
+  case class AnswerReviewOpt(answerId: Option[Int], text: Option[String], reviewerId: Option[Int])
+  case class AnswerVerificationConfirmationOpt(answerId: Option[Int], confirmedAt: Option[Instant], confirmedById: Option[Int])
+  case class AnswerVerificationOpt(answerId: Option[Int], verifiedAt: Option[Instant], systemMessage: Option[String], score: Option[String], scoreNormalized: Option[Double])
+
+
   def queryAnswers(filter: AnswerFilterParams)(andFrag: Option[Fragment] = None, addJoins: Fragment = fr""): TranzactIO[List[(Answer, AnswerMeta, AnswerStatusUnion)]] = tzio {
-    val q = (fr"SELECT " ++ Fragment.const(fieldStringWithTable + ", " + answerMetaFields + " FROM " + tableName) ++
+
+    val answerMetaFields = "U.id, Course.templateAlias, Course.id, P.id"
+    val answerRejectionFields = "AnswerRejection.answerId, AnswerRejection.rejectedAt, AnswerRejection.message, AnswerRejection.rejectedBy"
+    val answerReviewFields = "AnswerReview.answerId, AnswerReview.text, AnswerReview.reviewerId"
+    val answerVerConfFields = "AnswerVerificationConfirmation.answerId, AnswerVerificationConfirmation.confirmedAt, AnswerVerificationConfirmation.confirmedById"
+    val answerVerFields = "AnswerVerification.answerId, AnswerVerification.verifiedAt, AnswerVerification.systemMessage, AnswerVerification.score, AnswerVerification.scoreNormalized"
+    val fields =
+      fieldStringWithTable + ", " +
+        answerMetaFields + ", " + answerRejectionFields + ", " + answerReviewFields + ", "+ answerVerConfFields + ", " + answerVerFields
+//        AnswerRejectionDao.fieldStringWithTable + ", " +
+//        AnswerReviewDao.fieldStringWithTable + ", " +
+//        AnswerVerificationConfirmationDao.fieldStringWithTable + ", " +
+//        AnswerVerificationDao.fieldStringWithTable
+
+    val q = (fr"SELECT " ++ Fragment.const(fields + " FROM " + tableName) ++
       fr"""LEFT JOIN Problem as P ON P.id = problemId
          LEFT JOIN Course ON P.courseId = Course.id
          LEFT JOIN CourseTemplate as CT ON CT.alias = Course.templateAlias
          LEFT JOIN RegisteredUser as U ON U.id = Course.userId
          LEFT JOIN UserToGroup as UTG ON UTG.userId = U.id
          LEFT JOIN UserGroup as G ON UTG.groupID = G.id
-         LEFT JOIN TeacherToGroup as TTG ON TTG.groupId = G.id""" ++
+         LEFT JOIN TeacherToGroup as TTG ON TTG.groupId = G.id
+         LEFT JOIN AnswerVerification ON AnswerVerification.answerId = Answer.id
+         LEFT JOIN AnswerVerificationConfirmation ON AnswerVerificationConfirmation.answerId = Answer.id
+         LEFT JOIN AnswerReview ON AnswerReview.answerId = Answer.id
+         LEFT JOIN AnswerRejection ON AnswerRejection.answerId = Answer.id
+         """ ++
       addJoins ++
       fr"""WHERE """ ++
       Fragments.andOpt(
@@ -89,14 +119,23 @@ object AnswerDao extends AbstractDao[Answer]
         andFrag
       )
       )
-      q.query[(Answer, AnswerMeta)].to[List].map(l => l.map { case (a, b) => (a, b, AnswerStatusUnion(None, None, None, None)) })
+
+
+    q.query[(Answer, AnswerMeta, AnswerRejectionOpt, AnswerReviewOpt, AnswerVerificationConfirmationOpt, AnswerVerificationOpt)].to[List]
+      .map(l => l.map { case (a, meta, rej, rev, conf, ver) =>
+        (a, meta, AnswerStatusUnion(
+        Option.when(ver.answerId.nonEmpty)(AnswerVerification(ver.answerId.get, ver.verifiedAt.get, ver.systemMessage, ver.score.get, ver.scoreNormalized.get)),
+        Option.when(conf.answerId.nonEmpty)(AnswerVerificationConfirmation(conf.answerId.get, conf.confirmedAt.get, conf.confirmedById)),
+        Option.when(rej.answerId.nonEmpty)(AnswerRejection(rej.answerId.get, rej.rejectedAt.get, rej.message, rej.rejectedBy)),
+        Option.when(rev.answerId.nonEmpty)(AnswerReview(rev.answerId.get, rev.text.get, rev.reviewerId.get))
+      ))
+      })
   }
 
   /** Успешно оцененные ответы, ожидающие подтверждения вручную */
   def unconfirmedAnswers(filter: AnswerFilterParams): TranzactIO[List[(Answer, AnswerMeta, AnswerStatusUnion)]] =
-    queryAnswers(filter)(Some(fr"Conf.answerId IS NULL AND VER.answerId IS NOT NULL AND VER.scoreNormalized = 1.0"),
-      fr"""LEFT JOIN AnswerVerification VER ON VER.answerId = Answer.id
-          |LEFT JOIN AnswerVerifiactionConfirmation as Conf ON Conf.answerId = Answer.id""".stripMargin)
+    queryAnswers(filter)(Some(fr"AnswerVerifiactionConfirmation.answerId IS NULL AND AnswerVerification.answerId IS NOT NULL AND AnswerVerification.scoreNormalized = 1.0"),
+      fr"""""".stripMargin)
 
 
 }

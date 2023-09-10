@@ -59,8 +59,8 @@ case class CoursesServiceImpl(bus: MessageBus,
       template <- templateRegistry.courseTemplate(course.templateAlias).map(_.get)
       problems <- courseProblems(courseId)
       views <- ZIO.foreach(problems)(p => problemService.getRefViewData(p.id)) //todo optimize
-      _ <- ZIO.logTrace(s"Course data ${template.courseData}")
     } yield viewData.PartialCourseViewData(courseId.toString, template.courseTitle, template.description, CourseStatus.Passing(course.endedAt), template.courseData.toJson, views.flatten)
+ 
   def userCourses(userId: Int): TranzactIO[Seq[viewData.CourseViewData]] =
     for {
       courses <- CourseDao.userCourses(userId)

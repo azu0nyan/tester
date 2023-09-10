@@ -48,6 +48,7 @@ case class AnswerServiceImpl(
       id <- AnswerDao.insertReturnId(AnswerDao.Answer(0, problemId, answerRaw, java.time.Clock.systemUTC().instant()))
       _ <- verificator.verify(problemId, p.templateAlias, id, answerRaw, p.seed, p.requireConfirmation)
       _ <- rejectNotConfirmed(id)
+      _ <- ZIO.logInfo(s"Answer $id for problem ${p.id} submitted")
     } yield AnswerSubmitted(id)
 
     def rejectNotConfirmed(exeptId: Int): TranzactIO[Unit] = ZIO.succeed(()) //todo
@@ -59,10 +60,13 @@ case class AnswerServiceImpl(
           onTrue = ZIO.ifZIO[doobie.Connection, DbException](checkNoVerifying)(
             onTrue = submit(problem),
             onFalse = ZIO.succeed(AlreadyVerifyingAnswer())
+              .tap(_ => ZIO.logTrace(s"Someone submit already verifying answer $problemId"))
           ),
           onFalse = ZIO.succeed(MaximumAttemptsLimitExceeded(problem.maxAttempts.get))
+            .tap(_ => ZIO.logInfo(s"Someone exceeds attempts limit for problem $problemId ${problem.maxAttempts.get} "))
         )
       case None => ZIO.succeed(ProblemNotFound())
+        .tap(_ => ZIO.logWarning(s"Someone submitted answer to non existent problem ${problemId}"))
     }
   }
 

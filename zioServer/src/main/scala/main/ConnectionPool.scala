@@ -31,7 +31,7 @@ object ConnectionPool {
         val ds = new PGSimpleDataSource
         ds.setServerNames(Array("localhost"))
         ds.setPortNumbers(Array(5432))
-        ds.setDatabaseName("testerDB")
+        ds.setDatabaseName("testerDB2")//todo use config
         ds.setUser("postgres")
         ds.setPassword("password")
         ds.setCurrentSchema("tester")

@@ -80,9 +80,7 @@ object CoursePiece {
       Decoder[TextWithHeading].widen,
       Decoder[Paragraph].widen,
       Decoder[Problem].widen,
-    ).map(d => {
-      println(d); d
-    }) reduceLeft (_ or _)
+    ).reduceLeft (_ or _)
   }
 
   implicit val pieceEncoder: Encoder[CoursePiece] = Encoder.instance {
