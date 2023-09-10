@@ -16,9 +16,9 @@ object TesterMain extends ZIOAppDefault {
   val logFormat = {
     val | = text("|")
     timestamp(DateTimeFormatter.ofPattern("HH:mm:ss.SSS")).fixed(12) + | +
-      level.fixed(3).highlight + | + fiberId.fixed(15) + | + text(" ") + line
+      level.fixed(3).highlight + | + fiberId.fixed(15) + | + text(" ") + line + | + cause.highlight
   }
-  val logger = consoleLogger(ConsoleLoggerConfig(logFormat, LogFilter.logLevel(LogLevel.Info)))
+  val logger = consoleLogger(ConsoleLoggerConfig(logFormat, LogFilter.logLevel(LogLevel.Trace)))
   override val bootstrap = Runtime.removeDefaultLoggers >>> logger
 
   def checkLogs = for {

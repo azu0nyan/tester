@@ -6,19 +6,119 @@ object CoursePiece {
 
   import io.circe.syntax.*, io.circe.*, io.circe.generic.semiauto.*
 
-  implicit val reqDec11: Decoder[CoursePiece] = deriveDecoder[CoursePiece]
-  implicit val resEnc11: Encoder[CoursePiece] = deriveEncoder[CoursePiece]
-  implicit val reqDec: Decoder[CourseRoot] = deriveDecoder[CourseRoot]
-  implicit val resEnc: Encoder[CourseRoot] = deriveEncoder[CourseRoot]
+  //  implicit val pieceDecoder: Decoder[CoursePiece] = deriveDecoder[CoursePiece]
+  //  implicit val pieceEncoder: Encoder[CoursePiece] = deriveEncoder[CoursePiece]
 
-  def fromJson(json: String): CourseRoot = {
-    import io.circe.parser.decode
-    decode[CoursePiece](json)(reqDec11) match
-      case Left(value) => throw new Exception(s"Cant decode course root $value $json")
-      case Right(value) => value.asInstanceOf[CourseRoot]
+  //  implicit val reqDec: Decoder[CourseRoot] = deriveDecoder[CourseRoot]
+  //  implicit val resEnc: Encoder[CourseRoot] = deriveEncoder[CourseRoot]
+
+  implicit val reqDec1: Decoder[HtmlToDisplay] = deriveDecoder[HtmlToDisplay]
+  implicit val resEnc1: Encoder[HtmlToDisplay] = deriveEncoder[HtmlToDisplay]
+  implicit val reqDec2: Decoder[TextWithHeading] = deriveDecoder[TextWithHeading]
+  implicit val resEnc2: Encoder[TextWithHeading] = deriveEncoder[TextWithHeading]
+  implicit val reqDec3: Decoder[Paragraph] = deriveDecoder[Paragraph]
+  implicit val resEnc3: Encoder[Paragraph] = deriveEncoder[Paragraph]
+  implicit val reqDec4: Decoder[Problem] = deriveDecoder[Problem]
+  implicit val resEnc4: Encoder[Problem] = deriveEncoder[Problem]
+  implicit val reqDec5: Decoder[DisplayMe] = deriveDecoder[DisplayMe]
+  implicit val resEnc6: Encoder[DisplayMe] = deriveEncoder[DisplayMe]
+
+  import cats.syntax.functor._
+  import io.circe.{ Decoder, Encoder }, io.circe.generic.auto._
+  import io.circe.syntax._
+
+
+
+  implicit val encodeTheme: Encoder[Theme] = Encoder.instance {
+    case r@Theme(alias, title, textHtml, childs, displayMe) =>
+      Json.obj(
+        ("alias", Json.fromString(alias)),
+        ("title", Json.fromString(title)),
+        ("textHtml", Json.fromString(textHtml)),
+        ("childs", childs.asJson),
+        ("displayMe", displayMe.asJson),
+      )
+  }
+
+  implicit val decodeTheme: Decoder[Theme] = new Decoder[Theme]:
+    override def apply(c: HCursor) =
+      for {
+        a <- c.downField("alias").as[String]
+        t <- c.downField("title").as[String]
+        th <- c.downField("textHtml").as[String]
+        cp <- c.downField("childs").as[Seq[CoursePiece]]
+        d <- c.downField("displayMe").as[DisplayMe]
+      } yield Theme(a, t, th, cp, d)
+
+
+  implicit val encodeSubTheme: Encoder[SubTheme] = Encoder.instance {
+    case r@SubTheme(alias, title, textHtml, childs, displayMe) =>
+      Json.obj(
+        ("alias", Json.fromString(alias)),
+        ("title", Json.fromString(title)),
+        ("textHtml", Json.fromString(textHtml)),
+        ("childs", childs.asJson),
+        ("displayMe", displayMe.asJson),
+      )
+  }
+
+  implicit val decodeSubTheme: Decoder[SubTheme] = new Decoder[SubTheme]:
+    override def apply(c: HCursor) =
+      for {
+        a <- c.downField("alias").as[String]
+        t <- c.downField("title").as[String]
+        th <- c.downField("textHtml").as[String]
+        cp <- c.downField("childs").as[Seq[CoursePiece]]
+        d <- c.downField("displayMe").as[DisplayMe]
+      } yield SubTheme( a, t, th, cp, d)
+
+  implicit val pieceDecoder: Decoder[CoursePiece] = {
+    List[Decoder[CoursePiece]](
+      Decoder[Theme].widen,
+      Decoder[SubTheme].widen,
+      Decoder[HtmlToDisplay].widen,
+      Decoder[TextWithHeading].widen,
+      Decoder[Paragraph].widen,
+      Decoder[Problem].widen,
+    ).map(d => {
+      println(d); d
+    }) reduceLeft (_ or _)
+  }
+
+  implicit val pieceEncoder: Encoder[CoursePiece] = Encoder.instance {
+    case t@Theme(alias, title, textHtml, childs, displayMe) => t.asJson
+    case s@SubTheme(alias, title, textHtml, childs, displayMe) => s.asJson
+    case h@HtmlToDisplay(alias, displayMe, htmlRaw) => h.asJson
+    case t@TextWithHeading(alias, heading, bodyHtml, displayMe, displayInContentsHtml) => t.asJson
+    case p@Paragraph(alias, bodyHtml, displayMe) => p.asJson
+    case p@Problem(problemAlias, displayMe, displayInContentsHtml) => p.asJson
   }
 
 
+  implicit val encodeRoot: Encoder[CourseRoot] = Encoder.instance {
+    case r@CourseRoot(title, annotation, childs) =>
+      Json.obj(
+        ("title", Json.fromString(title)),
+        ("annotation", Json.fromString(annotation)),
+        ("childs", childs.asJson),
+      )
+  }
+
+  implicit val decodeRoot: Decoder[CourseRoot] = new Decoder[CourseRoot]:
+    override def apply(c: HCursor) =
+      for {
+        title <- c.downField("title").as[String]
+        a <- c.downField("annotation").as[String]
+        c <- c.downField("childs").as[Seq[CoursePiece]]
+      } yield CourseRoot(title, a, c)
+
+
+  def fromJson(json: String): CourseRoot = {
+    import io.circe.parser.decode
+    decode[CourseRoot](json)(decodeRoot) match
+      case Left(value) => throw new Exception(s"Cant decode course root $value $json")
+      case Right(value) => value
+  }
 
 
   val emptyCourse: CourseRoot = CourseRoot("", "", Seq())
@@ -31,12 +131,12 @@ object CoursePiece {
 
   sealed trait CoursePiece {
 
-    def delete(aliasToDelete: String):CoursePiece = this match {
+    def delete(aliasToDelete: String): CoursePiece = this match {
       case container: Container => container.setChilds(container.childs.filter(_.alias != aliasToDelete).map(_.delete(aliasToDelete)))
       case x => x
     }
 
-    def findByAlias(toFind: String): Option[CoursePiece] = if(alias == toFind) Some(this) else this match {
+    def findByAlias(toFind: String): Option[CoursePiece] = if (alias == toFind) Some(this) else this match {
       case container: Container => container.childs.flatMap(_.findByAlias(toFind)).headOption
       case _ => None
     }
@@ -51,14 +151,14 @@ object CoursePiece {
     lazy val piecesOrdered: Seq[CoursePiece] = linearize.map(_._1)
     def next(cp: CoursePiece): Option[CoursePiece] = {
       val i = piecesOrdered.indexOf(cp)
-      Option.when(i + 1 < piecesOrdered.size) (piecesOrdered(i + 1))
+      Option.when(i + 1 < piecesOrdered.size)(piecesOrdered(i + 1))
     }
     def prev(cp: CoursePiece): Option[CoursePiece] = {
       val i = piecesOrdered.indexOf(cp)
       Option.when(i >= 1)(piecesOrdered(i - 1))
     }
-    
-    
+
+
     lazy val linearize: Seq[PieceWithPath] = Seq((this, Seq(alias)))
 
     lazy val pieceByPath: Map[String, CoursePiece] = linearize.map(x => (pathToString(x._2), x._1)).toMap
@@ -98,8 +198,8 @@ object CoursePiece {
       case container: Container => container.childs.map(_.fullHtml(aliasToPt)).reduceOption(_ + _).getOrElse("")
     }
 
-    def allProblems:Seq[Problem] = this match {
-      case c:Container => c.childs.flatMap(_.allProblems)
+    def allProblems: Seq[Problem] = this match {
+      case c: Container => c.childs.flatMap(_.allProblems)
       case problem: Problem => Seq(problem)
       case _ => Seq()
     }
@@ -117,9 +217,8 @@ object CoursePiece {
       }
 
 
-
-    def replaceByAlias(aliasToReplace:String, replacement:CoursePiece): CoursePiece =
-      if(alias == aliasToReplace) replacement
+    def replaceByAlias(aliasToReplace: String, replacement: CoursePiece): CoursePiece =
+      if (alias == aliasToReplace) replacement
       else setChilds(childs.map({
         case container: Container => container.replaceByAlias(aliasToReplace, replacement)
         case c if c.alias == aliasToReplace => replacement
@@ -149,11 +248,11 @@ object CoursePiece {
     def moveUp(toMoveAlias: String): Container = {
       val id = childs.indexWhere(_.alias == toMoveAlias)
 
-      val nc = if(id != -1 && id > 0 && childs.size >= 2)
+      val nc = if (id != -1 && id > 0 && childs.size >= 2)
         childs.updated(id, childs(id - 1)).updated(id - 1, childs(id))
       else childs
 
-      setChilds(nc.map{
+      setChilds(nc.map {
         case container: Container => container.moveUp(toMoveAlias)
         case c => c
       })
@@ -177,7 +276,7 @@ object CoursePiece {
 
 
   case class CourseRoot(title: String, annotation: String, childs: Seq[CoursePiece]) extends Container {
-    def toJson: String = resEnc11(this).noSpaces
+    def toJson: String = encodeRoot(this).noSpaces
 
     override def alias: String = "main"
     override def displayMe: DisplayMe = OwnPage
