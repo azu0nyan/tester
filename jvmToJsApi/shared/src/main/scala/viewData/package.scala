@@ -1,11 +1,11 @@
 import java.time.Instant
 import DbViewsShared.CourseStatus
 import DbViewsShared.AnswerStatus
-import otsbridge.{AnswerField, ProblemScore}
-import io.circe.generic.auto._
+import otsbridge.{AnswerField, CoursePiece, ProblemScore}
+import io.circe.generic.auto.*
 import otsbridge.CoursePiece.{CoursePiece, CourseRoot}
 import otsbridge.ProblemScore.ProblemScore
-import otsbridge.AnswerField._
+import otsbridge.AnswerField.*
 
 /**
  * Данные которые может послать сервер клиенту
@@ -113,8 +113,10 @@ package object viewData {
   /** Краткая информация о задаче в списках задач */
   case class ProblemRefViewData(problemId: String, templateAlias: String, title: String,  score: ProblemScore)
   /** Вся информация о курсе, отображаемая во время его выполнения */
-  case class PartialCourseViewData(courseId: String, title: String, description: String, status: CourseStatus, courseData: CourseRoot, problems: Seq[ProblemRefViewData]){
+  case class PartialCourseViewData(courseId: String, title: String, description: String, status: CourseStatus, courseDataJson: String, problems: Seq[ProblemRefViewData]){
     def refByAlias(alias: String): Option[ProblemRefViewData] = problems.find(_.templateAlias == alias)
+
+    lazy val courseData: CourseRoot = CoursePiece.fromJson(courseDataJson)
   }
 
 

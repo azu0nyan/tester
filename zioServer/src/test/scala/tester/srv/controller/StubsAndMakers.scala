@@ -25,7 +25,7 @@ object StubsAndMakers {
   def acceptAllRegistryStub = new AnswerVerificatorRegistry {
     override def getVerificator(verificatorAlias: String): UIO[Option[AnswerVerificator]] =
       ZIO.succeed(Some(acceptAllVerificator))
-    override def registerVerificator(verificatorAlias: String, answerVerificator: AnswerVerificator): ZIO[transactor.Transactor[Task], DbException, Unit] =
+    override def registerVerificator(verificatorAlias: String, answerVerificator: AnswerVerificator): UIO[Unit] =
       ZIO.succeed(())
   }
 
@@ -39,7 +39,7 @@ object StubsAndMakers {
     override def getVerificator(verificatorAlias: String): UIO[Option[AnswerVerificator]] =
       ZIO.succeed(Some(rejectAllVerificator))
 
-    override def registerVerificator(verificatorAlias: String, answerVerificator: AnswerVerificator): ZIO[transactor.Transactor[Task], DbException, Unit] =
+    override def registerVerificator(verificatorAlias: String, answerVerificator: AnswerVerificator): UIO[Unit] =
       ZIO.succeed(())
   }
 

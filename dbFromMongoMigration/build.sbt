@@ -21,7 +21,7 @@ val utils = RootProject(file("../../scalaUtils"))
 
 val dbFromMongoMigration = (project in file("."))
   .settings(
-    version := "3.2.2",
+    version := "3.2.3",
     scalaVersion := scalaVer,
     name := "dbFromMongoMigration",
     libraryDependencies ++= quillDependencies,

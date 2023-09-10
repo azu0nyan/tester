@@ -1,11 +1,11 @@
 package tester.ui.components
 
+import otsbridge.CoursePiece
 import otsbridge.CoursePiece.CoursePiece
 
 import scala.scalajs.js
-import slinky.core._
-import slinky.web.html._
-
+import slinky.core.*
+import slinky.web.html.*
 import slinky.core.facade.Hooks.{useEffect, useState}
 import slinky.core.facade.{React, ReactElement}
 import slinky.core.facade.ReactContext.RichReactContext
@@ -13,7 +13,7 @@ import tester.ui.components.Application.ApplicationState
 import tester.ui.components.Helpers.SetInnerHtml
 import tester.ui.requests.Request.sendRequest
 import typings.antd.antdStrings.{dark, large, primary}
-import typings.antd.components.{List => AntList, _}
+import typings.antd.components.{List as AntList, *}
 import typings.rcMenu.esInterfaceMod
 import typings.react.mod.CSSProperties
 import viewData.{CourseInfoViewData, PartialCourseViewData, ProblemRefViewData, ProblemViewData}

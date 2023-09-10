@@ -29,13 +29,16 @@ object CourseLoaderLayout {
     useEffect(() => {
       sendRequest(PartialCourseData, clientRequests.PartialCourseDataRequest(props.loggedInUser.token, props.courseInfo.courseId))(onComplete = {
         case clientRequests.PartialCourseDataSuccess(data) =>
+          println(data)
           setCourseData(Some(data))
         case clientRequests.PartialCourseNotOwnedByYou() => Notifications.showError(s"Это не ваш курс") //todo
         case clientRequests.PartialCourseNotFound() => Notifications.showError(s"Курс не найден") //todo
         case clientRequests.PartialCourseDataFailure(clientRequests.BadToken()) => Notifications.showError(s"Полохой токен") //todo
         case clientRequests.PartialCourseDataFailure(fal) => Notifications.showError(s"Ошибка 501") //todo
       }, onFailure = {
-        x => Notifications.showError(s"Ошибка клиента")
+        x =>
+          x.printStackTrace()
+          Notifications.showError(s"Ошибка клиента")
       })
     }, Seq())
 
