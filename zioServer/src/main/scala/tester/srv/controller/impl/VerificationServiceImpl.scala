@@ -45,7 +45,7 @@ case class VerificationServiceImpl(
 
     def verifyWith(verificator: AnswerVerificator): TranzactIO[Unit] =
       (for {
-        res <- verificator.verifyAnswer(seed, answerRaw)
+        res <- verificator.verify(seed, answerRaw)
         _ <- ZIO.logInfo(s"Answer $answerId for problem $problemId verified with result: ${
           res match
             case Verified(score, systemMessage) => s"Verified ${score.toPrettyString}"

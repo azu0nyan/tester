@@ -18,7 +18,7 @@ import zio.*
 object StubsAndMakers {
 
   def acceptAllVerificator = new AnswerVerificator {   
-    override def verifyAnswer(seed: Int, answer: String): Task[AnswerVerificationResult] =
+    override def verify(seed: Int, answer: String): Task[AnswerVerificationResult] =
       ZIO.succeed(AnswerVerificationResult.Verified(BinaryScore(true), None))
   }
 
@@ -31,7 +31,7 @@ object StubsAndMakers {
 
   def rejectAllVerificator = new AnswerVerificator {
   
-    override def verifyAnswer(seed: Int, answer: String): Task[AnswerVerificationResult] =
+    override def verify(seed: Int, answer: String): Task[AnswerVerificationResult] =
       ZIO.succeed(AnswerVerificationResult.CantVerify(None))
   }
 

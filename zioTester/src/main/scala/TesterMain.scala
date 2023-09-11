@@ -3,6 +3,8 @@ import tester.srv.controller.{Application, DataPackOps}
 import tester.srv.controller.impl.ApplicationImpl
 import zio.*
 import zio.logging.{ConsoleLoggerConfig, LogFilter, LogFormat}
+import zioDockerRunner.testRunner.ConcurrentRunner
+import zioDockerRunner.testRunner.ConcurrentRunner.ConcurrentRunnerConfig
 
 import java.time.format.DateTimeFormatter
 
@@ -21,6 +23,12 @@ object TesterMain extends ZIOAppDefault {
   val logger = consoleLogger(ConsoleLoggerConfig(logFormat, LogFilter.logLevel(LogLevel.Trace)))
   override val bootstrap = Runtime.removeDefaultLoggers >>> logger
 
+
+  val conf = ConcurrentRunnerConfig(fibersMax = 6, containerName = "cont:0.1")
+  val runner = ConcurrentRunner.layer(Seq(conf), 16)
+
+
+
   def checkLogs = for {
     _ <- ZIO.logTrace("Checking log level TRACE")
     _ <- ZIO.logDebug("Checking log level DEBUG")
@@ -33,15 +41,18 @@ object TesterMain extends ZIOAppDefault {
   override def run = (for {
     _ <- checkLogs
     appI <- ZIO.service[Application]
+    cr <- ZIO.service[ConcurrentRunner]
     _ <- appI.loadProblemTemplatesFromDb
     _ <- appI.loadCourseTemplatesFromDb
-    _ <- registetPacks(appI.asInstanceOf[ApplicationImpl])
+    _ <- registetPacks(appI.asInstanceOf[ApplicationImpl], cr)
     _ <- HttpServer.startServer
-  } yield ()).provideLayer(AppBootstrap.layer)
+  } yield ())
+    .provideSomeLayer(AppBootstrap.layer)
+    .provideSomeLayer(runner)
 
-  def registetPacks(app: ApplicationImpl) =
+  def registetPacks(app: ApplicationImpl, cr: ConcurrentRunner) =
     for {
-      _ <- DataPackOps.registerInApp(app)(
+      _ <- DataPackOps.registerInApp(app, cr)(
         courses.javaCourse.data,
         courses.datastructures.data,
         courses.algos.data,
