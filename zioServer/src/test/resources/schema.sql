@@ -403,17 +403,17 @@ ALTER TABLE tester.answerreview OWNER TO postgres;
 
 --
 -- TOC entry 237 (class 1259 OID 32849)
--- Name: answerverifiactionconfirmation; Type: TABLE; Schema: tester; Owner: postgres
+-- Name: answerverificationconfirmation; Type: TABLE; Schema: tester; Owner: postgres
 --
 
-CREATE TABLE tester.answerverifiactionconfirmation (
+CREATE TABLE tester.answerverificationconfirmation (
     answerid integer NOT NULL,
     confirmedat timestamp without time zone NOT NULL,
     confirmedbyid integer
 );
 
 
-ALTER TABLE tester.answerverifiactionconfirmation OWNER TO postgres;
+ALTER TABLE tester.answerverificationconfirmation OWNER TO postgres;
 
 --
 -- TOC entry 234 (class 1259 OID 32806)
@@ -674,10 +674,10 @@ ALTER TABLE ONLY tester.answerreview
 
 --
 -- TOC entry 3355 (class 2606 OID 32853)
--- Name: answerverifiactionconfirmation answerverifiactionconfirmation_pkey; Type: CONSTRAINT; Schema: tester; Owner: postgres
+-- Name: answerverificationconfirmation answerverifiactionconfirmation_pkey; Type: CONSTRAINT; Schema: tester; Owner: postgres
 --
 
-ALTER TABLE ONLY tester.answerverifiactionconfirmation
+ALTER TABLE ONLY tester.answerverificationconfirmation
     ADD CONSTRAINT answerverifiactionconfirmation_pkey PRIMARY KEY (answerid);
 
 
@@ -791,19 +791,19 @@ ALTER TABLE ONLY tester.answerreview
 
 --
 -- TOC entry 3370 (class 2606 OID 32879)
--- Name: answerverifiactionconfirmation answerverifiactionconfirmation_answerid_fkey; Type: FK CONSTRAINT; Schema: tester; Owner: postgres
+-- Name: answerverificationconfirmation answerverifiactionconfirmation_answerid_fkey; Type: FK CONSTRAINT; Schema: tester; Owner: postgres
 --
 
-ALTER TABLE ONLY tester.answerverifiactionconfirmation
+ALTER TABLE ONLY tester.answerverificationconfirmation
     ADD CONSTRAINT answerverifiactionconfirmation_answerid_fkey FOREIGN KEY (answerid) REFERENCES tester.answer(id) ON DELETE CASCADE NOT VALID;
 
 
 --
 -- TOC entry 3371 (class 2606 OID 32884)
--- Name: answerverifiactionconfirmation answerverifiactionconfirmation_confirmedbyid_fkey; Type: FK CONSTRAINT; Schema: tester; Owner: postgres
+-- Name: answerverificationconfirmation answerverifiactionconfirmation_confirmedbyid_fkey; Type: FK CONSTRAINT; Schema: tester; Owner: postgres
 --
 
-ALTER TABLE ONLY tester.answerverifiactionconfirmation
+ALTER TABLE ONLY tester.answerverificationconfirmation
     ADD CONSTRAINT answerverifiactionconfirmation_confirmedbyid_fkey FOREIGN KEY (confirmedbyid) REFERENCES tester.registereduser(id) ON DELETE SET NULL NOT VALID;
 
 

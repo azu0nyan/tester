@@ -134,7 +134,7 @@ object AnswerDao extends AbstractDao[Answer]
 
   /** Успешно оцененные ответы, ожидающие подтверждения вручную */
   def unconfirmedAnswers(filter: AnswerFilterParams): TranzactIO[List[(Answer, AnswerMeta, AnswerStatusUnion)]] =
-    queryAnswers(filter)(Some(fr"AnswerVerifiactionConfirmation.answerId IS NULL AND AnswerVerification.answerId IS NOT NULL AND AnswerVerification.scoreNormalized = 1.0"),
+    queryAnswers(filter)(Some(fr"answerverificationconfirmation.answerId IS NULL AND AnswerVerification.answerId IS NOT NULL AND AnswerVerification.scoreNormalized = 1.0"),
       fr"""""".stripMargin)
 
 

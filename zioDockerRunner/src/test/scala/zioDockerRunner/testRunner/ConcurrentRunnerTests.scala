@@ -50,7 +50,7 @@ object ConcurrentRunnerTests extends ZIOSpecDefault{
 
     for {
       concurrentRunner <- ConcurrentRunner.live(Seq(conf), 16)
-      _ <- concurrentRunner.startWorkers
+//      _ <- concurrentRunner.startWorkers
 //      _ <- ZIO.foreachDiscard(0 to 2)(_ => concurrentRunner.addTask(crm))
       prom <- concurrentRunner.addTask(crm)
       res <- prom.await.exit

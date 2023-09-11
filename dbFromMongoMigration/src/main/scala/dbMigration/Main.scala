@@ -194,7 +194,7 @@ object Main {
       case class AnswerRejection(answerId: Int,  rejectedAt: Instant, message: Option[String], rejectedBy: Option[Int])
       case class AnswerReview(answerId: Int,  text: String, reviewerId: Int)
       case class AnswerVerification(answerId: Int, verifiedAt: Instant, systemMessage: Option[String], score: String, scoreNormalized: Double)
-      case class answerverifiactionconfirmation(answerId: Int,  confirmedAt: Instant, confirmedById: Option[Int])
+      case class answerverificationconfirmation(answerId: Int,  confirmedAt: Instant, confirmedById: Option[Int])
 
 
       a.status match {
@@ -217,7 +217,7 @@ object Main {
           ctx.run(q(ctx.lift(verification)))
 
           val qq = quote {
-            query[answerverifiactionconfirmation].insertValue(ctx.lift(answerverifiactionconfirmation(id, confirmedAt.getOrElse(java.time.Clock.systemUTC().instant()), None)))
+            query[answerverificationconfirmation].insertValue(ctx.lift(answerverificationconfirmation(id, confirmedAt.getOrElse(java.time.Clock.systemUTC().instant()), None)))
           }
           ctx.run(qq)
           if(review.nonEmpty){

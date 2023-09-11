@@ -19,7 +19,7 @@ object AnswerVerificationConfirmationDao extends AbstractDao[AnswerVerificationC
   case class AnswerVerificationConfirmation(answerId: Int,  confirmedAt: Instant, confirmedById: Option[Int])
 
   override val schema: Schema[AnswerVerificationConfirmation] = DeriveSchema.gen[AnswerVerificationConfirmation]
-  override val tableName: String = "AnswerVerifiactionConfirmation"
+  override val tableName: String = "AnswerVerificationConfirmation"
 
 
   def answerConfirmation(answerId: Int): TranzactIO[Option[AnswerVerificationConfirmation]] =

@@ -26,10 +26,8 @@ case class ConcurrentRunner(queue: Queue[ConcurrentRunnerTask], configs: Seq[Con
   //todo mb ZIO.scoped here
   def runTask(taskAndPromise: ConcurrentRunnerTask, config: ConcurrentRunnerConfig): ZIO[Any, Nothing, Unit] =
     for {
-      _ <- ZIO.logInfo(s"Task succeed 1")
       resExit: Exit[DockerFailure, CompileAndRunMultipleResult] <- Runner.compileAndRunMultiple(taskAndPromise.task)
         .provideSomeLayer(DockerOps.dockerClientContextScoped(config.containerName, config.dockerClientConfig)).exit
-      _ <- ZIO.logInfo(s"Task succeed 2")
       _ <- resExit match
         case Exit.Success(value) => taskAndPromise.promise.succeed(value)
         case Exit.Failure(cause) => taskAndPromise.promise.fail(cause.failures.headOption.getOrElse(UnknownDockerFailure))
@@ -78,8 +76,10 @@ object ConcurrentRunner {
   def live(config: Seq[ConcurrentRunnerConfig], queueSize: Int): ZIO[Any, Nothing, ConcurrentRunner] =
     for {
       _ <- ZIO.logInfo(s"Creating concurrent runner with ${config.size} runners. And ${config.map(_.fibersMax).sum} fibers total.")
-      q <- Queue.dropping(queueSize)
-    } yield ConcurrentRunner(q, config)
+      q <- Queue.dropping[ConcurrentRunnerTask](queueSize)
+      cr = ConcurrentRunner(q, config)
+      _ <- cr.startWorkers
+    } yield cr
 
   def layer(config: Seq[ConcurrentRunnerConfig], queueSize: Int) = ZLayer.fromZIO(live(config, queueSize))
 }

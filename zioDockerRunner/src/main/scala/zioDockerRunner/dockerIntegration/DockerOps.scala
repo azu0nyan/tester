@@ -34,14 +34,13 @@ object DockerOps {
     val res = DockerClientBuilder.getInstance(config)
       .withDockerCmdExecFactory(new NettyDockerCmdExecFactory()
         .withConnectTimeout(30 * 1000)).build()
-    println(s"Client open $res")
     res
-  }
+  }.tap(dc => ZIO.logInfo(s"Client open $dc"))
 
   def closeClient(c: DockerClient): ZIO[Any, Nothing, Unit] = ZIO.attemptBlocking {
-    println(s"Client close $c")
-    c.close()
-  }.catchAll(t => ZIO.logErrorCause("Exception when closing client", Cause.fail(t)))
+      c.close()
+    }.catchAll(t => ZIO.logErrorCause("Exception when closing client", Cause.fail(t)))
+    .tap(dc => ZIO.logInfo(s"Client close $dc"))
 
   def client(config: DockerClientConfig = DefaultDockerClientConfig.createDefaultConfigBuilder().build()): ZIO[Scope, CantCreateClient, DockerClient] =
     ZIO.acquireRelease(buildClient(config))(closeClient).mapError(t => CantCreateClient(Some(t.toString)))
@@ -53,7 +52,7 @@ object DockerOps {
     ZLayer.scoped(client(config))
 
   def makeContainer(containerName: String): ZIO[DockerClient, Throwable, Container] =
-    for {
+    (for {
       dc <- ZIO.service[DockerClient]
     } yield {
 
@@ -61,19 +60,16 @@ object DockerOps {
       val createContainerResponse = createContainerCmd.exec()
       val containerID = createContainerResponse.getId
       dc.startContainerCmd(containerID).exec()
-      println(s"cont start $containerID")
       Container(containerID)
-    }
-
+    }).tap(c => ZIO.logInfo(s"Container start ${c.id}"))
 
 
   def killContainer(container: Container): ZIO[DockerClient, Nothing, Any] =
     ZIO.service[DockerClient].flatMap { dc =>
       ZIO.attemptBlocking {
-        println(s"cont stop $container")
         dc.killContainerCmd(container.id).exec()
       }.catchAll(t => ZIO.logErrorCause("Exception when killing container", Cause.fail(t)))
-    }
+    }.tap(c => ZIO.logInfo(s"Container killed ${container.id}"))
 
   def container(containerName: String): ZIO[DockerClient & Scope, CantCreateContainer, Container] =
     ZIO.acquireRelease(makeContainer(containerName))(killContainer).mapError(t => CantCreateContainer(Some(t.toString)))
@@ -85,14 +81,14 @@ object DockerOps {
     ZLayer.fromZIO(container(containerName))
 
   //The following import might make progress towards fixing the problem: IDK WHY
-//  import izumi.reflect.dottyreflection.ReflectionUtil.reflectiveUncheckedNonOverloadedSelectable
+  //  import izumi.reflect.dottyreflection.ReflectionUtil.reflectiveUncheckedNonOverloadedSelectable
   def dockerClientContext(containerName: String, config: DockerClientConfig = DefaultDockerClientConfig.createDefaultConfigBuilder().build()): ZIO[Scope, CantCreateClient | CantCreateContainer, DockerClientContext] =
-      for {
-        cl <- client(config)
-        cont <- container(containerName).provideSomeLayer(ZLayer.succeed(cl))
-      } yield DockerClientContext(cl, cont)
+    for {
+      cl <- client(config)
+      cont <- container(containerName).provideSomeLayer(ZLayer.succeed(cl))
+    } yield DockerClientContext(cl, cont)
 
-  def dockerClientContextScoped(containerName: String, config: DockerClientConfig = DefaultDockerClientConfig.createDefaultConfigBuilder().build()): ZLayer[Any, CantCreateClient | CantCreateContainer,  DockerClientContext] =
+  def dockerClientContextScoped(containerName: String, config: DockerClientConfig = DefaultDockerClientConfig.createDefaultConfigBuilder().build()): ZLayer[Any, CantCreateClient | CantCreateContainer, DockerClientContext] =
     ZLayer.scoped(dockerClientContext(containerName, config))
 
   def doInContainer[R: Tag, E: Tag, A: Tag](containerName: String)
@@ -135,8 +131,6 @@ object DockerOps {
   //  )
 
   def executeCommandInContainer(context: DockerClientContext, params: ExecuteCommandParams): ExecuteCommandResult = {
-    println(s"Executing ${params.cmd}")
-
     val command = context.client.execCreateCmd(context.container.id)
       .withCmd(params.cmd: _ *)
       .withAttachStdin(true)
@@ -166,7 +160,6 @@ object DockerOps {
     val retCode = context.client.inspectExecCmd(command.getId).exec().getExitCodeLong
 
     val res = ExecuteCommandResult(Option(retCode), out.toString(), err.toString())
-    println(res)
     res
   }
 
