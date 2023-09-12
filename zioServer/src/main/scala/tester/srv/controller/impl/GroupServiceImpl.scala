@@ -88,8 +88,8 @@ case class GroupServiceImpl(
     for {
       group <- GroupDao.byId(groupId)
       courses <- groupCourses(groupId, false)
-      coursesViews <- ZIO.foreach(courses)(c => templateRegistry.courseTemplate(c.templateAlias).map(_.get)
-        .map(ct => viewData.CourseTemplateViewData(ct.uniqueAlias, ct.courseTitle, ct.description, ct.problemAliasesToGenerate)))
+      courseTemplates <- ZIO.foreach(courses)(c => templateRegistry.courseTemplate(c.templateAlias))
+      coursesViews = courseTemplates.flatten.map(ct => viewData.CourseTemplateViewData(ct.uniqueAlias, ct.courseTitle, ct.description, ct.problemAliasesToGenerate))
       users <- groupUsers(groupId)
     } yield viewData.GroupDetailedInfoViewData(groupId.toString, group.title, group.description, coursesViews, users)
 

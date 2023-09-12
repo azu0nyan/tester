@@ -25,7 +25,7 @@ case class LoginRequest(login:String, password:String)
 
 sealed trait LoginResponse
 sealed trait LoginFailure
-case class LoginSuccessResponse(token:String, userData:UserViewData) extends LoginResponse
+case class LoginSuccessResponse(token:String, userData:UserViewData, isTeacher: Boolean, isAdmin: Boolean) extends LoginResponse
 case class LoginFailureUserNotFoundResponse() extends LoginResponse with LoginFailure
 case class LoginFailureWrongPasswordResponse() extends LoginResponse with LoginFailure
 case class LoginFailureUnknownErrorResponse() extends LoginResponse with LoginFailure

@@ -1,13 +1,13 @@
 package tester.ui.components
 
 import slinky.core.facade.ReactElement
-import slinky.web.html._
-import tester.ui.components.Application.{ApplicationState, TeacherAppState}
+import slinky.web.html.*
+import tester.ui.components.Application.{AdminAppState, ApplicationState, TeacherAppState}
 import typings.antd.{antdStrings, libSpaceMod}
 import typings.csstype.mod.FloatProperty
 import typings.csstype.mod.PositionProperty.fixed
 import typings.react.mod.CSSProperties
-import typings.antd.components.{List => AntList, _}
+import typings.antd.components.{List as AntList, *}
 import viewData.UserViewData
 
 import scala.scalajs.js
@@ -23,10 +23,15 @@ object Helpers {
   def makeHeader(content: ReactElement, logout: () => Unit, user:LoggedInUser, setAppState: ApplicationState => Unit): ReactElement = {
     Layout.Header().style(CSSProperties().setHeight(64d))(
       content,
-      if(user.userViewData.role == "Admin()"){
+      if(user.isTeacher){
         Button()
           .style(CSSProperties().setFloat(FloatProperty.right))
           .onClick(_ => setAppState(TeacherAppState))("В учительскую")
+      } else div(),
+      if (user.isAdmin) {
+        Button()
+          .style(CSSProperties().setFloat(FloatProperty.right))
+          .onClick(_ => setAppState(AdminAppState))("В админскую")
       } else div(),
       Button()
         .style(CSSProperties().setFloat(FloatProperty.right))

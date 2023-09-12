@@ -24,7 +24,7 @@ import java.time.Instant
 object CSS extends js.Any
 
 sealed trait UserAppData
-case class LoggedInUser(token: String, userViewData: UserViewData) extends UserAppData
+case class LoggedInUser(token: String, userViewData: UserViewData, isTeacher: Boolean, isAdmin: Boolean) extends UserAppData
 case class NoUser() extends UserAppData
 
 object Application {
@@ -40,7 +40,7 @@ object Application {
   case object StudentAppState extends ApplicationState
   case object TeacherAppState extends ApplicationState
 //  case object WatcherAppState extends ApplicationState
-//  case object AdminAppState extends ApplicationState
+  case object AdminAppState extends ApplicationState
 
 
 
@@ -51,8 +51,8 @@ object Application {
 
     def tryLogin(lp: LoginForm.LoginPassword): Unit = {
       sendRequest(Login, LoginRequest(lp.login, lp.password))(onComplete = {
-        case LoginSuccessResponse(token: String, userData: UserViewData) =>
-          setLoggedInUser(LoggedInUser(token, userData))
+        case LoginSuccessResponse(token, userData, isTeacher, isAdmin ) =>
+          setLoggedInUser(LoggedInUser(token, userData, isTeacher, isAdmin))
         case LoginFailureUserNotFoundResponse() =>
           Notifications.showError(s"Неизвестный логин")
         case LoginFailureWrongPasswordResponse() =>
@@ -77,7 +77,7 @@ object Application {
 
 //                div("Teacher UI")
 //              case WatcherAppState => div("Watcher UI")
-//              case AdminAppState => div("Admin UI")
+              case AdminAppState => div("Admin UI")
             }
           case NoUser() => LoginForm( tryLogin)
         }

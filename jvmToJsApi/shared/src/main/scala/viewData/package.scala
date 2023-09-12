@@ -63,7 +63,7 @@ package object viewData {
   case class GroupDetailedInfoViewData(groupId: String, groupTitle: String, description: String, courses: Seq[CourseTemplateViewData], users: Seq[UserViewData])
 
   /** Информация о пользователе для отображения */
-  case class UserViewData(id: String, login: String, firstName: Option[String], lastName: Option[String], email: Option[String], groups: Seq[GroupInfoViewData], role: String, registeredAt: Instant) {
+  case class UserViewData(id: String, login: String, firstName: Option[String], lastName: Option[String], email: Option[String], groups: Seq[GroupInfoViewData], registeredAt: Instant) {
     def loginNameString: String = s"${login} ${firstName.getOrElse("")} ${lastName.getOrElse("")}"
 
   }

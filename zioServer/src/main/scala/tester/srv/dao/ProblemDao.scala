@@ -46,29 +46,30 @@ object ProblemDao extends AbstractDao[Problem]
     case class ByCourseAliases(courseId: String*) extends ProblemFilter
   }
 
-  def filterToFragment(f: ProblemFilter): Fragment = f match
+  def filterToFragment(f: ProblemFilter): Option[Fragment] = f match
     case ProblemFilter.ByUsers(userIds*) =>
-      Fragments.in(fr"C.userId", userIds.toNeSeq.get)
-    case ProblemFilter.ByGroup(groupId) => fr"TRUE"
+      userIds.toNeSeq.map(ids => Fragments.in(fr"C.userId", ids))
+    case ProblemFilter.ByGroup(groupId) =>
+      None //todo
     case ProblemFilter.ByCourses(courseIds*) =>
-      Fragments.in(fr"P.courseId", courseIds.toNeSeq.get)
+      courseIds.toNeSeq.map(cids => Fragments.in(fr"P.courseId", cids))
     case ProblemFilter.ByCourseAliases(courseAliases*) =>
-      Fragments.in(fr"C.templateAlias", courseAliases.toNeSeq.get)
+      courseAliases.toNeSeq.map(as => Fragments.in(fr"C.templateAlias", as))
 
   case class ProblemMeta(userId: Int, courseAlias: String, answers: Int, rejectedAnswers: Int, verifiedAnswers: Int, confirmed: Int, reviews: Int /*, confirmedNonRejected: Int*/)
-  def queryProblems(filter: ProblemFilter*): TranzactIO[Seq[(Problem, ProblemMeta)]] = tzio{
+  def queryProblems(filter: ProblemFilter*): TranzactIO[Seq[(Problem, ProblemMeta)]] = tzio {
     val q = Fragment.const(
-      s"""SELECT $fieldStringWithTable, C.id,
+      s"""SELECT ${fieldNames.map(n => s"P.$n").mkString(", ")}, C.userId, C.templateAlias,
          |       COUNT(A.id), COUNT(R.answerId), COUNT(V.answerId), COUNT(VC.answerId), COUNT(Rev.answerId)
          |FROM $tableName as P
          |LEFT JOIN ${CourseDao.tableName} as C ON C.id = P.courseId
          |LEFT JOIN ${AnswerDao.tableName} as A ON A.problemId = P.id
-         |LEFT JOIN ${AnswerRejectionDao.tableName} as R on R.answerId = id
-         |LEFT JOIN ${AnswerVerificationDao.tableName} as V on V.answerId = id
-         |LEFT JOIN ${AnswerVerificationConfirmationDao.tableName} as VC on VC.answerId = id
-         |LEFT JOIN ${AnswerReviewDao.tableName} as Rev on Rev.answerId = id
-         |""".stripMargin) ++ Fragments.whereAnd(filter.map(filterToFragment): _ *) ++
-      fr"GROUP BY P.id"
+         |LEFT JOIN ${AnswerRejectionDao.tableName} as R on R.answerId = A.id
+         |LEFT JOIN ${AnswerVerificationDao.tableName} as V on V.answerId = A.id
+         |LEFT JOIN ${AnswerVerificationConfirmationDao.tableName} as VC on VC.answerId = A.id
+         |LEFT JOIN ${AnswerReviewDao.tableName} as Rev on Rev.answerId = A.id
+         |""".stripMargin) ++ Fragments.whereAndOpt(filter.map(filterToFragment): _ *) ++
+      fr"GROUP BY P.id, C.userId, C.templateAlias"
     q.query[(Problem, ProblemMeta)].to[List]
   }
 

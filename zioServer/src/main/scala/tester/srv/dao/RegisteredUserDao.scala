@@ -22,7 +22,7 @@ object RegisteredUserDao extends AbstractDao[RegisteredUser]
   case class RegisteredUser(id: Int, login: String, firstName: String, lastName: String, email: String,
                             passwordHash: String, passwordSalt: String, registeredAt: Instant) {
     def toViewData: viewData.UserViewData = viewData.UserViewData(id.toString, login,
-      Some(firstName), Some(lastName), Some(email), Seq(), "{}", registeredAt)
+      Some(firstName), Some(lastName), Some(email), Seq(), registeredAt)
   }
 
   override val schema: Schema[RegisteredUser] = DeriveSchema.gen[RegisteredUser]

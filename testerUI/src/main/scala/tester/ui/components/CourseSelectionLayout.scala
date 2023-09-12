@@ -27,7 +27,7 @@ object CourseSelectionLayout {
 
   val component = FunctionalComponent[Props] { props =>
 
-    def rightSider(u: UserViewData) = {
+    def rightSider(l: LoggedInUser) = {
       Layout.Sider()
         .style(CSSProperties()
           //      .setOverflow(OverflowBlockProperty.auto)
@@ -36,7 +36,7 @@ object CourseSelectionLayout {
           //      .setLeft(0)
           //      .setTop(0)
           //      .setBottom(0)
-        )(UserInfoBox(u))
+        )(UserInfoBox(l))
     }
 
     def leftSider(coursesList: Seq[CourseInfoViewData], setSelected: CourseInfoViewData => Unit) = {
@@ -90,7 +90,7 @@ object CourseSelectionLayout {
     Layout()(
       leftSider(coursesList, x => setSelectedCourse(Some(x))),
       content(coursesList, selectedCourse),
-      rightSider(props.loggedInUser.userViewData)
+      rightSider(props.loggedInUser)
     )
   }
 }
