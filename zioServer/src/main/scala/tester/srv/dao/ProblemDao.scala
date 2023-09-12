@@ -41,7 +41,7 @@ object ProblemDao extends AbstractDao[Problem]
   sealed trait ProblemFilter
   object ProblemFilter {
     case class ByUsers(userId: Int*) extends ProblemFilter
-    case class ByGroup(groupId: Int) extends ProblemFilter
+    case class FromGroupCourses(groupId: Int) extends ProblemFilter
     case class ByCourses(courseId: Int*) extends ProblemFilter
     case class ByCourseAliases(courseId: String*) extends ProblemFilter
   }
@@ -49,8 +49,8 @@ object ProblemDao extends AbstractDao[Problem]
   def filterToFragment(f: ProblemFilter): Option[Fragment] = f match
     case ProblemFilter.ByUsers(userIds*) =>
       userIds.toNeSeq.map(ids => Fragments.in(fr"C.userId", ids))
-    case ProblemFilter.ByGroup(groupId) =>
-      None //todo
+    case ProblemFilter.FromGroupCourses(groupId) =>
+      None //todo user can have same courses from different groups, forbid that or add filter here
     case ProblemFilter.ByCourses(courseIds*) =>
       courseIds.toNeSeq.map(cids => Fragments.in(fr"P.courseId", cids))
     case ProblemFilter.ByCourseAliases(courseAliases*) =>

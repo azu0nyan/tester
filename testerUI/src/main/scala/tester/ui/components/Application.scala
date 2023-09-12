@@ -77,7 +77,7 @@ object Application {
 
 //                div("Teacher UI")
 //              case WatcherAppState => div("Watcher UI")
-              case AdminAppState => div("Admin UI")
+              case AdminAppState => AdminAppLayout(l, logout = () => setLoggedInUser(NoUser()))
             }
           case NoUser() => LoginForm( tryLogin)
         }

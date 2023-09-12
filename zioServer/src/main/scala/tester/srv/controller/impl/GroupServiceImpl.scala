@@ -101,7 +101,7 @@ case class GroupServiceImpl(
 
   def groupScores(groupId: Int, courseAliases: Seq[String], userIds: Seq[Int]): TranzactIO[clientRequests.watcher.LightGroupScores.UserScores] =
     ProblemDao.queryProblems(
-        ProblemDao.ProblemFilter.ByGroup(groupId),
+        ProblemDao.ProblemFilter.FromGroupCourses(groupId),
         ProblemDao.ProblemFilter.ByCourseAliases(courseAliases: _*),
         ProblemDao.ProblemFilter.ByUsers(userIds: _*))
       .map { s =>
