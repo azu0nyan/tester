@@ -34,7 +34,7 @@ object AdminAppLayout {
     val (leftCollapsed, setLeftCollapsed) = useState[Boolean](false)
 
     useEffect(() => {
-
+      
     }, Seq())
 
 
