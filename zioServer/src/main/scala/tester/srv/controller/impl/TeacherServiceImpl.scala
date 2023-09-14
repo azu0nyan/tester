@@ -7,21 +7,24 @@ import doobie.implicits.*
 import io.github.gaelrenoux.tranzactio.DbException
 import io.github.gaelrenoux.tranzactio.doobie.TranzactIO
 import tester.srv.controller.TeacherService
-import tester.srv.dao.{AnswerTeacherDao, TeacherDao}
+import tester.srv.controller.MessageBus
+import tester.srv.dao.TeacherToGroupDao.TeacherToGroup
+import tester.srv.dao.{TeacherDao, TeacherToGroupDao}
+import utils.ManyToManyRelation
 import zio.*
 import zio.logging.*
 import zio.concurrent.{ConcurrentMap, ConcurrentSet}
 
+
 case class TeacherServiceImpl(
                                bus: MessageBus,
                                teachers: ConcurrentSet[Int],
-                             //todo
-//                               teacherToGroup: ConcurrentMap[Int, Set[Int]],
-//                               groupToTeacher: ConcurrentMap[Int, Set[Int]],
+                               teacherToGroup: ManyToManyRelation[Int, Int]
                              ) extends TeacherService {
   override def initCaches(): TranzactIO[Unit] =
     for {
       ts <- TeacherDao.all
+      _ <- ZIO.logInfo(s"Caching ${ts.size} teachers")
       _ <- ZIO.foreach(ts)(t => teachers.add(t.userId))
     } yield ()
 
@@ -31,9 +34,19 @@ case class TeacherServiceImpl(
   } yield res
 
   override def removeFromTeachers(userId: Int): TranzactIO[Boolean] = for {
-    res <- TeacherDao.deleteWhere(fr"userId = $userId")
-  } yield res == 1
+    res <- TeacherDao.deleteWhere(fr"userId = $userId").map(_ == 1)
+    _ <- ZIO.when(res)(teachers.remove(userId))
+  } yield res
 
+  def addTeacherToGroup(teacherId: Int, groupId: Int): TranzactIO[Boolean] = for {
+    res <- TeacherToGroupDao.insert(TeacherToGroupDao.TeacherToGroup(teacherId, groupId))
+    _ <- ZIO.when(res)(teacherToGroup.addXtoY(teacherId, groupId))
+  } yield res
+
+  def removeTeacherFromGroup(teacherId: Int, groupId: Int): TranzactIO[Boolean] = for {
+    res <- TeacherToGroupDao.deleteWhere(fr"teacherID = $teacherId AND groupId = $groupId").map(_ == 1)
+    _ <- ZIO.when(res)(teacherToGroup.removeXtoY(teacherId, groupId))
+  } yield res
 }
 
 
@@ -42,7 +55,8 @@ object TeacherServiceImpl {
     for {
       bus <- ZIO.service[MessageBus]
       set <- ConcurrentSet.make[Int]()
-    } yield TeacherServiceImpl(bus, set)
+      rel <- ManyToManyRelation.live[Int, Int]
+    } yield TeacherServiceImpl(bus, set, rel)
 
   def layer = ZLayer.fromZIO(live)
 }

@@ -14,7 +14,7 @@ import AbstractDao.ById
 
 object TeacherToGroupDao extends AbstractDao [TeacherToGroup] {
 
-  case class TeacherToGroup(userId: Int)
+  case class TeacherToGroup(teacherId: Int, groupId: Int)
 
   override val schema: Schema[TeacherToGroup] = DeriveSchema.gen[TeacherToGroup]
   override val tableName: String = "TeacherToGroup"

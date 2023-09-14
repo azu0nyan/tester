@@ -233,8 +233,9 @@ case class ApplicationImpl(
     db.transactionOrWiden(
       for{
         _ <- groups.initCaches
+//        _ <- teacherService.initCaches //todo
       } yield()
-    )  
+    )
 }
 
 object ApplicationImpl {
