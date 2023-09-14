@@ -42,6 +42,7 @@ object TesterMain extends ZIOAppDefault {
     _ <- checkLogs
     appI <- ZIO.service[Application]
     cr <- ZIO.service[ConcurrentRunner]
+    _ <- appI.initCaches
     _ <- appI.loadProblemTemplatesFromDb
     _ <- appI.loadCourseTemplatesFromDb
     _ <- registetPacks(appI.asInstanceOf[ApplicationImpl], cr)

@@ -3,6 +3,7 @@ package tester.srv.controller
 import io.github.gaelrenoux.tranzactio.doobie.TranzactIO
 import tester.srv.dao.CourseTemplateForGroupDao.CourseTemplateForGroup
 trait GroupService {
+  def initCaches: TranzactIO[Unit]
   
   def newGroup(title: String, description: String): TranzactIO[Int]
   

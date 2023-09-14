@@ -227,6 +227,14 @@ case class ApplicationImpl(
         _ <- ZIO.foreach(ps)(p => problems.registerInfo(DbProblemTemplateDao.toProblemInfo(p)))
       } yield ()
     )
+
+
+  def initCaches: Task[Unit] =
+    db.transactionOrWiden(
+      for{
+        _ <- groups.initCaches
+      } yield()
+    )  
 }
 
 object ApplicationImpl {

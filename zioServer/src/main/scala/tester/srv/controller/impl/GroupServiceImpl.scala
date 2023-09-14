@@ -16,16 +16,35 @@ import tester.srv.controller.impl.CoursesServiceImpl
 import tester.srv.dao.CourseTemplateForGroupDao.CourseTemplateForGroup
 import tester.srv.dao.{CourseTemplateForGroupDao, GroupDao, UserToGroupDao}
 import tester.srv.dao.ProblemDao
-import tester.srv.dao.UserToGroupDao.UserToGroup
-import tester.srv.dao.UserToGroupDao.UserToGroup
-
+import tester.srv.dao.UserToGroupDao.{UserToGroup, usersInGroup}
+import zio.concurrent.ConcurrentMap
 
 case class GroupServiceImpl(
                              bus: MessageBus,
                              coursesService: CoursesService,
                              userService: UserService,
-                             templateRegistry: CourseTemplateRegistry
+                             templateRegistry: CourseTemplateRegistry,
+                             userToGroups: ConcurrentMap[Int, Set[Int]],
+                             groupToUser: ConcurrentMap[Int, Set[Int]],
                            ) extends GroupService {
+
+  def initCaches: TranzactIO[Unit] =
+    for {
+      g <- GroupDao.all
+      _ <- ZIO.logInfo(s"Caching ${g.size} groups.")
+      _ <- ZIO.foreach(g) { g =>
+        for {
+          users <- usersInGroup(g.id)
+          _ <- ZIO.logInfo(s"Caching group ${g.title} with ${users.size} users.")
+          _ <- groupToUser.put(g.id, users.toSet)
+          _ <- ZIO.foreach(users)(uid =>
+            userToGroups.compute(uid, {
+              case (_, Some(groups)) => Some(groups + g.id)
+              case (_, None) => Some(Set(g.id))
+            }))
+        } yield ()
+      }
+    } yield ()
 
   def newGroup(title: String, description: String): TranzactIO[Int] =
     GroupDao.insertReturnId(GroupDao.Group(0, title, description))
@@ -33,13 +52,20 @@ case class GroupServiceImpl(
   def addUserToGroup(userId: Int, groupId: Int): TranzactIO[Boolean] =
     for {
       res <- addUserToGroupQuery(userId, groupId)
+      _ <- userToGroups.compute(userId, {
+        case (_, Some(groups)) => Some(groups + groupId)
+        case (_, None) => Some(Set(groupId))
+      })
+      _ <- groupToUser.compute(groupId, {
+        case (_, Some(users)) => Some(users + userId)
+        case (_, None) => Some(Set(userId))
+      })
       courses <- CourseTemplateForGroupDao.groupCourses(groupId, true)
       _ <- ZIO.foreach(courses)(course => coursesService.startCourseForUser(course.templateAlias, userId))
     } yield res
 
   private def addUserToGroupQuery(userId: Int, groupId: Int) =
     UserToGroupDao.insert(UserToGroup(0, userId, groupId, java.time.Clock.systemUTC().instant(), None))
-
 
   def removeUserFromGroup(userId: Int, groupId: Int): TranzactIO[Boolean] = ???
 
@@ -124,7 +150,9 @@ object GroupServiceImpl {
       ver <- ZIO.service[CoursesService]
       usr <- ZIO.service[UserService]
       reg <- ZIO.service[CourseTemplateRegistry]
-    } yield GroupServiceImpl(bus, ver, usr, reg)
+      m1 <- ConcurrentMap.empty[Int, Set[Int]]
+      m2 <- ConcurrentMap.empty[Int, Set[Int]]
+    } yield GroupServiceImpl(bus, ver, usr, reg, m1, m2)
 
 
   def layer: URLayer[MessageBus & CoursesService & UserService & CourseTemplateRegistry, GroupService] =

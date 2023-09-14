@@ -13,6 +13,7 @@ trait Application extends UserApp with TeacherApp with WatcherApp with AdminApp 
 trait BaseApp{
   def loadCourseTemplatesFromDb: Task[Unit]
   def loadProblemTemplatesFromDb: Task[Unit]
+  def initCaches: Task[Unit]
 } 
 
 trait UserApp {
