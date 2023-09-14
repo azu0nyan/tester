@@ -25,7 +25,7 @@ case class GroupServiceImpl(
                              userService: UserService,
                              templateRegistry: CourseTemplateRegistry,
                              userToGroups: ConcurrentMap[Int, Set[Int]],
-                             groupToUser: ConcurrentMap[Int, Set[Int]],
+                             groupToUser: ConcurrentMap[Int, Set[Int]],                             
                            ) extends GroupService {
 
   def initCaches: TranzactIO[Unit] =
@@ -140,6 +140,8 @@ case class GroupServiceImpl(
             (userId.toString, groupedByCourse)
         }
       }
+
+  def groupUserIds(groupId: Int): UIO[Set[Int]] = groupToUser.get(groupId).map(_.getOrElse(Set()))
 
 }
 

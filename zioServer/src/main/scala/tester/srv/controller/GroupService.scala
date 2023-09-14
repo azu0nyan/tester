@@ -2,6 +2,7 @@ package tester.srv.controller
 
 import io.github.gaelrenoux.tranzactio.doobie.TranzactIO
 import tester.srv.dao.CourseTemplateForGroupDao.CourseTemplateForGroup
+import zio.UIO
 trait GroupService {
   def initCaches: TranzactIO[Unit]
   
@@ -25,5 +26,7 @@ trait GroupService {
   
   def groupList(): TranzactIO[Seq[viewData.GroupDetailedInfoViewData]]
 
-  def groupScores(groupId: Int, courseAliases: Seq[String], userIds: Seq[Int]): TranzactIO[clientRequests.watcher.LightGroupScores.UserScores]
+  def groupScores(groupId: Int, courseAliases: Seq[String], userIds: Seq[Int]): TranzactIO[clientRequests.watcher.LightGroupScores.UserScores]  
+ 
+  def groupUserIds(groupId: Int): UIO[Set[Int]]
 }
