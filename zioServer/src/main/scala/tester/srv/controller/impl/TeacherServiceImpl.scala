@@ -36,7 +36,7 @@ case class TeacherServiceImpl(
   } yield res
 
   override def removeFromTeachers(userId: Int): TranzactIO[Boolean] = for {
-    res <- TeacherDao.deleteWhere(fr"userId = $userId").map(_ == 1)
+    res <- TeacherDao.deleteById(userId)
     _ <- ZIO.when(res)(teachers.remove(userId))
   } yield res
 

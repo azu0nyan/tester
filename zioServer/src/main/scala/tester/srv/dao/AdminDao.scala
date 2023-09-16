@@ -2,7 +2,7 @@ package tester.srv.dao
 
 
 import io.github.gaelrenoux.tranzactio.doobie.{TranzactIO, tzio}
-import TeacherDao.Teacher
+import AdminDao.Admin
 import zio.schema.{DeriveSchema, Schema}
 import doobie.*
 import doobie.implicits.*
@@ -12,15 +12,14 @@ import doobie.postgres.implicits.*
 import doobie.postgres.pgisimplicits.*
 import AbstractDao.ById
 
-object TeacherDao extends AbstractDao [Teacher] {
+object AdminDao extends AbstractDao [Admin] {
 
-  case class Teacher(userId: Int)
+  case class Admin(userId: Int)
 
-  override val schema: Schema[Teacher] = DeriveSchema.gen[Teacher]
-  override val tableName: String = "Teacher"
+  override val schema: Schema[Admin] = DeriveSchema.gen[Admin]
+  override val tableName: String = "Admin"
 
   def deleteById(userId: Int): TranzactIO[Boolean] = deleteWhere(fr"userId = $userId").map(_ == 1)
 
 }
-
 

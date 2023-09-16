@@ -1,34 +1,35 @@
 package tester.srv.controller.impl
 
+import doobie.implicits.*
 import doobie.util.transactor
 import io.github.gaelrenoux.tranzactio.DbException
 import io.github.gaelrenoux.tranzactio.doobie.TranzactIO
-import tester.srv.controller.{AdminService, MessageBus, TeacherService}
-import tester.srv.dao.{TeacherDao, TeacherToGroupDao}
+import tester.srv.controller.{AdminService, MessageBus}
+import tester.srv.dao.{AdminDao}
 import utils.ManyToManyRelation
 import zio.{Task, URIO, ZIO, ZLayer}
 import zio.concurrent.ConcurrentSet
 
 case class AdminServiceImpl(
-                               bus: MessageBus,
-                               admins: ConcurrentSet[Int],
-                             ) extends AdminService {
+                             bus: MessageBus,
+                             admins: ConcurrentSet[Int],
+                           ) extends AdminService {
   override def initCaches: TranzactIO[Unit] =
     for {
-      _ <- admins.add(0) //todo
+      adms <- AdminDao.all
+      _ <- ZIO.logInfo(s"Caching ${adms.size} admins")
+      _ <- ZIO.foreach(adms)(adm => admins.add(adm.userId))
     } yield ()
 
-  //  override def addToAdmins(userId: Int): TranzactIO[Boolean] = for {
-  //    res <- TeacherDao.insert(TeacherDao.Teacher(userId))
-  //    _ <- ZIO.when(res)(teachers.add(userId))
-  //  } yield res
-  //
-  //  override def removeFromTeachers(userId: Int): TranzactIO[Boolean] = for {
-  //    res <- TeacherDao.deleteWhere(fr"userId = $userId").map(_ == 1)
-  //    _ <- ZIO.when(res)(teachers.remove(userId))
-  //  } yield res
-  override def addToAdmins(userId: Int): TranzactIO[Boolean]  = ???
-  override def removeFromAdmins(userId: Int): TranzactIO[Boolean]  = ???
+  override def addToAdmins(userId: Int): TranzactIO[Boolean] = for {
+    res <- AdminDao.insert(AdminDao.Admin(userId))
+    _ <- ZIO.when(res)(admins.add(userId))
+  } yield res
+
+  override def removeFromAdmins(userId: Int): TranzactIO[Boolean] = for {
+    res <- AdminDao.deleteById(userId)
+    _ <- ZIO.when(res)(admins.remove(userId))
+  } yield res
 }
 
 object AdminServiceImpl {
