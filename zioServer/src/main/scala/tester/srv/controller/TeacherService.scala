@@ -5,7 +5,7 @@ import io.github.gaelrenoux.tranzactio.doobie.TranzactIO
 
 trait TeacherService {
 
-  def initCaches(): TranzactIO[Unit]
+  def initCaches: TranzactIO[Unit]
 
   def addToTeachers(userId: Int): TranzactIO[Boolean]
 

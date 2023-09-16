@@ -9,7 +9,7 @@ import otsbridge.AnswerVerificationResult
 import otsbridge.CourseTemplate.CourseTemplateData
 import tester.srv.controller.AnswerService.{AnswerFilterParams, AnswerSubmitted}
 import tester.srv.controller.UserService.{LoginResult, RegistrationResult}
-import tester.srv.controller.{AnswerService, AnswerVerificatorRegistry, Application, CourseTemplateRegistry, CourseTemplateService, CoursesService, GroupService, MessageBus, ProblemInfoRegistry, ProblemService, UserService, VerificationService}
+import tester.srv.controller.{AdminService, AnswerService, AnswerVerificatorRegistry, Application, CourseTemplateRegistry, CourseTemplateService, CoursesService, GroupService, MessageBus, ProblemInfoRegistry, ProblemService, TeacherService, UserService, VerificationService}
 import tester.srv.dao.{AnswerDao, DbCourseTemplateDao, DbProblemTemplateDao}
 import tester.srv.dao.AnswerVerificationDao.AnswerVerification
 import tester.srv.dao.DbProblemTemplateDao.DbProblemTemplate
@@ -24,7 +24,9 @@ case class ApplicationImpl(
                             courses: CoursesService,
                             courseTemplates: CourseTemplateService,
                             users: UserService,
-                            verification: VerificationService
+                            verification: VerificationService,
+                            teacherService: TeacherService,
+                            adminService: AdminService
                           ) extends Application {
   override def answerForConfirmationList(req: AnswerForConfirmationListRequest): Task[AnswerForConfirmationListResponse] =
     db.transactionOrWiden(
@@ -233,7 +235,8 @@ case class ApplicationImpl(
     db.transactionOrWiden(
       for{
         _ <- groups.initCaches
-//        _ <- teacherService.initCaches //todo
+        _ <- teacherService.initCaches
+        _ <- adminService.initCaches
       } yield()
     )
 }
@@ -242,7 +245,8 @@ object ApplicationImpl {
 
   type Registies = CourseTemplateRegistry & ProblemInfoRegistry & AnswerVerificatorRegistry
 
-  type AppServices = AnswerService & GroupService & ProblemService & CoursesService & CourseTemplateService & UserService & VerificationService
+  type AppServices = AnswerService & GroupService & ProblemService & CoursesService & CourseTemplateService & UserService & VerificationService &
+    TeacherService & AdminService
 
   type AppContext = Database & AppServices
 
@@ -255,7 +259,9 @@ object ApplicationImpl {
     val courses = (bus ++ problem) >>> CoursesServiceImpl.layer
     val users = bus >>> UserServiceImpl.layer
     val groups = (bus ++ courses ++ users) >>> GroupServiceImpl.layer
-    answer ++ groups ++ problem ++ courses ++ courseTemplate ++ users ++ verification
+    val teacher = bus >>> TeacherServiceImpl.layer
+    val admin = bus >>> AdminServiceImpl.layer
+    answer ++ groups ++ problem ++ courses ++ courseTemplate ++ users ++ verification ++ teacher ++ admin
   }
 
   def constructRegistries: ULayer[Registies] =
@@ -275,7 +281,9 @@ object ApplicationImpl {
       cts <- ZIO.service[CourseTemplateService]
       us <- ZIO.service[UserService]
       ver <- ZIO.service[VerificationService]
-    } yield ApplicationImpl(db, as, gs, ps, cs, cts, us, ver)
+      te <- ZIO.service[TeacherService]
+      ad <- ZIO.service[AdminService]
+    } yield ApplicationImpl(db, as, gs, ps, cs, cts, us, ver, te, ad)
 
   def layerContext = ZLayer.fromZIO(liveContext)
 }

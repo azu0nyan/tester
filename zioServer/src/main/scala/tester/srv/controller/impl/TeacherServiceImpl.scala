@@ -21,11 +21,13 @@ case class TeacherServiceImpl(
                                teachers: ConcurrentSet[Int],
                                teacherToGroup: ManyToManyRelation[Int, Int]
                              ) extends TeacherService {
-  override def initCaches(): TranzactIO[Unit] =
+  override def initCaches: TranzactIO[Unit] =
     for {
       ts <- TeacherDao.all
       _ <- ZIO.logInfo(s"Caching ${ts.size} teachers")
       _ <- ZIO.foreach(ts)(t => teachers.add(t.userId))
+      ttg <- TeacherToGroupDao.all
+      _ <- ZIO.foreach(ttg)(tg => teacherToGroup.addXtoY(tg.teacherId, tg.groupId))
     } yield ()
 
   override def addToTeachers(userId: Int): TranzactIO[Boolean] = for {
