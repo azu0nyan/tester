@@ -5,9 +5,9 @@ import doobie.util.transactor
 import io.github.gaelrenoux.tranzactio.DbException
 import io.github.gaelrenoux.tranzactio.doobie.TranzactIO
 import tester.srv.controller.{AdminService, MessageBus}
-import tester.srv.dao.{AdminDao}
+import tester.srv.dao.AdminDao
 import utils.ManyToManyRelation
-import zio.{Task, URIO, ZIO, ZLayer}
+import zio.{Task, UIO, URIO, ZIO, ZLayer}
 import zio.concurrent.ConcurrentSet
 
 case class AdminServiceImpl(
@@ -30,6 +30,8 @@ case class AdminServiceImpl(
     res <- AdminDao.deleteById(userId)
     _ <- ZIO.when(res)(admins.remove(userId))
   } yield res
+
+  def isAdmin(userId: Int): UIO[Boolean] = admins.contains(userId)
 }
 
 object AdminServiceImpl {

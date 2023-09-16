@@ -132,6 +132,7 @@ case class GroupServiceImpl(
 
   def groupUserIds(groupId: Int): UIO[Set[Int]] = userToGroup.getY(groupId)
 
+  def userGroups(userId: Int): UIO[Set[Int]] = userToGroup.getX(userId)
 }
 
 object GroupServiceImpl {

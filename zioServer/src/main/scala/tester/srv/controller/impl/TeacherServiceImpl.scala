@@ -49,6 +49,12 @@ case class TeacherServiceImpl(
     res <- TeacherToGroupDao.deleteWhere(fr"teacherID = $teacherId AND groupId = $groupId").map(_ == 1)
     _ <- ZIO.when(res)(teacherToGroup.removeXtoY(teacherId, groupId))
   } yield res
+
+
+  def isTeacher(userId: Int): UIO[Boolean] = teachers.contains(userId)
+
+  def teacherGroups(userId: Int): UIO[Set[Int]] = teacherToGroup.getX(userId)
+
 }
 
 

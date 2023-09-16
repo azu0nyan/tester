@@ -11,7 +11,7 @@ import scala.util.{Failure, Success}
 object TokenOps {
 
   implicit val c: Clock = java.time.Clock.systemUTC()
-  val secretKey = "someHardcodedKeyTODOAddtoConfig" //TODO
+  val secretKey = "someHardcodedKeyTODOAddtoConfigg" //TODO
   val algorithm = JwtAlgorithm.HS256
   val defaultTokenExpiresSeconds: Int = 48 * 60 * 60
   type Token = String

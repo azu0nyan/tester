@@ -25,8 +25,8 @@ case class ApplicationImpl(
                             courseTemplates: CourseTemplateService,
                             users: UserService,
                             verification: VerificationService,
-                            teacherService: TeacherService,
-                            adminService: AdminService
+                            teachers: TeacherService,
+                            admins: AdminService
                           ) extends Application {
   override def answerForConfirmationList(req: AnswerForConfirmationListRequest): Task[AnswerForConfirmationListResponse] =
     db.transactionOrWiden(
@@ -235,8 +235,8 @@ case class ApplicationImpl(
     db.transactionOrWiden(
       for{
         _ <- groups.initCaches
-        _ <- teacherService.initCaches
-        _ <- adminService.initCaches
+        _ <- teachers.initCaches
+        _ <- admins.initCaches
       } yield()
     )
 }
