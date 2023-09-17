@@ -6,17 +6,15 @@ import zio.http.HttpError.{InternalServerError, NotFound}
 import zio.http.Header.{AccessControlAllowMethods, AccessControlAllowOrigin, Origin}
 import zio.http.HttpAppMiddleware.cors
 import zio.http.internal.middlewares.Cors.CorsConfig
-
-
 import clientRequests.{CourseNotOwnedByYou, Route}
 import clientRequests.*
 import clientRequests.admin.{AddCourseToGroup, AddCourseToGroupRequest}
-import tester.srv.controller.Application
+import tester.srv.controller.{Application, PublicApp}
 import tester.srv.controller.impl.ApplicationImpl
 
 object HttpServer  {
 
-  type HttpServerContext = Application
+  type HttpServerContext = PublicApp
 
 
   // Create CORS configuration

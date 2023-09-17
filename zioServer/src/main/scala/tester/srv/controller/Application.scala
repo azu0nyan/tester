@@ -1,16 +1,17 @@
 package tester.srv.controller
 
 import zio.*
-
 import clientRequests.*
 import clientRequests.admin.*
 import clientRequests.teacher.*
 import clientRequests.watcher.*
 
-/** Binds old api to new one */
-trait Application extends UserApp with TeacherApp with WatcherApp with AdminApp with BaseApp
 
-trait BaseApp{
+trait PublicApp extends UserApp with TeacherApp with WatcherApp with AdminApp
+/** Binds old api to new one */
+trait Application extends PublicApp with PrivateApp
+
+trait PrivateApp{
   def loadCourseTemplatesFromDb: Task[Unit]
   def loadProblemTemplatesFromDb: Task[Unit]
   def initCaches: Task[Unit]

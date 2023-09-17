@@ -43,24 +43,29 @@ case class CoursesServiceImpl(bus: MessageBus,
   def courseProblems(courseId: Int): TranzactIO[Seq[Problem]] =
     ProblemDao.courseProblems(courseId)
 
-  def byId(courseId: Int): TranzactIO[Course] = CourseDao.byId(courseId)
+  def byId(courseId: Int): TranzactIO[Option[Course]] = CourseDao.byIdOption(courseId)
 
   def courseViewData(courseId: Int): TranzactIO[Option[viewData.CourseViewData]] =
     for {
-      course <- byId(courseId)
-      templateOpt <- templateRegistry.courseTemplate(course.templateAlias)
+      courseOpt <- byId(courseId)
+      templateOpt <- ZIO.foreach(courseOpt)(course => templateRegistry.courseTemplate(course.templateAlias))
       problems <- courseProblems(courseId)
-      views <- ZIO.foreach(problems)(p => problemService.getViewData(p.id))//todo optimize
-    } yield templateOpt.map(template => viewData.CourseViewData(courseId.toString, template.courseTitle, CourseStatus.Passing(course.endedAt), template.courseData, views.flatten, template.description))
+      views <- ZIO.foreach(problems)(p => problemService.getViewData(p.id)) //todo optimize
+    } yield templateOpt.flatten.map(template =>
+      viewData.CourseViewData(courseId.toString, template.courseTitle, CourseStatus.Passing(courseOpt.get.endedAt),
+        template.courseData, views.flatten, template.description))
 
-  def partialCourseViewData(courseId: Int): TranzactIO[viewData.PartialCourseViewData] =
+  def partialCourseViewData(courseId: Int): TranzactIO[Option[viewData.PartialCourseViewData]] =
     for {
-      course <- byId(courseId)
-      template <- templateRegistry.courseTemplate(course.templateAlias).map(_.get)
+      courseOpt <- byId(courseId)
+      templateOpt <- ZIO.foreach(courseOpt)(course => templateRegistry.courseTemplate(course.templateAlias))
       problems <- courseProblems(courseId)
       views <- ZIO.foreach(problems)(p => problemService.getRefViewData(p.id)) //todo optimize
-    } yield viewData.PartialCourseViewData(courseId.toString, template.courseTitle, template.description, CourseStatus.Passing(course.endedAt), template.courseData.toJson, views.flatten)
- 
+    } yield templateOpt.flatten.map(template =>
+      viewData.PartialCourseViewData(courseId.toString, template.courseTitle, template.description,
+        CourseStatus.Passing(courseOpt.get.endedAt), template.courseData.toJson, views.flatten)
+    )
+
   def userCourses(userId: Int): TranzactIO[Seq[viewData.CourseViewData]] =
     for {
       courses <- CourseDao.userCourses(userId)

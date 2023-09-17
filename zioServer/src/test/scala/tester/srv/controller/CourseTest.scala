@@ -49,7 +49,7 @@ object CourseTest extends ZIOSpecDefault {
       userId <- createUserMakeTemplate
       srv <- StubsAndMakers.makeCourseService
       courseId <- srv.startCourseForUser("alias", userId)
-      course <- srv.byId(courseId)
+      course <- srv.byId(courseId).map(_.get)
       problems <- srv.courseProblems(courseId)
       allCourses <- CourseDao.all
       courses <- CourseDao.activeUserCourses(userId)
