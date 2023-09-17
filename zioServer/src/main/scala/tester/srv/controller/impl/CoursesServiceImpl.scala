@@ -22,7 +22,7 @@ case class CoursesServiceImpl(bus: MessageBus,
         scala.util.Random.nextInt(), Some(java.time.Clock.systemUTC().instant()), None)
       courseId <- CourseDao.insertReturnId(course)
       aliases <- CourseTemplateProblemDao.templateProblemAliases(courseTemplate.alias)
-      _ <- ZIO.foreach(aliases)(a => problemService.startProblem(courseId, a.problemAlias)) //todo add problem service as dependency
+      _ <- ZIO.foreach(aliases)(a => problemService.startProblem(courseId, a.problemAlias))
     } yield courseId
 
 

@@ -37,7 +37,7 @@ object HttpServer  {
           res <- func(req)
         } yield Response.json(route.encodeResponse(res)))
           .tapErrorCause(err => ZIO.logErrorCause(s"""Error processing request to '${route.route}'"""", err))
-          .mapError(err => Response.fromHttpError(InternalServerError()))
+          .mapError(err => Response.fromHttpError(InternalServerError())) //todo more specific error codes
           .tapDefect(err => ZIO.logErrorCause(s"Defect when processing request to ${route.route}", err))
           .catchAllDefect(t => ZIO.succeed(Response.fromHttpError(InternalServerError())))
     }

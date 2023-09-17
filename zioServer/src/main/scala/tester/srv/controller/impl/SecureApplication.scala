@@ -17,22 +17,19 @@ case class SecureApplication(
                               teachers: TeacherService,
                               admins: AdminService
                             ) extends Application {
+
+  import SecureApplication.*
+
+  implicit val appl: Application = app
+  implicit val secure: SecureApplication = this
+
   override def loadCourseTemplatesFromDb: Task[Unit] = app.loadCourseTemplatesFromDb
   override def loadProblemTemplatesFromDb: Task[Unit] = app.loadProblemTemplatesFromDb
   override def initCaches: Task[Unit] = app.initCaches
 
-  case class UserAbilities(id: Int, teacher: Boolean, admin: Boolean, userGroups: Set[Int], teacherGroups: Set[Int])
-  def extractUser(req: WithToken): UIO[Option[UserAbilities]] = TokenOps.decodeAndValidateUserToken(req.token) match
-    case TokenOps.TokenValid(id) =>
-      for{
-        t <- teachers.isTeacher(id)
-        a <- admins.isAdmin(id)
-        ugs <- groups.userGroups(id)
-        tgs <- teachers.teacherGroups(id)
-      } yield Some(UserAbilities(id, t, a, ugs, tgs))
-    case _ => ZIO.succeed(None)
 
   override def courseData(req: CourseDataRequest): Task[CourseDataResponse] = ???
+
   override def coursesList(req: CoursesListRequest): Task[CoursesListResponse] = ???
   override def login(req: LoginRequest): Task[LoginResponse] = ???
   override def partialCourseData(req: PartialCourseDataRequest): Task[PartialCourseDataResponse] = ???
@@ -66,4 +63,80 @@ case class SecureApplication(
   override def userList(req: UserListRequest): Task[UserListResponse] = ???
   override def groupScores(req: GroupScoresRequest): Task[GroupScoresResponse] = ???
   override def lightGroupScores(req: LightGroupScoresRequest): Task[LightGroupScoresResponse] = ???
+
+  def extractUser(req: Any): UIO[Option[UserAbilities]] =
+    req match
+      case withToken: WithToken => TokenOps.decodeAndValidateUserToken(withToken.token) match
+        case TokenOps.TokenValid(id) =>
+          for {
+            t <- teachers.isTeacher(id)
+            a <- admins.isAdmin(id)
+            ugs <- groups.userGroups(id)
+            tgs <- teachers.teacherGroups(id)
+          } yield Some(UserAbilities(id, t, a, ugs, tgs))
+        case _ => ZIO.succeed(None)
+      case _ => ZIO.succeed(None)
+
+}
+
+object SecureApplication {
+  case class UserAbilities(id: Int, teacher: Boolean, admin: Boolean, userGroups: Set[Int], teacherGroups: Set[Int])
+
+  trait Allow {
+    def allow[REQ, RES](req: REQ, func: REQ => Task[RES])(implicit secure: SecureApplication, app: Application): Task[RES]
+  }
+
+  trait AllowWithUser extends Allow {
+    def allowWithAbilities[REQ](req: REQ, userAbilities: UserAbilities)
+                                            (implicit secure: SecureApplication, app: Application): Task[Boolean]
+
+    override def allow[REQ, RES](req: REQ, func: REQ => Task[RES])
+                                (implicit secure: SecureApplication, app: Application): Task[RES] =
+      for {
+        u <- secure.extractUser(req)
+        allow <- u match
+          case Some(uab) => allowWithAbilities(req, uab)
+          case None => ZIO.fail(SecurityException())
+        res <-
+          if (allow) func(req)
+          else ZIO.fail(SecurityException())
+      } yield res
+  }
+
+  object AllowWithUser {
+    case class AllowOr(allows: AllowWithUser*) extends AllowWithUser {
+      override def allowWithAbilities[REQ](req: REQ, userAbilities: UserAbilities)
+                                          (implicit secure: SecureApplication, app: Application): Task[Boolean] =
+        ZIO.exists(allows)(allow => allow.allowWithAbilities(req, userAbilities))
+    }
+
+    case class AllowAnd(allows: AllowWithUser*) extends AllowWithUser {
+      override def allowWithAbilities[REQ](req: REQ, userAbilities: UserAbilities)
+                                          (implicit secure: SecureApplication, app: Application): Task[Boolean] =
+        ZIO.forall(allows)(allow => allow.allowWithAbilities(req, userAbilities))
+    }
+
+    case object AllowUser extends AllowWithUser {
+      override def allowWithAbilities[REQ](req: REQ, userAbilities: UserAbilities)
+                                          (implicit secure: SecureApplication, app: Application): Task[Boolean] =
+        ZIO.succeed(true)
+    }
+
+    case object AllowTeacher extends AllowWithUser {
+      override def allowWithAbilities[REQ](req: REQ, userAbilities: UserAbilities)
+                                          (implicit secure: SecureApplication, app: Application): Task[Boolean] =
+        if (userAbilities.teacher) ZIO.succeed(true)
+        else ZIO.fail(SecurityException(Some("Not a teacher")))
+    }
+
+    case object AllowAdmin extends AllowWithUser {
+      override def allowWithAbilities[REQ](req: REQ, userAbilities: UserAbilities)
+                                          (implicit secure: SecureApplication, app: Application): Task[Boolean] =
+        if (userAbilities.admin) ZIO.succeed(true)
+        else ZIO.fail(SecurityException(Some("Not a admin")))
+    }
+
+  }
+
+  case class SecurityException(message: Option[String] = None) extends Exception(message.getOrElse(s"Security exception"))
 }
