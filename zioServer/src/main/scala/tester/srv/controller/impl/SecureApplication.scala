@@ -182,6 +182,24 @@ case class SecureApplication(
 }
 
 object SecureApplication {
+
+  def layer: ZLayer[ApplicationImpl.AppContext & Application, Nothing, SecureApplication] = ZLayer.fromZIO(liveContext)
+
+  def liveContext: ZIO[ApplicationImpl.AppContext & Application, Nothing, SecureApplication] =
+    for {
+      db <- ZIO.service[Database]
+      app <- ZIO.service[Application]
+      as <- ZIO.service[AnswerService]
+      gs <- ZIO.service[GroupService]
+      ps <- ZIO.service[ProblemService]
+      cs <- ZIO.service[CoursesService]
+      cts <- ZIO.service[CourseTemplateService]
+      us <- ZIO.service[UserService]
+      ver <- ZIO.service[VerificationService]
+      te <- ZIO.service[TeacherService]
+      ad <- ZIO.service[AdminService]
+    } yield SecureApplication(db, app, gs, cs, us, te, ad)
+
   case class UserAbilities(id: Int, teacher: Boolean, admin: Boolean, userGroups: Set[Int], teacherGroups: Set[Int])
 
   trait Allow {
@@ -205,7 +223,7 @@ object SecureApplication {
       } yield res
   }
 
-  object AllowWithUser {
+  object AllowWithUser {   
 
 
     case class AllowOr(allows: AllowWithUser*) extends AllowWithUser {

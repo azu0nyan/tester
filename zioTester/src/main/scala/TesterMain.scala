@@ -1,5 +1,6 @@
+import main.AppBootstrap.BootstrapedApp
 import main.{AppBootstrap, HttpServer}
-import tester.srv.controller.{Application, DataPackOps}
+import tester.srv.controller.{Application, DataPackOps, PrivateApp}
 import tester.srv.controller.impl.ApplicationImpl
 import zio.*
 import zio.logging.{ConsoleLoggerConfig, LogFilter, LogFormat}
@@ -38,15 +39,18 @@ object TesterMain extends ZIOAppDefault {
     _ <- ZIO.logFatal("Checking log level FATAL")
   } yield ()
 
+
+
   override def run = (for {
     _ <- checkLogs
-    appI <- ZIO.service[Application]
     cr <- ZIO.service[ConcurrentRunner]
-    _ <- appI.initCaches
-    _ <- appI.loadProblemTemplatesFromDb
-    _ <- appI.loadCourseTemplatesFromDb
-    _ <- registetPacks(appI.asInstanceOf[ApplicationImpl], cr)
-    _ <- HttpServer.startServer
+    sr <- ZIO.service[BootstrapedApp]
+    (pApp, secApp) = sr
+    _ <- pApp.initCaches
+    _ <- pApp.loadProblemTemplatesFromDb
+    _ <- pApp.loadCourseTemplatesFromDb
+    _ <- registetPacks(pApp.asInstanceOf[ApplicationImpl], cr)
+    _ <- HttpServer.startServer.provideSomeLayer(ZLayer.succeed(secApp))
   } yield ())
     .provideSomeLayer(AppBootstrap.layer)
     .provideSomeLayer(runner)
