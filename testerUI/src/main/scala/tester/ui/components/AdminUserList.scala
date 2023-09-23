@@ -21,6 +21,11 @@ object AdminUserList {
     build(component.apply(Props(loggedInUser)))
 
   val component = FunctionalComponent[Props] { props =>
-    div()
+    div(
+      Card.bordered(true)
+        .style(CSSProperties())(
+          UserSelector(props.loggedInUser)
+        )
+    )
   }
 }

@@ -73,15 +73,9 @@ object AdminAppLayout {
                   p("Ты в админке, тут все свои.")
                 )
             case UserListAdminAppState =>
-              Card.bordered(true)
-                .style(CSSProperties())(
-                  Title.level(antdInts.`1`)("User list"),
-                )
+              AdminUserList(props.loggedInUser)
             case GroupListAdminAppState =>
-              Card.bordered(true)
-                .style(CSSProperties())(
-                  Title.level(antdInts.`1`)("Group list"),
-                )
+              AdminGroupList(props.loggedInUser)
           }
         )
       ),
