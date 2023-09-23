@@ -1,6 +1,6 @@
 package tester.ui.components
 
-import clientRequests.admin.{GroupListRequest, GroupListResponseSuccess, GroupListResponseFailure}
+import clientRequests.admin.{AddUserToGroupFailure, AddUserToGroupRequest, AddUserToGroupSuccess, GroupListRequest, GroupListResponseFailure, GroupListResponseSuccess}
 
 import scala.scalajs.js
 import slinky.core.*
@@ -28,7 +28,8 @@ object AdminGroupList {
 
     val (groups, setGroups) = useState[Seq[GroupDetailedInfoViewData]](Seq())
 
-    useEffect(() => {
+
+    def reloadList(): Unit =
       Request.sendRequest(clientRequests.admin.GroupList, GroupListRequest(props.loggedInUser.token))(
         onComplete = {
           case GroupListResponseSuccess(groups) =>
@@ -37,6 +38,9 @@ object AdminGroupList {
             Notifications.showError(s"Не могу загрузить список групп (501)")
         }
       )
+
+    useEffect(() => {
+      reloadList()
     }, Seq())
 
     def toTableItem(data: GroupDetailedInfoViewData): GroupTableItem =
@@ -44,6 +48,19 @@ object AdminGroupList {
 
 
     case class GroupTableItem(id: String, title: String, description: String, courses: Seq[viewData.CourseTemplateViewData], users: Seq[viewData.UserViewData])
+
+    def addUserCell(groupId: String) = UserSelector(props.loggedInUser, user => {
+      import clientRequests.admin.AddUserToGroup
+      Request.sendRequest(AddUserToGroup, AddUserToGroupRequest(props.loggedInUser.token, user.id, groupId))(
+        onComplete = {
+          case AddUserToGroupSuccess() =>
+            reloadList()
+          case AddUserToGroupFailure() =>
+            Notifications.showError(s"Не могу загрузить список групп (501)")
+        }
+      )
+    }, "Добавить")
+
 
     if (groups.isEmpty)
       div(s"Загрузка списка групп...")
@@ -80,6 +97,11 @@ object AdminGroupList {
               .setDataIndex("users")
               .setKey("users")
               .setRender((_, tableItem, _) => build(p(tableItem.users.map(_.login).mkString(", ")))),
+            ColumnType[GroupTableItem]()
+              .setTitle("Добавить")
+              .setDataIndex("users")
+              .setKey("users")
+              .setRender((_, tableItem, _) => addUserCell(tableItem.id)),
           )
       )
     }

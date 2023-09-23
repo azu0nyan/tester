@@ -24,7 +24,7 @@ object AdminUserList {
     div(
       Card.bordered(true)
         .style(CSSProperties())(
-          UserSelector(props.loggedInUser, u => println(u), "KLIK HERE")
+          UserSelector(props.loggedInUser, u => println(u), "Under construction...")
         )
     )
   }
