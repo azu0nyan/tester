@@ -8,7 +8,7 @@ trait GroupService {
   
   def newGroup(title: String, description: String): TranzactIO[Int]
   
-  def addUserToGroup(userId: Int, groupId: Int): TranzactIO[Boolean]
+  def addUserToGroup(userId: Int, groupId: Int): TranzactIO[Int]
 
   def removeUserFromGroup(userId: Int, groupId: Int): TranzactIO[Boolean]
 

@@ -164,10 +164,8 @@ case class ApplicationImpl(
   override def addUserToGroup(req: AddUserToGroupRequest): Task[AddUserToGroupResponse] =
     db.transactionOrWiden(
         groups.addUserToGroup(req.UserHexIdOrLogin.toInt, req.groupIdOrTitle.toInt))
-      .map {
-        case true => AddUserToGroupSuccess()
-        case false => AddUserToGroupFailure()
-      }
+      .map(_ => AddUserToGroupSuccess())
+      .catchAllCause(_ => ZIO.succeed(AddUserToGroupFailure()))
 
   override def adminAction(req: AdminActionRequest): Task[AdminActionResponse] = ???
   @deprecated override def adminCourseInfo(req: AdminCourseInfoRequest): Task[AdminCourseInfoResponse] = ???

@@ -1,6 +1,6 @@
 package tester.ui.components
 
-import clientRequests.admin.{AddUserToGroupFailure, AddUserToGroupRequest, AddUserToGroupSuccess, GroupListRequest, GroupListResponseFailure, GroupListResponseSuccess}
+import clientRequests.admin.{AddUserToGroupFailure, AddUserToGroupRequest, AddUserToGroupSuccess, GroupListRequest, GroupListResponseFailure, GroupListResponseSuccess, RemoveUserFromGroupFailure, RemoveUserFromGroupRequest, RemoveUserFromGroupSuccess}
 
 import scala.scalajs.js
 import slinky.core.*
@@ -49,17 +49,31 @@ object AdminGroupList {
 
     case class GroupTableItem(id: String, title: String, description: String, courses: Seq[viewData.CourseTemplateViewData], users: Seq[viewData.UserViewData])
 
-    def addUserCell(groupId: String) = UserSelector(props.loggedInUser, user => {
-      import clientRequests.admin.AddUserToGroup
-      Request.sendRequest(AddUserToGroup, AddUserToGroupRequest(props.loggedInUser.token, user.id, groupId))(
-        onComplete = {
-          case AddUserToGroupSuccess() =>
-            reloadList()
-          case AddUserToGroupFailure() =>
-            Notifications.showError(s"Не могу загрузить список групп (501)")
-        }
-      )
-    }, "Добавить")
+    def addUserCell(groupId: String) = {
+      val addUsers = UserSelector(props.loggedInUser, user => {
+        import clientRequests.admin.AddUserToGroup
+        Request.sendRequest(AddUserToGroup, AddUserToGroupRequest(props.loggedInUser.token, user.id, groupId))(
+          onComplete = {
+            case AddUserToGroupSuccess() =>
+              reloadList()
+            case AddUserToGroupFailure() =>
+              Notifications.showError(s"Не могу добавить пользователя (501)")
+          }
+        )
+      }, "Добавить")
+      val removeUsers = UserSelector(props.loggedInUser, user => {
+        import clientRequests.admin.RemoveUserFromGroup
+        Request.sendRequest(RemoveUserFromGroup, RemoveUserFromGroupRequest(props.loggedInUser.token, user.id, groupId, true))(
+          onComplete = {
+            case RemoveUserFromGroupSuccess() =>
+              reloadList()
+            case RemoveUserFromGroupFailure() =>
+              Notifications.showError(s"Не могу удалить пользователя (501)")
+          }
+        )
+      }, "Удалить")
+      div(addUsers, removeUsers)
+    }
 
 
     if (groups.isEmpty)

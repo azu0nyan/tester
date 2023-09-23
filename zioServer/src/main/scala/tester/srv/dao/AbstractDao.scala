@@ -111,7 +111,7 @@ object AbstractDao {
 
   case class Ord(expr: Fragment, asc: Boolean)
   def orderByOpt(ords: Option[Ord]*): Fragment = ords.foldLeft(fr0"") {
-    case (left, Some(Ord(expr, true))) => left ++ (if (lleft.internals.sql == "") fr0"" else fr0",") ++ expr ++ fr"ASC"
+    case (left, Some(Ord(expr, true))) => left ++ (if (left.internals.sql == "") fr0"" else fr0",") ++ expr ++ fr"ASC"
     case (left, Some(Ord(expr, false))) => left ++ (if (left.internals.sql == "") fr0"" else fr0",") ++ expr ++ fr"DESC"
     case (left, None) => left
   }

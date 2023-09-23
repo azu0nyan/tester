@@ -44,7 +44,7 @@ case class GroupServiceImpl(
   def newGroup(title: String, description: String): TranzactIO[Int] =
     GroupDao.insertReturnId(GroupDao.Group(0, title, description))
 
-  def addUserToGroup(userId: Int, groupId: Int): TranzactIO[Boolean] =
+  def addUserToGroup(userId: Int, groupId: Int): TranzactIO[Int] =
     for {
       res <- addUserToGroupQuery(userId, groupId)
       _ <- userToGroup.addXtoY(userId, groupId)
@@ -53,7 +53,7 @@ case class GroupServiceImpl(
     } yield res
 
   private def addUserToGroupQuery(userId: Int, groupId: Int) =
-    UserToGroupDao.insert(UserToGroup(0, userId, groupId, java.time.Clock.systemUTC().instant(), None))
+    UserToGroupDao.insertReturnId(UserToGroup(0, userId, groupId, java.time.Clock.systemUTC().instant(), None))
 
   def removeUserFromGroup(userId: Int, groupId: Int): TranzactIO[Boolean] = ???
       //userToGroup.removeXtoY

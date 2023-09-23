@@ -58,7 +58,6 @@ object RegisteredUserDao extends AbstractDao[RegisteredUser]
     val fragment = selectFragment ++ fr"WHERE" ++ Fragments.and(filters.map(filterToFrag): _ *) ++
       fr"ORDER BY" ++ AbstractDao.orderBy(order.map(orderToFrag): _ *) ++
       Fragment.const(s"LIMIT $itemsPerPage OFFSET ${itemsPerPage * page}")
-    println(fragment)
 
     fragment
       .query[RegisteredUser].to[List]
