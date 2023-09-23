@@ -250,15 +250,13 @@ object SecureApplication {
     case object AllowTeacher extends AllowWithUser {
       override def allowForUser[REQ](req: REQ, userAbilities: UserAbilities)
                                     (implicit secure: SecureApplication, app: Application): Task[Boolean] =
-        if (userAbilities.teacher) ZIO.succeed(true)
-        else ZIO.fail(SecurityException(Some("Not a teacher")))
+        ZIO.succeed(userAbilities.teacher)
     }
 
     case object AllowAdmin extends AllowWithUser {
       override def allowForUser[REQ](req: REQ, userAbilities: UserAbilities)
                                     (implicit secure: SecureApplication, app: Application): Task[Boolean] =
-        if (userAbilities.admin) ZIO.succeed(true)
-        else ZIO.fail(SecurityException(Some("Not a admin")))
+        ZIO.succeed(userAbilities.admin)
     }
 
     case class AllowCourseAccess(courseId: Int) extends AllowWithUser {
