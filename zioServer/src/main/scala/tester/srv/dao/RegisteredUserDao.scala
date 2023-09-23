@@ -55,9 +55,12 @@ object RegisteredUserDao extends AbstractDao[RegisteredUser]
 
   def byFilterInOrder(filters: Seq[UserFilter], order: Seq[UserOrder],
                       itemsPerPage: Int, page: Int): TranzactIO[Seq[RegisteredUser]] = tzio {
-    (selectFragment ++ fr"WHERE" ++ Fragments.and(filters.map(filterToFrag): _ *) ++
-      AbstractDao.orderBy(order.map(orderToFrag): _ *) ++
-      Fragment.const(s"LIMIT $itemsPerPage OFFSET ${itemsPerPage * page}"))
+    val fragment = selectFragment ++ fr"WHERE" ++ Fragments.and(filters.map(filterToFrag): _ *) ++
+      fr"ORDER BY" ++ AbstractDao.orderBy(order.map(orderToFrag): _ *) ++
+      Fragment.const(s"LIMIT $itemsPerPage OFFSET ${itemsPerPage * page}")
+    println(fragment)
+
+    fragment
       .query[RegisteredUser].to[List]
   }
 

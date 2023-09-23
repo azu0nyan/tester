@@ -3,6 +3,7 @@ package clientRequests.admin
 import clientRequests.{Route, WithToken}
 import viewData.UserViewData
 import UserList.*
+import clientRequests.admin.UserList.UserOrder.ByLogin
 
 import java.time.Instant
 
@@ -52,7 +53,7 @@ object UserList extends Route[UserListRequest, UserListResponse] {
 }
 
 //REQ
-case class UserListRequest(token:String, filters: Seq[UserFilter], itemsPerPage: Int = 200, page:Int = 0, order: Seq[UserOrder]) extends WithToken
+case class UserListRequest(token:String, filters: Seq[UserFilter], itemsPerPage: Int = 200, page:Int = 0, order: Seq[UserOrder] = Seq(ByLogin(true))) extends WithToken
 
 //RES
 sealed trait UserListResponse

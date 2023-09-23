@@ -111,14 +111,14 @@ object AbstractDao {
 
   case class Ord(expr: Fragment, asc: Boolean)
   def orderByOpt(ords: Option[Ord]*): Fragment = ords.foldLeft(fr0"") {
-    case (left, Some(Ord(expr, true))) => left ++ (if (left.toString.isEmpty) fr0"" else fr0",") ++ expr ++ fr"ASC"
-    case (left, Some(Ord(expr, false))) => left ++ (if (left.toString.isEmpty) fr0"" else fr0",") ++ expr ++ fr"DESC"
+    case (left, Some(Ord(expr, true))) => left ++ (if (lleft.internals.sql == "") fr0"" else fr0",") ++ expr ++ fr"ASC"
+    case (left, Some(Ord(expr, false))) => left ++ (if (left.internals.sql == "") fr0"" else fr0",") ++ expr ++ fr"DESC"
     case (left, None) => left
   }
 
   def orderBy(ords: Ord*): Fragment = ords.foldLeft(fr0"") {
-    case (left, Ord(expr, true)) => left ++ (if (left.toString.isEmpty) fr0"" else fr0",") ++ expr ++ fr"ASC"
-    case (left, Ord(expr, false)) => left ++ (if (left.toString.isEmpty) fr0"" else fr0",") ++ expr ++ fr"DESC"
+    case (left, Ord(expr, true)) =>  left ++ (if (left.internals.sql == "") fr0"" else fr0",") ++ expr ++ fr"ASC"
+    case (left, Ord(expr, false)) => left ++ (if (left.internals.sql == "") fr0"" else fr0",") ++ expr ++ fr"DESC"
   }
 
   trait ById[T: Read : Write] extends AbstractDao[T] {
