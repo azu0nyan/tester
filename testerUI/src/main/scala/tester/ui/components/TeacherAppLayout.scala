@@ -1,16 +1,16 @@
 package tester.ui.components
 
 
-import clientRequests.admin.{GroupListResponseFailure, GroupListResponseSuccess}
+import clientRequests.admin.{AdminCourseListSuccess, GroupListResponseFailure, GroupListResponseSuccess, UnknownAdminCourseListFailure}
 
 import scala.scalajs.js
-import slinky.core._
-import slinky.web.html._
-import typings.antd.components._
+import slinky.core.*
+import slinky.web.html.*
+import typings.antd.components.*
 import typings.antd.{antdInts, antdStrings}
-
 import slinky.core.facade.Hooks.{useEffect, useState}
 import slinky.core.facade.ReactElement
+import tester.ui.components.TeacherAppLayout.TeacherAppState.CourseEditing
 import tester.ui.requests.Request
 import typings.antDesignIcons.components.AntdIcon
 import typings.csstype.mod.{OverflowYProperty, PositionProperty}
@@ -27,15 +27,22 @@ object TeacherAppLayout {
   }
 
   sealed trait TeacherAppState
-  case object WelcomeScreenTeacherAppState extends TeacherAppState
-  case object AnswerConfirmationAppState extends TeacherAppState
-  case class GroupInfoTeacherAppState(groupId: String) extends TeacherAppState
-  case class GroupResultsTableTeacherAppState(groupId: String) extends TeacherAppState
+  object TeacherAppState {
+    case object WelcomeScreen extends TeacherAppState
+    case object AnswerConfirmation extends TeacherAppState
+    case object ProblemsEditing extends TeacherAppState
+    case class GroupInfo(groupId: String) extends TeacherAppState
+    case class GroupResultsTableEdtiting(groupId: String) extends TeacherAppState
+    case class CourseEditing(courseTemplate: String) extends TeacherAppState
+  }
+
+  import TeacherAppState.*
 
   val component = FunctionalComponent[Props] { props =>
 
-    val (state, setState) = useState[TeacherAppState](WelcomeScreenTeacherAppState)
+    val (state, setState) = useState[TeacherAppState](WelcomeScreen)
     val (groups, setGroups) = useState[Seq[viewData.GroupDetailedInfoViewData]](Seq())
+    val (courses, setCourses) = useState[Seq[viewData.AdminCourseViewData]](Seq())
     val (leftCollapsed, setLeftCollapsed) = useState[Boolean](false)
 
     useEffect(() => {
@@ -48,21 +55,43 @@ object TeacherAppLayout {
         }, onFailure = t =>
           Notifications.showError(s"Не могу загрузить список групп ${t.toString} (4xx)")
       )
+      Request.sendRequest(clientRequests.admin.AdminCourseList, clientRequests.admin.AdminCourseListRequest(props.loggedInUser.token))(
+        onComplete = {
+          case AdminCourseListSuccess(newCourses) =>
+            setCourses(newCourses)
+          case UnknownAdminCourseListFailure() =>
+            Notifications.showError(s"Не могу загрузить список курсов (501)")
+        }, onFailure = t =>
+          Notifications.showError(s"Не могу загрузить список курсов ${t.toString} (4xx)")
+      )
     }, Seq())
 
 
     def siderGroupMenu: ReactElement = {
       Menu().theme(antdStrings.dark).mode(esInterfaceMod.MenuMode.inline) /*.defaultSelectedKeys(js.Array("1"))*/ (
         SubMenu.withKey("main")
-          .icon(AntdIcon( typings.antDesignIconsSvg.esAsnUserOutlinedMod.default))
+          .icon(AntdIcon(typings.antDesignIconsSvg.esAsnTeamOutlinedMod.default))
           .title("Группы")(
-          groups.map(group => SubMenu.withKey(group.groupId).title(group.groupTitle)(
-            MenuItem.withKey(group.groupId + "about").onClick(_ => setState(GroupInfoTeacherAppState(group.groupId)))("О группе"),
-            MenuItem.withKey(group.groupId + "results").onClick(_ => setState(GroupResultsTableTeacherAppState(group.groupId)))("Результаты"),
-          ).build)
-        ),
-        MenuItem.withKey("worksChecking").onClick(_ => setState(AnswerConfirmationAppState) ).icon(AntdIcon( typings.antDesignIconsSvg.esAsnAuditOutlinedMod.default))("Проверка работ"),
-        MenuItem.withKey("logout").onClick(_ => props.logout() ).icon(AntdIcon( typings.antDesignIconsSvg.esAsnLogoutOutlinedMod.default))("Выход")
+            groups.map(group => SubMenu.withKey(group.groupId).title(group.groupTitle)(
+              MenuItem.withKey(group.groupId + "about").onClick(_ => setState(GroupInfo(group.groupId)))("О группе"),
+              MenuItem.withKey(group.groupId + "results").onClick(_ => setState(GroupResultsTableEdtiting(group.groupId)))("Результаты"),
+            ).build)
+          ),
+        SubMenu.withKey("courses")
+          .icon(AntdIcon(typings.antDesignIconsSvg.esAsnCopyrightCircleOutlinedMod.default))
+          .title("Курсы")(
+            courses.map(course =>
+              MenuItem.withKey(course.courseAlias).onClick(_ => setState(CourseEditing(course.courseAlias)))(course.courseTitle).build,
+            )),
+        MenuItem.withKey("problems")
+          .onClick(_ => setState(ProblemsEditing))
+          .icon(AntdIcon(typings.antDesignIconsSvg.esAsnCalculatorOutlinedMod.default))("Задачи"),
+        MenuItem.withKey("worksChecking")
+          .onClick(_ => setState(AnswerConfirmation))
+          .icon(AntdIcon(typings.antDesignIconsSvg.esAsnAuditOutlinedMod.default))("Проверка работ"),
+        MenuItem.withKey("logout")
+          .onClick(_ => props.logout())
+          .icon(AntdIcon(typings.antDesignIconsSvg.esAsnLogoutOutlinedMod.default))("Выход")
       )
     }
 
@@ -85,24 +114,26 @@ object TeacherAppLayout {
         //header
         Layout.Content(
           state match {
-            case WelcomeScreenTeacherAppState =>
+            case WelcomeScreen =>
               Card.bordered(true)
                 .style(CSSProperties())(
                   Title.level(antdInts.`1`)("Добро пожаловать"),
                   p("Вас привествует интерфейс учителя на tester.lnmo.ru . Выберите группу или курс для работы в меню слева.")
                 )
-            case GroupInfoTeacherAppState(groupId) =>
+            case GroupInfo(groupId) =>
               groups.find(_.groupId == groupId) match {
                 case Some(gvd) => GroupDetailedInfo(gvd)
                 case None => div(s"Группа $groupId не найдена.")
               }
-            case GroupResultsTableTeacherAppState(groupId) =>
+            case GroupResultsTableEdtiting(groupId) =>
               groups.find(_.groupId == groupId) match {
                 case Some(gvd) => GroupResultsTable(props.loggedInUser, gvd)
                 case None => div(s"Группа $groupId не найдена.")
               }
-            case AnswerConfirmationAppState =>
+            case AnswerConfirmation =>
               AnswerConfirmationLayout(props.loggedInUser, groups)
+            case ProblemsEditing =>
+              div("NOPE")
           }
         )
       ),
