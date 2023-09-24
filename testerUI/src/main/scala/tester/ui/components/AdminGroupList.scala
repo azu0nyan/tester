@@ -47,7 +47,7 @@ object AdminGroupList {
       GroupTableItem(data.groupId, data.groupTitle, data.description, data.courses, data.users)
 
 
-    case class GroupTableItem(id: String, title: String, description: String, courses: Seq[viewData.CourseTemplateViewData], users: Seq[viewData.UserViewData])
+    case class GroupTableItem(id: String, title: String, description: String, courses: Seq[viewData.ShortCourseTemplateViewData], users: Seq[viewData.UserViewData])
 
     def addUserCell(groupId: String) = {
       val addUsers = UserSelector(props.loggedInUser, user => {

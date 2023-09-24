@@ -18,7 +18,9 @@ trait CourseTemplateService{
 
   def removeProblemFromTemplateAndUpdateCourses(courseAlias: String, problemAlias: String): TranzactIO[Boolean]
 
-  def getViewData(courseAlias: String): TranzactIO[viewData.CourseTemplateViewData]
+  def getViewData(courseAlias: String): TranzactIO[Option[viewData.CourseTemplateViewData]]
+  
+  def getTeacherCourses(teacherId: Int): TranzactIO[Seq[viewData.ShortCourseTemplateViewData]]
 
   def updateCourse(courseAlias: String, description: Option[String], data: Option[CourseRoot]): TranzactIO[Boolean]
   

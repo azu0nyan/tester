@@ -39,20 +39,31 @@ case class CourseTemplateServiceImpl(
       _ <- ZIO.foreach(courses)(course => problemService.removeProblem(course.id, problemAlias)) //todo add problem service as dependency
     } yield res
 
-  def getViewData(courseAlias: String): TranzactIO[viewData.CourseTemplateViewData] =
-    for{
-      ct <- DbCourseTemplateDao.byAlias(courseAlias)
+  def getViewData(courseAlias: String): TranzactIO[Option[viewData.CourseTemplateViewData]] =
+    for {
+      ct <- DbCourseTemplateDao.byAliasOption(courseAlias)
       os <- templateProblemAliases(courseAlias)
-    }  yield viewData.CourseTemplateViewData(courseAlias, otsbridge.CoursePiece.fromJson(ct.courseData).title, ct.description, os.map(_.problemAlias))
+    } yield ct.map(ct => viewData.CourseTemplateViewData(courseAlias, otsbridge.CoursePiece.fromJson(ct.courseData).title,
+      ct.description, otsbridge.CoursePiece.fromJson(ct.courseData), os.map(_.problemAlias), true))
+
+  def getTeacherCourses(teacherId: Int): TranzactIO[Seq[viewData.ShortCourseTemplateViewData]] =
+    for {
+      ct <- DbCourseTemplateDao.all
+      res <- ZIO.foreach(ct)(ct =>
+        for {
+          os <- templateProblemAliases(ct.alias)
+        } yield viewData.ShortCourseTemplateViewData(ct.alias, otsbridge.CoursePiece.fromJson(ct.courseData).title, ct.description, os.map(_.problemAlias))
+      )
+    } yield res
 
 
   def updateCourse(courseAlias: String, description: Option[String], data: Option[CourseRoot]): TranzactIO[Boolean] =
-    for{
+    for {
       a <- ZIO.when(description.nonEmpty)(DbCourseTemplateDao.setDescription(courseAlias, description.get))
       b <- ZIO.when(data.nonEmpty)(DbCourseTemplateDao.setCourseRoot(courseAlias, data.get))
     } yield (a.nonEmpty == description.nonEmpty) && (b.nonEmpty == data.nonEmpty)
 
-  def registerTemplate(ct: otsbridge.CourseTemplate): UIO[Unit] = 
+  def registerTemplate(ct: otsbridge.CourseTemplate): UIO[Unit] =
     registryImpl.registerCourseTemplate(ct)
       .tap(_ => ZIO.log(s"Registering course template ${ct.uniqueAlias} ${ct.courseTitle} (${ct.problemAliasesToGenerate.size})"))
 }

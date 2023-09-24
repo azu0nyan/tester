@@ -28,7 +28,7 @@ object CourseEditorLoader {
     build(component.apply(Props(loggedInUser, templateAlias)))
 
   val component = FunctionalComponent[Props] { props =>
-    val (courseData, setCourseData) = useState[Option[viewData.AdminCourseViewData]](None)
+    val (courseData, setCourseData) = useState[Option[viewData.CourseTemplateViewData]](None)
 
     useEffect(() => {
       import clientRequests.admin.AdminCourseInfo

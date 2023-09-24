@@ -16,8 +16,8 @@ package object viewData {
 
   implicit val reqDec1: Decoder[ProblemTemplateExampleViewData] = deriveDecoder[ProblemTemplateExampleViewData]
   implicit val resEnc1: Encoder[ProblemTemplateExampleViewData] = deriveEncoder[ProblemTemplateExampleViewData]
-  implicit val reqDec2: Decoder[AdminCourseViewData] = deriveDecoder[AdminCourseViewData]
-  implicit val resEnc2: Encoder[AdminCourseViewData] = deriveEncoder[AdminCourseViewData]
+  implicit val reqDec2: Decoder[CourseTemplateViewData] = deriveDecoder[CourseTemplateViewData]
+  implicit val resEnc2: Encoder[CourseTemplateViewData] = deriveEncoder[CourseTemplateViewData]
   implicit val reqDec3: Decoder[AnswerFullViewData] = deriveDecoder[AnswerFullViewData]
   implicit val resEnc3: Encoder[AnswerFullViewData] = deriveEncoder[AnswerFullViewData]
   implicit val reqDec4: Decoder[GroupInfoViewData] = deriveDecoder[GroupInfoViewData]
@@ -36,8 +36,8 @@ package object viewData {
   implicit val resEnc10: Encoder[ProblemRefViewData] = deriveEncoder[ProblemRefViewData]
   implicit val reqDec11: Decoder[PartialCourseViewData] = deriveDecoder[PartialCourseViewData]
   implicit val resEnc11: Encoder[PartialCourseViewData] = deriveEncoder[PartialCourseViewData]
-  implicit val reqDec12: Decoder[CourseTemplateViewData] = deriveDecoder[CourseTemplateViewData]
-  implicit val resEnc12: Encoder[CourseTemplateViewData] = deriveEncoder[CourseTemplateViewData]
+  implicit val reqDec12: Decoder[ShortCourseTemplateViewData] = deriveDecoder[ShortCourseTemplateViewData]
+  implicit val resEnc12: Encoder[ShortCourseTemplateViewData] = deriveEncoder[ShortCourseTemplateViewData]
   implicit val reqDec13: Decoder[AnswerViewData] = deriveDecoder[AnswerViewData]
   implicit val resEnc13: Encoder[AnswerViewData] = deriveEncoder[AnswerViewData]
 
@@ -48,8 +48,8 @@ package object viewData {
                                             editable: Boolean)
 
   /** admin */
-  case class AdminCourseViewData(courseAlias: String, courseTitle: String, description: String,
-                                 courseData: CourseRoot, problemAliasesToGenerate: Seq[String], editable: Boolean)
+  case class CourseTemplateViewData(courseAlias: String, courseTitle: String, description: String,
+                                    courseData: CourseRoot, problemAliasesToGenerate: Seq[String], editable: Boolean)
 
   /** teacher */
   @deprecated
@@ -60,7 +60,7 @@ package object viewData {
   case class GroupInfoViewData(groupId: String, groupTitle: String, description: String)
 
   /** Информация о группе пользователе для отображения в админке */
-  case class GroupDetailedInfoViewData(groupId: String, groupTitle: String, description: String, courses: Seq[CourseTemplateViewData], users: Seq[UserViewData])
+  case class GroupDetailedInfoViewData(groupId: String, groupTitle: String, description: String, courses: Seq[ShortCourseTemplateViewData], users: Seq[UserViewData])
 
   /** Информация о пользователе для отображения */
   case class UserViewData(id: String, login: String, firstName: Option[String], lastName: Option[String], email: Option[String], groups: Seq[GroupInfoViewData], registeredAt: Instant) {
@@ -105,10 +105,10 @@ package object viewData {
   case class CourseInfoViewData(courseId: String, title: String, status: CourseStatus, description: String)
 
   /** Информация видная в списке курсов которые можно пройти */
-  case class CourseTemplateViewData(courseTemplateAlias: String, title: String, description: String, problems: Seq[String])
+  case class ShortCourseTemplateViewData(alias: String, title: String, description: String, problems: Seq[String])
 
   /** Информация видная на странице выбора курса */
-  case class UserCoursesInfoViewData(templates: Seq[CourseTemplateViewData], existing: Seq[CourseInfoViewData])
+  case class UserCoursesInfoViewData(templates: Seq[ShortCourseTemplateViewData], existing: Seq[CourseInfoViewData])
 
   /** Краткая информация о задаче в списках задач */
   case class ProblemRefViewData(problemId: String, templateAlias: String, title: String,  score: ProblemScore)

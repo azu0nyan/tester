@@ -1,11 +1,11 @@
 package clientRequests.admin
 
 import clientRequests.{GenericRequestFailure, Route, WithToken}
-import viewData.AdminCourseViewData
+import viewData.CourseTemplateViewData
 import AdminCourseInfo.*
 
 
-object AdminCourseInfoJson{
+object AdminCourseInfoJson {
 
   import viewData.*
   import io.circe.syntax.*, io.circe.*, io.circe.generic.semiauto.*
@@ -17,7 +17,7 @@ object AdminCourseInfoJson{
 
 }
 
-import AdminCourseInfoJson.* 
+import AdminCourseInfoJson.*
 
 object AdminCourseInfo extends Route[AdminCourseInfoRequest, AdminCourseInfoResponse] {
   override val route: String = "requestAdminCourseInfo"
@@ -26,11 +26,11 @@ object AdminCourseInfo extends Route[AdminCourseInfoRequest, AdminCourseInfoResp
 }
 
 //REQ
-case class AdminCourseInfoRequest(token:String, alias:String) extends WithToken
+case class AdminCourseInfoRequest(token: String, alias: String) extends WithToken
 
 //RES
 sealed trait AdminCourseInfoResponse
-case class AdminCourseInfoSuccess(courseInfo:AdminCourseViewData) extends AdminCourseInfoResponse
+case class AdminCourseInfoSuccess(courseInfo: CourseTemplateViewData) extends AdminCourseInfoResponse
 
 sealed trait AdminCourseInfoFailure extends AdminCourseInfoResponse
 case class UnknownAdminCourseInfoFailure() extends AdminCourseInfoFailure

@@ -1,7 +1,7 @@
 package tester.srv.controller.impl
 
 import clientRequests.{CourseDataRequest, CourseDataResponse, CourseDataSuccess, CourseNotFound, CoursesListRequest, CoursesListResponse, GetCoursesListSuccess, LoginFailureUserNotFoundResponse, LoginFailureWrongPasswordResponse, LoginRequest, LoginResponse, LoginSuccessResponse, PartialCourseDataFailure, PartialCourseDataRequest, PartialCourseDataResponse, PartialCourseDataSuccess, PartialCourseNotFound, ProblemDataNotFound, ProblemDataRequest, ProblemDataResponse, ProblemDataSuccess, RegistrationFailureLoginToShortResponse, RegistrationFailurePasswordToShortResponse, RegistrationFailureUnknownErrorResponse, RegistrationFailureUserAlreadyExistsResponse, RegistrationFailureWrongCharsInLoginResponse, RegistrationRequest, RegistrationResponse, RegistrationSuccess, RequestStartCourseSuccess, StartCourseRequest, StartCourseResponse, SubmitAnswerRequest, SubmitAnswerResponse, UpdateUserDataRequest, UpdateUserDataResponse, UserDataRequest, UserDataResponse, UserDataSuccess}
-import clientRequests.admin.{AddCourseToGroupRequest, AddCourseToGroupResponse, AddCourseToGroupSuccess, AddCustomProblemTemplateRequest, AddCustomProblemTemplateResponse, AddProblemToCourseTemplateRequest, AddProblemToCourseTemplateResponse, AddProblemToCourseTemplateSuccess, AddProblemToCourseTemplateUnknownFailure, AddUserToGroupFailure, AddUserToGroupRequest, AddUserToGroupResponse, AddUserToGroupSuccess, AdminActionRequest, AdminActionResponse, AdminCourseInfoRequest, AdminCourseInfoResponse, AdminCourseListRequest, AdminCourseListResponse, GroupInfoRequest, GroupInfoResponse, GroupInfoResponseSuccess, GroupListRequest, GroupListResponse, GroupListResponseSuccess, NewCourseTemplateRequest, NewCourseTemplateResponse, NewCourseTemplateSuccess, NewCourseTemplateUnknownFailure, NewGroupRequest, NewGroupResponse, NewGroupSuccess, ProblemTemplateListRequest, ProblemTemplateListResponse, RemoveCustomProblemTemplateRequest, RemoveCustomProblemTemplateResponse, RemoveProblemFromCourseTemplateRequest, RemoveProblemFromCourseTemplateResponse, RemoveProblemFromCourseTemplateSuccess, RemoveProblemFromCourseTemplateUnknownFailure, RemoveUserFromGroupFailure, RemoveUserFromGroupRequest, RemoveUserFromGroupResponse, RemoveUserFromGroupSuccess, UnknownAddCourseToGroupFailure, UnknownTemplateCourseToRemoveFrom, UnknownUpdateCustomCourseFailure, UpdateCustomCourseRequest, UpdateCustomCourseResponse, UpdateCustomCourseSuccess, UpdateCustomProblemTemplateRequest, UpdateCustomProblemTemplateResponse, UserListRequest, UserListResponse, UserListResponseSuccess}
+import clientRequests.admin.{AddCourseToGroupRequest, AddCourseToGroupResponse, AddCourseToGroupSuccess, AddCustomProblemTemplateRequest, AddCustomProblemTemplateResponse, AddProblemToCourseTemplateRequest, AddProblemToCourseTemplateResponse, AddProblemToCourseTemplateSuccess, AddProblemToCourseTemplateUnknownFailure, AddUserToGroupFailure, AddUserToGroupRequest, AddUserToGroupResponse, AddUserToGroupSuccess, AdminActionRequest, AdminActionResponse, AdminCourseInfoRequest, AdminCourseInfoResponse, AdminCourseInfoSuccess, AdminCourseListRequest, AdminCourseListResponse, AdminCourseListSuccess, GroupInfoRequest, GroupInfoResponse, GroupInfoResponseSuccess, GroupListRequest, GroupListResponse, GroupListResponseSuccess, NewCourseTemplateRequest, NewCourseTemplateResponse, NewCourseTemplateSuccess, NewCourseTemplateUnknownFailure, NewGroupRequest, NewGroupResponse, NewGroupSuccess, ProblemTemplateListRequest, ProblemTemplateListResponse, RemoveCustomProblemTemplateRequest, RemoveCustomProblemTemplateResponse, RemoveProblemFromCourseTemplateRequest, RemoveProblemFromCourseTemplateResponse, RemoveProblemFromCourseTemplateSuccess, RemoveProblemFromCourseTemplateUnknownFailure, RemoveUserFromGroupFailure, RemoveUserFromGroupRequest, RemoveUserFromGroupResponse, RemoveUserFromGroupSuccess, UnknownAddCourseToGroupFailure, UnknownAdminCourseInfoFailure, UnknownTemplateCourseToRemoveFrom, UnknownUpdateCustomCourseFailure, UpdateCustomCourseRequest, UpdateCustomCourseResponse, UpdateCustomCourseSuccess, UpdateCustomProblemTemplateRequest, UpdateCustomProblemTemplateResponse, UserListRequest, UserListResponse, UserListResponseSuccess}
 import clientRequests.teacher.{AnswerForConfirmationListRequest, AnswerForConfirmationListResponse, AnswerForConfirmationListSuccess, AnswersListRequest, AnswersListResponse, AnswersListSuccess, CourseAnswersConfirmationInfo, ModifyProblemRequest, ModifyProblemResponse, ModifyProblemSuccess, RejectAnswer, SetScore, ShortCourseInfo, TeacherConfirmAnswerRequest, TeacherConfirmAnswerResponse, TeacherConfirmAnswerSuccess, UserConfirmationInfo}
 import clientRequests.watcher.{GroupScoresRequest, GroupScoresResponse, LightGroupScoresRequest, LightGroupScoresResponse}
 import io.github.gaelrenoux.tranzactio.doobie.{Database, TranzactIO}
@@ -168,8 +168,20 @@ case class ApplicationImpl(
       .catchAllCause(_ => ZIO.succeed(AddUserToGroupFailure()))
 
   override def adminAction(req: AdminActionRequest): Task[AdminActionResponse] = ???
-  @deprecated override def adminCourseInfo(req: AdminCourseInfoRequest): Task[AdminCourseInfoResponse] = ???
-  @deprecated override def adminCourseList(req: AdminCourseListRequest): Task[AdminCourseListResponse] = ???
+  override def adminCourseInfo(req: AdminCourseInfoRequest): Task[AdminCourseInfoResponse] =
+    db.transactionOrWiden(
+      courseTemplates.getViewData(req.alias)
+    ).map{
+      case Some(vd) => AdminCourseInfoSuccess(vd)
+      case None => UnknownAdminCourseInfoFailure()
+    }
+
+
+  override def adminCourseList(req: AdminCourseListRequest): Task[AdminCourseListResponse] =
+    db.transactionOrWiden(
+      courseTemplates.getTeacherCourses(0)//todo correctId
+        .map(r => AdminCourseListSuccess(r))
+    )
 
   override def groupInfo(req: GroupInfoRequest): Task[GroupInfoResponse] =
     db.transactionOrWiden(groups.groupDetailedInfo(req.groupId.toInt)).map(vd => GroupInfoResponseSuccess(vd))

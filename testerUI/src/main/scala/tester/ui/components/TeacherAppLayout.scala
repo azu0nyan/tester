@@ -42,7 +42,7 @@ object TeacherAppLayout {
 
     val (state, setState) = useState[TeacherAppState](WelcomeScreen)
     val (groups, setGroups) = useState[Seq[viewData.GroupDetailedInfoViewData]](Seq())
-    val (courses, setCourses) = useState[Seq[viewData.AdminCourseViewData]](Seq())
+    val (courses, setCourses) = useState[Seq[viewData.ShortCourseTemplateViewData]](Seq())
     val (leftCollapsed, setLeftCollapsed) = useState[Boolean](false)
 
     useEffect(() => {
@@ -81,7 +81,7 @@ object TeacherAppLayout {
           .icon(AntdIcon(typings.antDesignIconsSvg.esAsnCopyrightCircleOutlinedMod.default))
           .title("Курсы")(
             courses.map(course =>
-              MenuItem.withKey(course.courseAlias).onClick(_ => setState(CourseEditing(course.courseAlias)))(course.courseTitle).build,
+              MenuItem.withKey(course.alias).onClick(_ => setState(CourseEditing(course.alias)))(course.title).build,
             )),
         MenuItem.withKey("problems")
           .onClick(_ => setState(ProblemsEditing))

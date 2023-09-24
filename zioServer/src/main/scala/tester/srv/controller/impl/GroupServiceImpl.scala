@@ -56,7 +56,7 @@ case class GroupServiceImpl(
     UserToGroupDao.insertReturnId(UserToGroup(0, userId, groupId, java.time.Clock.systemUTC().instant(), None))
 
   def removeUserFromGroup(userId: Int, groupId: Int): TranzactIO[Boolean] = ???
-      //userToGroup.removeXtoY
+  //userToGroup.removeXtoY
 
   private def removeUserFromGroupQuery(userId: Int, groupId: Int) =
     UserToGroupDao.updateWhere(fr"leavedat = ${java.time.Clock.systemUTC().instant()} ",
@@ -104,7 +104,8 @@ case class GroupServiceImpl(
       group <- GroupDao.byId(groupId)
       courses <- groupCourses(groupId, false)
       courseTemplates <- ZIO.foreach(courses)(c => templateRegistry.courseTemplate(c.templateAlias))
-      coursesViews = courseTemplates.flatten.map(ct => viewData.CourseTemplateViewData(ct.uniqueAlias, ct.courseTitle, ct.description, ct.problemAliasesToGenerate))
+      coursesViews = courseTemplates.flatten.map(ct =>
+        viewData.ShortCourseTemplateViewData(ct.uniqueAlias, ct.courseTitle, ct.description, ct.problemAliasesToGenerate))
       users <- groupUsers(groupId)
     } yield viewData.GroupDetailedInfoViewData(groupId.toString, group.title, group.description, coursesViews, users)
 

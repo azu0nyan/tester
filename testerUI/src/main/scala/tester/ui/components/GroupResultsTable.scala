@@ -8,7 +8,7 @@ import slinky.core.WithAttrs.build
 
 import scala.scalajs.js
 import slinky.core._
-import slinky.web.html.{h5, _}
+import slinky.web.html.*
 import typings.antd.components._
 import typings.antd.{antdBooleans, antdInts, antdStrings}
 import slinky.core.facade.Hooks.{useEffect, useState}
@@ -21,7 +21,7 @@ import typings.csstype.mod.WhiteSpaceProperty.nowrap
 import typings.rcTable.anon.X
 import typings.rcTable.{libInterfaceMod, rcTableStrings}
 import typings.react.mod.CSSProperties
-import viewData.{CourseTemplateViewData, GroupDetailedInfoViewData, UserViewData}
+import viewData.{ShortCourseTemplateViewData, GroupDetailedInfoViewData, UserViewData}
 
 import scala.scalajs.js.|
 
@@ -42,7 +42,7 @@ object GroupResultsTable {
 
     useEffect(() => {
       Request.sendRequest(clientRequests.watcher.LightGroupScores,
-        LightGroupScoresRequest(props.loggedInUser.token, props.data.groupId, props.data.courses.map(_.courseTemplateAlias), props.data.users.map(_.id)))(
+        LightGroupScoresRequest(props.loggedInUser.token, props.data.groupId, props.data.courses.map(_.alias), props.data.users.map(_.id)))(
         onComplete = {
           case l: LightGroupScoresSuccess =>
 
@@ -96,7 +96,7 @@ object GroupResultsTable {
           }
 
 
-      def courseColumns(c: CourseTemplateViewData): ColumnGroupType[UserTableItem] = {
+      def courseColumns(c: ShortCourseTemplateViewData): ColumnGroupType[UserTableItem] = {
 //        val (courseData, setCourseData) = useState[Option[CourseRoot]](None)
 
 //        courseData match {
@@ -120,7 +120,7 @@ object GroupResultsTable {
 
             val castedArray: js.Array[ColumnGroupType[UserTableItem] | ColumnType[UserTableItem]] = js.Array(prows: _ *)
 
-            ColumnGroupType[UserTableItem](castedArray).setTitle(build(h5(c.title))).setKey(c.courseTemplateAlias)
+            ColumnGroupType[UserTableItem](castedArray).setTitle(build(h5(c.title))).setKey(c.alias)
 
 //        }
       }

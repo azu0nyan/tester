@@ -1,10 +1,10 @@
 package clientRequests.admin
 
 import clientRequests.{GenericRequestFailure, Route, WithToken}
-import viewData.{CourseViewData, AdminCourseViewData}
+import viewData.{CourseViewData, ShortCourseTemplateViewData}
 import AdminCourseList.*
 
-object AdminCourseListJson{
+object AdminCourseListJson {
 
   import viewData.*
   import io.circe.syntax.*, io.circe.*, io.circe.generic.semiauto.*
@@ -15,19 +15,19 @@ object AdminCourseListJson{
   implicit val resEnc: Encoder[AdminCourseListResponse] = deriveEncoder[AdminCourseListResponse]
 
 }
-import AdminCourseListJson.* 
+import AdminCourseListJson.*
 
 object AdminCourseList extends Route[AdminCourseListRequest, AdminCourseListResponse] {
   override val route: String = "requestCourseList"
-  
+
 }
 
 //REQ
-case class AdminCourseListRequest(token:String) extends WithToken
+case class AdminCourseListRequest(token: String) extends WithToken
 
 //RES
 sealed trait AdminCourseListResponse
-case class AdminCourseListSuccess(customCourses:Seq[AdminCourseViewData]) extends AdminCourseListResponse
+case class AdminCourseListSuccess(customCourses: Seq[ShortCourseTemplateViewData]) extends AdminCourseListResponse
 
 sealed trait AdminCourseListFailure extends AdminCourseListResponse
 case class UnknownAdminCourseListFailure() extends AdminCourseListFailure

@@ -48,7 +48,7 @@ object AnswerConfirmationLayout {
       u.courses.find(_.course.problemIds.contains(problemId)) match {
         case Some(course) =>
           val id = course.course.problemIds.indexOf(problemId)
-          props.groups.flatMap(_.courses).find(c => c.courseTemplateAlias == course.course.templateAlias) match {
+          props.groups.flatMap(_.courses).find(c => c.alias == course.course.templateAlias) match {
             case Some(courseTemplate) =>
               if (courseTemplate.problems.size > id) {
                 courseTemplate.problems(id)
