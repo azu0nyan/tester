@@ -275,6 +275,7 @@ object CoursePiece {
 
   case class CourseRoot(title: String, annotation: String, childs: Seq[CoursePiece]) extends Container {
     def toJson: String = encodeRoot(this).noSpaces
+    def toJsonPretty: String = encodeRoot(this).spaces2
 
     override def alias: String = "main"
     override def displayMe: DisplayMe = OwnPage

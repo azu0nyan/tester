@@ -39,7 +39,14 @@ object AnswerField {
     override def answerFromString(string: String): Option[String] = Some(string)
   }
 
-  case class ProgramAnswer(program: String, programmingLanguage: ProgrammingLanguage)
+  case class ProgramAnswer(program: String, programmingLanguage: ProgrammingLanguage) {
+    def toJson: String = this.asJson.noSpaces
+  }
+  object ProgramAnswer {
+    def fromJsom(a: String): ProgramAnswer = decode[ProgramAnswer](a) match
+      case Left(value) => ???
+      case Right(value) => value
+  }
 
   case class ProgramInTextField(override val questionText: String,
                                 allowedLanguages: Seq[ProgrammingLanguage],

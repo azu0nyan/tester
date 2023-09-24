@@ -4,7 +4,7 @@ import clientRequests.{GenericRequestFailure, Route, WithToken}
 import viewData.ProblemTemplateExampleViewData
 import ProblemTemplateList.*
 
-object ProblemTemplateListJson{
+object ProblemTemplateListJson {
 
   import viewData.*
   import io.circe.syntax.*, io.circe.*, io.circe.generic.semiauto.*
@@ -18,23 +18,26 @@ object ProblemTemplateListJson{
   implicit val resEnc: Encoder[ProblemTemplateListResponse] = deriveEncoder[ProblemTemplateListResponse]
 
 }
-import ProblemTemplateListJson.* 
+import ProblemTemplateListJson.*
 
 object ProblemTemplateList extends Route[ProblemTemplateListRequest, ProblemTemplateListResponse] {
   override val route: String = "requestProblemTemplateList"
 
-
+  sealed trait ProblemTemplateFilter
+  object ProblemTemplateFilter {
+    case class AliasOrTitleMatches(regex: String) extends ProblemTemplateFilter
+    case class Editable(editable: Boolean) extends ProblemTemplateFilter
+    case class FromCourseTemplate(template: String) extends ProblemTemplateFilter
+  }
 }
 
-sealed trait ProblemTemplateFilter
-case class AliasOrTitleMatches(regex: String) extends ProblemTemplateFilter
-case class Editable(editable: Boolean) extends ProblemTemplateFilter
+
 //REQ
-case class ProblemTemplateListRequest(token:String, filters: Seq[ProblemTemplateFilter]) extends WithToken
+case class ProblemTemplateListRequest(token: String, filters: Seq[ProblemTemplateFilter]) extends WithToken
 
 //RES
 sealed trait ProblemTemplateListResponse
-case class ProblemTemplateListSuccess(templates:Seq[ProblemTemplateExampleViewData]) extends ProblemTemplateListResponse
+case class ProblemTemplateListSuccess(templates: Seq[ProblemTemplateExampleViewData]) extends ProblemTemplateListResponse
 sealed trait ProblemTemplateListFailure extends ProblemTemplateListResponse
 case class UnknownProblemTemplateListFailure() extends ProblemTemplateListFailure
 
