@@ -24,9 +24,8 @@ object CoursePiece {
   implicit val resEnc6: Encoder[DisplayMe] = deriveEncoder[DisplayMe]
 
   import cats.syntax.functor._
-  import io.circe.{ Decoder, Encoder }, io.circe.generic.auto._
+  import io.circe.{Decoder, Encoder}, io.circe.generic.auto._
   import io.circe.syntax._
-
 
 
   implicit val encodeTheme: Encoder[Theme] = Encoder.instance {
@@ -70,9 +69,23 @@ object CoursePiece {
         th <- c.downField("textHtml").as[String]
         cp <- c.downField("childs").as[Seq[CoursePiece]]
         d <- c.downField("displayMe").as[DisplayMe]
-      } yield SubTheme( a, t, th, cp, d)
+      } yield SubTheme(a, t, th, cp, d)
 
-  implicit val pieceDecoder: Decoder[CoursePiece] = {
+  implicit val pieceDecoder: Decoder[CoursePiece] =
+    new Decoder[CoursePiece]:
+      override def apply(c: HCursor)  =
+        c.keys.map(_.toSeq) match
+          case Some(x) if x.isEmpty => Left(DecodingFailure("No key", List()))
+          case Some(x) if x.size > 1 => Left(DecodingFailure("To many keys $x", List()))
+          case None => Left(DecodingFailure("", List()))
+          case Some(Seq("Theme")) => decodeTheme.tryDecode(c.downField("Theme"))
+          case Some(Seq("SubTheme")) => decodeSubTheme.tryDecode(c.downField("SubTheme"))
+          case Some(Seq("HtmlToDisplay")) => Decoder[HtmlToDisplay].tryDecode(c.downField("HtmlToDisplay"))
+          case Some(Seq("TextWithHeading")) => Decoder[HtmlToDisplay].tryDecode(c.downField("TextWithHeading"))
+          case Some(Seq("Paragraph")) => Decoder[Paragraph].tryDecode(c.downField("Paragraph"))
+          case Some(Seq("Problem")) => Decoder[Problem].tryDecode(c.downField("Problem"))
+
+  /*{
     List[Decoder[CoursePiece]](
       Decoder[Theme].widen,
       Decoder[SubTheme].widen,
@@ -81,15 +94,15 @@ object CoursePiece {
       Decoder[Paragraph].widen,
       Decoder[Problem].widen,
     ).reduceLeft (_ or _)
-  }
+  }*/
 
   implicit val pieceEncoder: Encoder[CoursePiece] = Encoder.instance {
-    case t@Theme(alias, title, textHtml, childs, displayMe) => t.asJson
-    case s@SubTheme(alias, title, textHtml, childs, displayMe) => s.asJson
-    case h@HtmlToDisplay(alias, displayMe, htmlRaw) => h.asJson
-    case t@TextWithHeading(alias, heading, bodyHtml, displayMe, displayInContentsHtml) => t.asJson
-    case p@Paragraph(alias, bodyHtml, displayMe) => p.asJson
-    case p@Problem(problemAlias, displayMe, displayInContentsHtml) => p.asJson
+    case t@Theme(alias, title, textHtml, childs, displayMe) => Json.obj(("Theme", t.asJson))
+    case s@SubTheme(alias, title, textHtml, childs, displayMe) => Json.obj(("SubTheme", s.asJson))
+    case h@HtmlToDisplay(alias, displayMe, htmlRaw) => Json.obj(("HtmlToDisplay", h.asJson))
+    case t@TextWithHeading(alias, heading, bodyHtml, displayMe, displayInContentsHtml) => Json.obj(("TextWithHeading", t.asJson))
+    case p@Paragraph(alias, bodyHtml, displayMe) => Json.obj(("Paragraph", p.asJson))
+    case p@Problem(problemAlias, displayMe, displayInContentsHtml) => Json.obj(("Problem", p.asJson))
   }
 
 
