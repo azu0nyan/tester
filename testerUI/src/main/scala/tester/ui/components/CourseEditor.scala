@@ -44,7 +44,7 @@ object CourseEditorLoader {
       Seq()
     )
 
-    div(
+    div(key := props.templateAlias)(
       courseData match {
         case Some(data) =>
           CourseEditor(props.loggedInUser, props.templateAlias, data.description, data.courseData)

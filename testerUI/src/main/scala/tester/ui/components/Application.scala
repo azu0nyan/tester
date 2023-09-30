@@ -1,13 +1,13 @@
 package tester.ui.components
 
-import clientRequests._
-import slinky.core._
+import clientRequests.*
+import slinky.core.*
 import slinky.web.ReactDOM
-import slinky.web.html._
-
-import org.scalajs.dom._
+import slinky.web.html.*
+import org.scalajs.dom.*
 import slinky.core.facade.Hooks.useState
 import slinky.core.facade.ReactElement
+import tester.ui.components.admin.AdminAppLayout
 import tester.ui.requests.Request.sendRequest
 import typings.betterReactMathjax.components.MathJaxContext
 import typings.betterReactMathjax.mathJaxContextMathJaxContextMod.MathJaxContextProps
@@ -15,7 +15,7 @@ import typings.betterReactMathjax.mathJaxContextMod
 
 import scala.scalajs.js
 import scala.scalajs.js.annotation.JSImport
-import viewData._
+import viewData.*
 
 import java.time.Instant
 

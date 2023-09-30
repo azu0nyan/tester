@@ -61,6 +61,24 @@ object CoursePiece {
       )
   }
 
+//  implicit val decodeHtmlToDisplay: Decoder[HtmlToDisplay] = new Decoder[HtmlToDisplay]:
+//    override def apply(c: HCursor) =
+//      for {
+//        a <- c.downField("alias").as[String]
+//        d <- c.downField("displayMe").as[DisplayMe]
+//        h <- c.downField("htmlRaw").as[String]
+//      } yield HtmlToDisplay(a, d, h)
+//
+//
+//  implicit val encodeHtmlToDisplay: Encoder[HtmlToDisplay] = Encoder.instance {
+//    case r@HtmlToDisplay(alias, displayMe, htmlRaw) =>
+//      Json.obj(
+//        ("alias", Json.fromString(alias)),
+//        ("displayMe", displayMe.asJson),
+//        ("htmlRaw", Json.fromString(htmlRaw)),
+//      )
+//  }
+
   implicit val decodeSubTheme: Decoder[SubTheme] = new Decoder[SubTheme]:
     override def apply(c: HCursor) =
       for {
@@ -81,7 +99,7 @@ object CoursePiece {
           case Some(Seq("Theme")) => decodeTheme.tryDecode(c.downField("Theme"))
           case Some(Seq("SubTheme")) => decodeSubTheme.tryDecode(c.downField("SubTheme"))
           case Some(Seq("HtmlToDisplay")) => Decoder[HtmlToDisplay].tryDecode(c.downField("HtmlToDisplay"))
-          case Some(Seq("TextWithHeading")) => Decoder[HtmlToDisplay].tryDecode(c.downField("TextWithHeading"))
+          case Some(Seq("TextWithHeading")) => Decoder[TextWithHeading].tryDecode(c.downField("TextWithHeading"))
           case Some(Seq("Paragraph")) => Decoder[Paragraph].tryDecode(c.downField("Paragraph"))
           case Some(Seq("Problem")) => Decoder[Problem].tryDecode(c.downField("Problem"))
 

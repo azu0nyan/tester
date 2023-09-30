@@ -1,21 +1,22 @@
-package tester.ui.components
+package tester.ui.components.admin
 
-import clientRequests.admin.{AddUserToGroupFailure, AddUserToGroupRequest, AddUserToGroupSuccess, GroupListRequest, GroupListResponseFailure, GroupListResponseSuccess, RemoveUserFromGroupFailure, RemoveUserFromGroupRequest, RemoveUserFromGroupSuccess}
-
-import scala.scalajs.js
+import clientRequests.admin.*
 import slinky.core.*
-import slinky.web.html.*
-import typings.antd.components.*
-import typings.antd.{antdInts, antdStrings}
+import slinky.core.WithAttrs.build
 import slinky.core.facade.Hooks.{useEffect, useState}
 import slinky.core.facade.ReactElement
+import slinky.web.html.*
+import tester.ui.components.{LoggedInUser, Notifications, UserSelector}
 import tester.ui.requests.Request
 import typings.antDesignIcons.components.AntdIcon
+import typings.antd.components.*
+import typings.antd.{antdInts, antdStrings}
 import typings.csstype.mod.{OverflowYProperty, PositionProperty}
 import typings.rcMenu.esInterfaceMod
 import typings.react.mod.CSSProperties
 import viewData.GroupDetailedInfoViewData
-import slinky.core.WithAttrs.build
+
+import scala.scalajs.js
 
 
 object AdminGroupList {

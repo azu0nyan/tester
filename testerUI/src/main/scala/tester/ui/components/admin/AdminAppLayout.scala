@@ -1,18 +1,19 @@
-package tester.ui.components
+package tester.ui.components.admin
 
-import scala.scalajs.js
-import slinky.core._
-import slinky.web.html._
-import typings.antd.components._
-import typings.antd.{antdInts, antdStrings}
-
+import slinky.core.*
 import slinky.core.facade.Hooks.{useEffect, useState}
 import slinky.core.facade.ReactElement
+import slinky.web.html.*
+import tester.ui.components.{LoggedInUser}
 import tester.ui.requests.Request
 import typings.antDesignIcons.components.AntdIcon
+import typings.antd.components.*
+import typings.antd.{antdInts, antdStrings}
 import typings.csstype.mod.{OverflowYProperty, PositionProperty}
 import typings.rcMenu.esInterfaceMod
 import typings.react.mod.CSSProperties
+
+import scala.scalajs.js
 
 object AdminAppLayout {
   case class Props(loggedInUser: LoggedInUser, logout: () => Unit)

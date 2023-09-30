@@ -101,7 +101,9 @@ object DisplayProblem {
       Title().level(typings.antd.antdInts.`3`).style(CSSProperties().setMinWidth("250px"))(pvd.title),
       MathJax(div(dangerouslySetInnerHTML := new SetInnerHtml(pvd.problemHtml))),
     )
-    div(style := js.Dynamic.literal(
+    div(
+      key := pvd.templateAlias,
+        style := js.Dynamic.literal(
       width = "-webkit-fill-available"
     ))(
       Row().wrap(true)(
