@@ -125,12 +125,14 @@ object TeacherAppLayout {
     }
 
 
+    val width = 300
     Layout().hasSider(true)(
       Layout.Sider
         .collapsible(true)
         .collapsed(leftCollapsed)
         .onCollapse((b, _) => setLeftCollapsed(b))
         .collapsedWidth(0)
+        .width(width)
         .zeroWidthTriggerStyle(CSSProperties())
         .trigger(null)
         .style(CSSProperties().setHeight("100vh")
@@ -139,7 +141,7 @@ object TeacherAppLayout {
           .setOverflowY(OverflowYProperty.auto))(
           siderGroupMenu
         ),
-      Layout().style(CSSProperties().setMarginLeft(200))(
+      Layout().style(CSSProperties().setMarginLeft(width))(
         //header
         Layout.Content(
           state match {
