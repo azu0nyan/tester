@@ -47,15 +47,15 @@ object Main {
   import ctx._
 
   def main(args: Array[String]): Unit = try {
-    migrateUsers()
-    migrateGroups()
-    migrateUserToGroup()
-    migrateCourses()
-    migrateCourseTemplateForGroup()
-    migrateCustomProblems()
+//    migrateUsers()
+//    migrateGroups()
+//    migrateUserToGroup()
+//    migrateCourses()
+//    migrateCourseTemplateForGroup()
+//    migrateCustomProblems()
     migrateCustomCourses()
-    migrateProblems()
-    migrateAnswers()
+//    migrateProblems()
+//    migrateAnswers()
 
 
   } catch {
@@ -94,13 +94,13 @@ object Main {
       val toIns = CustomCourseTemplate(c.uniqueAlias, c.description, c.courseData.asJson.noSpaces)
 
       val q = quote { (c: CustomCourseTemplate) =>
-        sql"""INSERT INTO CourseTemplate (templateAlias, description, courseData)
+        sql"""INSERT INTO CourseTemplate (alias, description, courseData)
              VALUES ( ${c.templateAlias}, ${c.description}, ${c.courseData}::json)"""
           .as[Insert[CustomCourseTemplate]].onConflictIgnore
       }
 
 
-//      ctx.run(q(ctx.lift(toIns))) todo
+      ctx.run(q(ctx.lift(toIns)))
 
       for (p <- c.problemAliasesToGenerate) {
         val toIns2 = CourseTemplateProblem(toIns.templateAlias, p)

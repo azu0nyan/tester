@@ -3,12 +3,12 @@ package tester.srv.controller.impl
 import doobie.util.transactor
 import io.github.gaelrenoux.tranzactio.DbException
 import io.github.gaelrenoux.tranzactio.doobie.TranzactIO
-import otsbridge.CoursePiece.CourseRoot
+import otsbridge.CoursePiece.{CourseRoot, SubTheme, Theme}
 import otsbridge.CourseTemplate
 import tester.srv.controller.{CourseTemplateRegistry, CourseTemplateService, MessageBus, ProblemService}
 import tester.srv.dao.DbCourseTemplateDao.DbCourseTemplate
 import tester.srv.dao.CourseTemplateProblemDao.CourseTemplateProblem
-import tester.srv.dao.{CourseDao, DbCourseTemplateDao, CourseTemplateProblemDao}
+import tester.srv.dao.{CourseDao, CourseTemplateProblemDao, DbCourseTemplateDao}
 import zio.*
 
 case class CourseTemplateServiceImpl(
@@ -20,8 +20,22 @@ case class CourseTemplateServiceImpl(
   def templateProblemAliases(alias: String): TranzactIO[Seq[CourseTemplateProblem]] =
     CourseTemplateProblemDao.templateProblemAliases(alias)
 
+  val newTemplateContent = Seq(
+    Theme("about", "О курсе", "",
+      Seq(
+        SubTheme("intro", "О курсе", "Краткое описание курса"),
+        SubTheme("materials", "Материалы куроса", "Необходимый софт для прохождения курса. <br> Ссылки на учебники, справочники"),
+      )
+    ),
+    Theme("1quarter", "1 четверть", ""),
+    Theme("2quarter", "2 четверть", ""),
+    Theme("3quarter", "3 четверть", ""),
+    Theme("4quarter", "4 четверть", ""),
+    Theme("bonus", "Дополнительные материалы", ""),
+  )
+
   def createNewTemplate(alias: String, description: String): TranzactIO[Boolean] =
-    DbCourseTemplateDao.insert(DbCourseTemplateDao.DbCourseTemplate(alias, description, otsbridge.CoursePiece.CourseRoot(alias, "", Seq()).toJson))
+    DbCourseTemplateDao.insert(DbCourseTemplateDao.DbCourseTemplate(alias, description, otsbridge.CoursePiece.CourseRoot(alias, "", newTemplateContent).toJson))
 
   def addProblemToTemplateAndUpdateCourses(courseAlias: String, problemAlias: String): TranzactIO[Boolean] =
     for {

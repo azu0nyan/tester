@@ -101,7 +101,7 @@ object CourseEditor {
     val descriptionInput = TextArea
       .rows(5)
       .value(description)
-      .onChange(v => setDescription(e.target_ChangeEvent.value))
+      .onChange(e => setDescription(e.target_ChangeEvent.value))
 
     div(
       Card.bordered(true)
@@ -151,7 +151,7 @@ object CourseEditor {
             TextArea
               .rows(5)
               .value(json)
-              .onChange(v => setJson(e.target_ChangeEvent.value)),
+              .onChange(e => setJson(e.target_ChangeEvent.value)),
             Button.`type`(antdStrings.primary)
               .onClick(_ => submitNewData())("Сохранить")
 
