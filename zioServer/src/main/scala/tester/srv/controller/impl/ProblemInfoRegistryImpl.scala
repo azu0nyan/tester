@@ -15,8 +15,10 @@ case class ProblemInfoRegistryImpl(map: ConcurrentMap[String, ProblemInfo]) exte
       _ <- ZIO.log(s"Registering problem info ${info.alias} - ${safe(info.title(0))}")
       _ <- map.put(info.alias, info)
     } yield ()
-    
+
   override def removeProblemInfo(alias: String): UIO[Unit] = map.remove(alias).map(_ => ())
+  
+  override def allInfos: UIO[Seq[ProblemInfo]] = map.toList.map(_.map(_._2))
 }
 
 object ProblemInfoRegistryImpl {

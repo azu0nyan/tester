@@ -26,6 +26,7 @@ object ProblemTemplateList extends Route[ProblemTemplateListRequest, ProblemTemp
   sealed trait ProblemTemplateFilter
   object ProblemTemplateFilter {
     case class AliasOrTitleMatches(regex: String) extends ProblemTemplateFilter
+    case class TextContains(text: String) extends ProblemTemplateFilter
     case class Editable(editable: Boolean) extends ProblemTemplateFilter
     case class FromCourseTemplate(template: String) extends ProblemTemplateFilter
   }

@@ -50,7 +50,8 @@ case class VerificationServiceImpl(
           res match
             case Verified(score, systemMessage) => s"Verified ${score.toPrettyString}"
             case VerificationDelayed(systemMessage) => s"Delayed"
-            case CantVerify(systemMessage) => s"Cant verify ${systemMessage.map( _.take(100))}"}")
+            case CantVerify(systemMessage) => s"Cant verify ${systemMessage.map(_.take(100))}"
+        }")
         _ <- processResult(res)
       } yield ()).catchAllCause { e =>
         for {
@@ -62,7 +63,7 @@ case class VerificationServiceImpl(
 
     for {
       verificator <- registry.getVerificator(verificatorAlias)
-        .tapSome{case None => ZIO.logError(s"Can't find verificator for $verificatorAlias, verifying problem $problemId answer $answerId")}
+        .tapSome { case None => ZIO.logError(s"Can't find verificator for $verificatorAlias, verifying problem $problemId answer $answerId") }
       _ <- verificator match
         case Some(ver) =>
           verifyWith(ver)
@@ -77,7 +78,7 @@ case class VerificationServiceImpl(
 
   def registerVerificator(alias: String, ver: AnswerVerificator): UIO[Unit] =
     registry.registerVerificator(alias, ver)
-   
+
 }
 
 

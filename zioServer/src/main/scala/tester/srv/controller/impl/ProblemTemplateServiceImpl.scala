@@ -1,14 +1,16 @@
 package tester.srv.controller.impl
 
 import clientRequests.admin.CustomProblemUpdateData
+import clientRequests.admin.ProblemTemplateList.ProblemTemplateFilter
 import doobie.implicits.*
 import doobie.util.transactor
 import io.github.gaelrenoux.tranzactio.DbException
 import io.github.gaelrenoux.tranzactio.doobie.TranzactIO
 import otsbridge.ProblemScore.BinaryScore
-import otsbridge.{AnswerField, ProblemTemplate}
+import otsbridge.{AnswerField, ProblemInfo, ProblemTemplate}
 import tester.srv.controller.{CourseTemplateRegistry, MessageBus, ProblemInfoRegistry, ProblemService, ProblemTemplateService}
 import tester.srv.dao.DbProblemTemplateDao
+import viewData.ProblemTemplateExampleViewData
 import zio.*
 
 case class ProblemTemplateServiceImpl(
@@ -34,9 +36,42 @@ case class ProblemTemplateServiceImpl(
         fr"title=${updateData.title}, html=${updateData.html}, answerField=${updateData.answerField.toJson}, initialScore=${updateData.initialScore.toJson}")
       _ <- ZIO.when(res)(reloadFromDb(alias))
     } yield res
+
+  def applyFilter(filter: ProblemTemplateFilter, infos: Seq[ProblemInfo]):TranzactIO[Seq[ProblemInfo]] =
+    filter match
+      case ProblemTemplateFilter.AliasOrTitleMatches(regex) =>
+        ZIO.succeed(infos.filter( i => i.alias.matches(regex) || i.title(0).matches(regex)))
+      case ProblemTemplateFilter.TextContains(text) =>
+        ZIO.succeed(infos.filter(_.problemHtml(0).contains(text)))
+      case ProblemTemplateFilter.Editable(editable) =>
+        ZIO.succeed(infos.filter(_.editable == editable))
+      case ProblemTemplateFilter.FromCourseTemplate(template) =>
+        courseTemplateRegistry.courseTemplate(template).map {
+          case Some(ct) => infos.filter(t => ct.problemAliasesToGenerate.contains(t.alias))
+          case None => Seq()
+        }
+
+  def list(filters: Seq[ProblemTemplateFilter]): TranzactIO[Seq[ProblemTemplateExampleViewData]] =
+    for {
+      infos <- registry.allInfos
+      res <- ZIO.foldLeft(filters)(infos)((is, f) => applyFilter(f, is))
+    } yield res.map(ProblemTemplateServiceImpl.toProblemTemplateExampleViewData)
+
 }
 
 object ProblemTemplateServiceImpl {
+
+  def toProblemTemplateExampleViewData(info: ProblemInfo): ProblemTemplateExampleViewData =
+    viewData.ProblemTemplateExampleViewData(
+      info.title(0),
+      info.initialScore,
+      info.alias,
+      info.allowedAttempts,
+      info.problemHtml(0),
+      info.answerField(0),
+      info.editable
+    )
+
   val live: URIO[MessageBus & ProblemInfoRegistry & CourseTemplateRegistry, ProblemTemplateService] =
     for {
       bus <- ZIO.service[MessageBus]
