@@ -1,7 +1,7 @@
 package tester.ui.components
 
 
-import clientRequests.admin.{AdminCourseListSuccess, GroupListResponseFailure, GroupListResponseSuccess, UnknownAdminCourseListFailure}
+import clientRequests.admin.{AdminCourseListSuccess, GroupListResponseFailure, GroupListResponseSuccess, NewCourseTemplateRequest, NewCourseTemplateSuccess, NewCourseTemplateUnknownFailure, UnknownAdminCourseListFailure}
 
 import scala.scalajs.js
 import slinky.core.*
@@ -31,8 +31,9 @@ object TeacherAppLayout {
     case object WelcomeScreen extends TeacherAppState
     case object AnswerConfirmation extends TeacherAppState
     case object ProblemsEditing extends TeacherAppState
+    case object NewCoursePage extends TeacherAppState
     case class GroupInfo(groupId: String) extends TeacherAppState
-    case class GroupResultsTableEdtiting(groupId: String) extends TeacherAppState
+    case class GroupResultsTableEditing(groupId: String) extends TeacherAppState
     case class CourseEditing(courseTemplate: String) extends TeacherAppState
   }
 
@@ -45,7 +46,10 @@ object TeacherAppLayout {
     val (courses, setCourses) = useState[Seq[viewData.ShortCourseTemplateViewData]](Seq())
     val (leftCollapsed, setLeftCollapsed) = useState[Boolean](false)
 
-    useEffect(() => {
+
+    val (newCourseAlias, setNewCourseAlias) = useState[String]("")
+
+    def reloadGroups() =
       Request.sendRequest(clientRequests.admin.GroupList, clientRequests.admin.GroupListRequest(props.loggedInUser.token))(
         onComplete = {
           case GroupListResponseSuccess(groups) =>
@@ -55,15 +59,20 @@ object TeacherAppLayout {
         }, onFailure = t =>
           Notifications.showError(s"Не могу загрузить список групп ${t.toString} (4xx)")
       )
-      Request.sendRequest(clientRequests.admin.AdminCourseList, clientRequests.admin.AdminCourseListRequest(props.loggedInUser.token))(
-        onComplete = {
-          case AdminCourseListSuccess(newCourses) =>
-            setCourses(newCourses)
-          case UnknownAdminCourseListFailure() =>
-            Notifications.showError(s"Не могу загрузить список курсов (501)")
-        }, onFailure = t =>
-          Notifications.showError(s"Не могу загрузить список курсов ${t.toString} (4xx)")
-      )
+
+    def reloadCourses() = Request.sendRequest(clientRequests.admin.AdminCourseList, clientRequests.admin.AdminCourseListRequest(props.loggedInUser.token))(
+      onComplete = {
+        case AdminCourseListSuccess(newCourses) =>
+          setCourses(newCourses)
+        case UnknownAdminCourseListFailure() =>
+          Notifications.showError(s"Не могу загрузить список курсов (501)")
+      }, onFailure = t =>
+        Notifications.showError(s"Не могу загрузить список курсов ${t.toString} (4xx)")
+    )
+
+    useEffect(() => {
+      reloadGroups()
+      reloadCourses()
     }, Seq())
 
 
@@ -74,15 +83,21 @@ object TeacherAppLayout {
           .title("Группы")(
             groups.map(group => SubMenu.withKey(group.groupId).title(group.groupTitle)(
               MenuItem.withKey(group.groupId + "about").onClick(_ => setState(GroupInfo(group.groupId)))("О группе"),
-              MenuItem.withKey(group.groupId + "results").onClick(_ => setState(GroupResultsTableEdtiting(group.groupId)))("Результаты"),
+              MenuItem.withKey(group.groupId + "results").onClick(_ => setState(GroupResultsTableEditing(group.groupId)))("Результаты"),
             ).build)
           ),
         SubMenu.withKey("courses")
           .icon(AntdIcon(typings.antDesignIconsSvg.esAsnCopyrightCircleOutlinedMod.default))
           .title("Курсы")(
-            courses.map(course =>
-              MenuItem.withKey(course.alias).onClick(_ => setState(CourseEditing(course.alias)))(course.title).build,
-            )),
+            MenuItem
+              .withKey("addNewCourseMenuKey")
+              .onClick(_ => setState((NewCoursePage)))("Новый курс")
+              .icon(AntdIcon(typings.antDesignIconsSvg.esAsnSubnodeOutlinedMod.default))
+              .build
+              +:
+              courses.map(course =>
+                MenuItem.withKey(course.alias).onClick(_ => setState(CourseEditing(course.alias)))(course.title).build,
+              )),
         MenuItem.withKey("problems")
           .onClick(_ => setState(ProblemsEditing))
           .icon(AntdIcon(typings.antDesignIconsSvg.esAsnCalculatorOutlinedMod.default))("Задачи"),
@@ -92,6 +107,20 @@ object TeacherAppLayout {
         MenuItem.withKey("logout")
           .onClick(_ => props.logout())
           .icon(AntdIcon(typings.antDesignIconsSvg.esAsnLogoutOutlinedMod.default))("Выход")
+      )
+    }
+
+    def makeNewCourse(): Unit = {
+      import clientRequests.admin.NewCourseTemplate
+      Request.sendRequest(NewCourseTemplate, NewCourseTemplateRequest(props.loggedInUser.token, newCourseAlias))(
+        onComplete = {
+          case NewCourseTemplateSuccess() =>
+            Notifications.showSuccess(s"Курс создан")
+            reloadCourses()
+          case NewCourseTemplateUnknownFailure() =>
+            Notifications.showError(s"Не могу создать новый курс (501)")
+        }, onFailure = t =>
+          Notifications.showError(s"Не могу создать новый курс ${t.toString} (4xx)")
       )
     }
 
@@ -125,7 +154,7 @@ object TeacherAppLayout {
                 case Some(gvd) => GroupDetailedInfo(gvd)
                 case None => div(s"Группа $groupId не найдена.")
               }
-            case GroupResultsTableEdtiting(groupId) =>
+            case GroupResultsTableEditing(groupId) =>
               groups.find(_.groupId == groupId) match {
                 case Some(gvd) => GroupResultsTable(props.loggedInUser, gvd)
                 case None => div(s"Группа $groupId не найдена.")
@@ -134,6 +163,19 @@ object TeacherAppLayout {
               AnswerConfirmationLayout(props.loggedInUser, groups)
             case ProblemsEditing =>
               div("NOPE")
+            case NewCoursePage =>
+              Card.bordered(true)
+                .style(CSSProperties())(
+                  Title.level(antdInts.`1`)("Создать новый шаблон курса"),
+                  div(
+                    Input.value(newCourseAlias).onChange(e => setNewCourseAlias(e.target_ChangeEvent.value)),
+                    Button
+                      .onClick(_ => makeNewCourse())
+                      ("Создать")
+                  )
+                )
+            case CourseEditing(ct) =>
+              CourseEditorLoader(props.loggedInUser, ct)
           }
         )
       ),

@@ -101,7 +101,7 @@ object CourseEditor {
     val descriptionInput = TextArea
       .rows(5)
       .value(description)
-      .onChange(v => setDescription(v.target.toString))
+      .onChange(v => setDescription(e.target_ChangeEvent.value))
 
     div(
       Card.bordered(true)
@@ -112,11 +112,12 @@ object CourseEditor {
             descriptionInput,
             Button
               .`type`(antdStrings.primary)
-              .onClick(_ => submitNewDescription())("Изменить")
+              .onClick(_ => submitNewDescription())("Сохранить")
           ),
           CourseDataEditor(root, cr => {
             submitNewData(cr)
-          })
+          }),
+          CourseProblemsEditor(props.loggedInUser, props.templateAlias)
         )
     )
   }
@@ -130,20 +131,30 @@ object CourseEditor {
       build(component.apply(Props(data, submitChanges)))
 
     val component = FunctionalComponent[Props] { props =>
+
+      val (json, setJson) = useState[String](props.data.toJsonPretty)
+
+      def submitNewData(): Unit =
+        try {
+          val c = CoursePiece.fromJson(json)
+          props.submitChanges(c)
+        } catch {
+          case t: Throwable =>
+            Notifications.showError(s"Ошибка при сохранении $t")
+            t.printStackTrace()
+        }
+
+
       div(
         Card.bordered(true)
           .style(CSSProperties())(
-            ProgramAceEditor(props.data.alias, props.data.toJsonPretty, Seq(otsbridge.ProgrammingLanguage.Java), str =>
-              try {
-                //todo refactor ProgramAceEditor
-                val a = ProgramAnswer.fromJsom(str)
-                val c = CoursePiece.fromJson(a.program)
-                props.submitChanges(c)
-              } catch {
-                case t: Throwable =>
-                  Notifications.showError(s"Ошибка при сохранении $t")
-                  t.printStackTrace()
-              })
+            TextArea
+              .rows(5)
+              .value(json)
+              .onChange(v => setJson(e.target_ChangeEvent.value)),
+            Button.`type`(antdStrings.primary)
+              .onClick(_ => submitNewData())("Сохранить")
+
           )
       )
     }
@@ -210,7 +221,7 @@ object CourseEditor {
         div(dangerouslySetInnerHTML := new SetInnerHtml(d.exampleHtml))
 
       section(
-        Input.value(alias).onChange(e => setAlias(e.target.toString)),
+        Input.value(alias).onChange(e => setAlias(e.target_ChangeEvent.value)),
         Button()
           .`type`(antdStrings.primary)
           .onClick(e => addAlias())("Добавить"),
@@ -229,7 +240,7 @@ object CourseEditor {
                   Button()
                     .`type`(antdStrings.primary)
                     .onClick(e => removeAlias(tableItem.alias))("Удалить")
-              ))),
+                ))),
             ColumnType[viewData.ProblemTemplateExampleViewData]()
               .setTitle("Название")
               .setDataIndex("title")

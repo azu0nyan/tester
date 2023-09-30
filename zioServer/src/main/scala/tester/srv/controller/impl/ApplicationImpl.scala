@@ -1,7 +1,9 @@
 package tester.srv.controller.impl
 
 import clientRequests.{CourseDataRequest, CourseDataResponse, CourseDataSuccess, CourseNotFound, CoursesListRequest, CoursesListResponse, GetCoursesListSuccess, LoginFailureUserNotFoundResponse, LoginFailureWrongPasswordResponse, LoginRequest, LoginResponse, LoginSuccessResponse, PartialCourseDataFailure, PartialCourseDataRequest, PartialCourseDataResponse, PartialCourseDataSuccess, PartialCourseNotFound, ProblemDataNotFound, ProblemDataRequest, ProblemDataResponse, ProblemDataSuccess, RegistrationFailureLoginToShortResponse, RegistrationFailurePasswordToShortResponse, RegistrationFailureUnknownErrorResponse, RegistrationFailureUserAlreadyExistsResponse, RegistrationFailureWrongCharsInLoginResponse, RegistrationRequest, RegistrationResponse, RegistrationSuccess, RequestStartCourseSuccess, StartCourseRequest, StartCourseResponse, SubmitAnswerRequest, SubmitAnswerResponse, UpdateUserDataRequest, UpdateUserDataResponse, UserDataRequest, UserDataResponse, UserDataSuccess}
-import clientRequests.admin.{AddCourseToGroupRequest, AddCourseToGroupResponse, AddCourseToGroupSuccess, AddCustomProblemTemplateRequest, AddCustomProblemTemplateResponse, AddProblemToCourseTemplateRequest, AddProblemToCourseTemplateResponse, AddProblemToCourseTemplateSuccess, AddProblemToCourseTemplateUnknownFailure, AddUserToGroupFailure, AddUserToGroupRequest, AddUserToGroupResponse, AddUserToGroupSuccess, AdminActionRequest, AdminActionResponse, AdminCourseInfoRequest, AdminCourseInfoResponse, AdminCourseInfoSuccess, AdminCourseListRequest, AdminCourseListResponse, AdminCourseListSuccess, GroupInfoRequest, GroupInfoResponse, GroupInfoResponseSuccess, GroupListRequest, GroupListResponse, GroupListResponseSuccess, NewCourseTemplateRequest, NewCourseTemplateResponse, NewCourseTemplateSuccess, NewCourseTemplateUnknownFailure, NewGroupRequest, NewGroupResponse, NewGroupSuccess, ProblemTemplateListRequest, ProblemTemplateListResponse, RemoveCustomProblemTemplateRequest, RemoveCustomProblemTemplateResponse, RemoveProblemFromCourseTemplateRequest, RemoveProblemFromCourseTemplateResponse, RemoveProblemFromCourseTemplateSuccess, RemoveProblemFromCourseTemplateUnknownFailure, RemoveUserFromGroupFailure, RemoveUserFromGroupRequest, RemoveUserFromGroupResponse, RemoveUserFromGroupSuccess, UnknownAddCourseToGroupFailure, UnknownAdminCourseInfoFailure, UnknownTemplateCourseToRemoveFrom, UnknownUpdateCustomCourseFailure, UpdateCustomCourseRequest, UpdateCustomCourseResponse, UpdateCustomCourseSuccess, UpdateCustomProblemTemplateRequest, UpdateCustomProblemTemplateResponse, UserListRequest, UserListResponse, UserListResponseSuccess}
+import clientRequests.admin.{
+  AddCourseToGroupRequest, AddCourseToGroupResponse, AddCourseToGroupSuccess, AddCustomProblemTemplateRequest, AddCustomProblemTemplateResponse, AddCustomProblemTemplateSuccess, AddProblemToCourseTemplateRequest, AddProblemToCourseTemplateResponse, AddProblemToCourseTemplateSuccess, AddProblemToCourseTemplateUnknownFailure, AddUserToGroupFailure, AddUserToGroupRequest, AddUserToGroupResponse, AddUserToGroupSuccess, AdminActionRequest, AdminActionResponse, AdminCourseInfoRequest, AdminCourseInfoResponse, AdminCourseInfoSuccess, AdminCourseListRequest, AdminCourseListResponse, AdminCourseListSuccess, GroupInfoRequest, GroupInfoResponse, GroupInfoResponseSuccess, GroupListRequest, GroupListResponse, GroupListResponseSuccess, NewCourseTemplateRequest, NewCourseTemplateResponse, NewCourseTemplateSuccess, NewCourseTemplateUnknownFailure, NewGroupRequest, NewGroupResponse, NewGroupSuccess, ProblemTemplateListRequest, ProblemTemplateListResponse, RemoveCustomProblemTemplateRequest, RemoveCustomProblemTemplateResponse, RemoveProblemFromCourseTemplateRequest, RemoveProblemFromCourseTemplateResponse, RemoveProblemFromCourseTemplateSuccess, RemoveProblemFromCourseTemplateUnknownFailure, RemoveUserFromGroupFailure, RemoveUserFromGroupRequest, RemoveUserFromGroupResponse, RemoveUserFromGroupSuccess, UnknownAddCourseToGroupFailure, UnknownAddCustomProblemTemplateFailure, UnknownAdminCourseInfoFailure, UnknownTemplateCourseToRemoveFrom, UnknownUpdateCustomCourseFailure, UpdateCustomCourseRequest, UpdateCustomCourseResponse, UpdateCustomCourseSuccess, UpdateCustomProblemTemplateRequest, UpdateCustomProblemTemplateResponse, UserListRequest, UserListResponse, UserListResponseSuccess
+}
 import clientRequests.teacher.{AnswerForConfirmationListRequest, AnswerForConfirmationListResponse, AnswerForConfirmationListSuccess, AnswersListRequest, AnswersListResponse, AnswersListSuccess, CourseAnswersConfirmationInfo, ModifyProblemRequest, ModifyProblemResponse, ModifyProblemSuccess, RejectAnswer, SetScore, ShortCourseInfo, TeacherConfirmAnswerRequest, TeacherConfirmAnswerResponse, TeacherConfirmAnswerSuccess, UserConfirmationInfo}
 import clientRequests.watcher.{GroupScoresRequest, GroupScoresResponse, LightGroupScoresRequest, LightGroupScoresResponse}
 import io.github.gaelrenoux.tranzactio.doobie.{Database, TranzactIO}
@@ -9,7 +11,7 @@ import otsbridge.AnswerVerificationResult
 import otsbridge.CourseTemplate.CourseTemplateData
 import tester.srv.controller.AnswerService.{AnswerFilterParams, AnswerSubmitted}
 import tester.srv.controller.UserService.{LoginResult, RegistrationResult}
-import tester.srv.controller.{AdminService, AnswerService, AnswerVerificatorRegistry, Application, CourseTemplateRegistry, CourseTemplateService, CoursesService, GroupService, MessageBus, ProblemInfoRegistry, ProblemService, TeacherService, UserService, VerificationService}
+import tester.srv.controller.{AdminService, AnswerService, AnswerVerificatorRegistry, Application, CourseTemplateRegistry, CourseTemplateService, CoursesService, GroupService, MessageBus, ProblemInfoRegistry, ProblemService, ProblemTemplateService, TeacherService, UserService, VerificationService}
 import tester.srv.dao.{AnswerDao, DbCourseTemplateDao, DbProblemTemplateDao}
 import tester.srv.dao.AnswerVerificationDao.AnswerVerification
 import tester.srv.dao.DbProblemTemplateDao.DbProblemTemplate
@@ -21,6 +23,7 @@ case class ApplicationImpl(
                             answers: AnswerService,
                             groups: GroupService,
                             problems: ProblemService,
+                            problemTemplates: ProblemTemplateService,
                             courses: CoursesService,
                             courseTemplates: CourseTemplateService,
                             users: UserService,
@@ -65,7 +68,7 @@ case class ApplicationImpl(
 
   override def courseData(req: CourseDataRequest): Task[CourseDataResponse] =
     db.transactionOrWiden(courses.courseViewData(req.courseId.toInt))
-      .map{
+      .map {
         case Some(cd) => CourseDataSuccess(cd)
         case None => CourseNotFound()
       }
@@ -86,14 +89,14 @@ case class ApplicationImpl(
     } yield res)
 
   override def partialCourseData(req: PartialCourseDataRequest): Task[PartialCourseDataResponse] =
-    db.transactionOrWiden(courses.partialCourseViewData(req.courseId.toInt)).map{
+    db.transactionOrWiden(courses.partialCourseViewData(req.courseId.toInt)).map {
       case Some(pcd) => PartialCourseDataSuccess(pcd)
       case None => PartialCourseNotFound()
     }
 
   override def problemData(req: ProblemDataRequest): Task[ProblemDataResponse] =
     db.transactionOrWiden(problems.getViewData(req.problemId.toInt))
-      .map{
+      .map {
         case Some(pd) => ProblemDataSuccess(pd)
         case None => ProblemDataNotFound()
       }
@@ -152,7 +155,14 @@ case class ApplicationImpl(
         case false => UnknownAddCourseToGroupFailure() //todo change api
       }
 
-  override def addCustomProblemTemplate(req: AddCustomProblemTemplateRequest): Task[AddCustomProblemTemplateResponse] = ???
+  override def addCustomProblemTemplate(req: AddCustomProblemTemplateRequest): Task[AddCustomProblemTemplateResponse] =
+    db.transactionOrWiden(
+      problemTemplates.newSimpleTemplate(req.problemAlias, req.title, req.html)
+        .map {
+          case true => AddCustomProblemTemplateSuccess()
+          case false => UnknownAddCustomProblemTemplateFailure()
+        }
+    )
 
   override def addProblemToCourseTemplate(req: AddProblemToCourseTemplateRequest): Task[AddProblemToCourseTemplateResponse] =
     db.transactionOrWiden(courseTemplates.addProblemToTemplateAndUpdateCourses(req.courseAlias, req.problemAlias))
@@ -171,7 +181,7 @@ case class ApplicationImpl(
   override def adminCourseInfo(req: AdminCourseInfoRequest): Task[AdminCourseInfoResponse] =
     db.transactionOrWiden(
       courseTemplates.getViewData(req.alias)
-    ).map{
+    ).map {
       case Some(vd) => AdminCourseInfoSuccess(vd)
       case None => UnknownAdminCourseInfoFailure()
     }
@@ -179,7 +189,7 @@ case class ApplicationImpl(
 
   override def adminCourseList(req: AdminCourseListRequest): Task[AdminCourseListResponse] =
     db.transactionOrWiden(
-      courseTemplates.getTeacherCourses(0)//todo correctId
+      courseTemplates.getTeacherCourses(0) //todo correctId
         .map(r => AdminCourseListSuccess(r))
     )
 
@@ -230,12 +240,12 @@ case class ApplicationImpl(
 
   override def loadCourseTemplatesFromDb: Task[Unit] =
     db.transactionOrWiden(
-      for{
+      for {
         courses <- DbCourseTemplateDao.all
         _ <- ZIO.foreach(courses)(c => courseTemplates.registerTemplate(DbCourseTemplateDao.toCourseTemplate(c)))
       } yield ()
     )
-  override def loadProblemTemplatesFromDb: Task[Unit]  =
+  override def loadProblemTemplatesFromDb: Task[Unit] =
     db.transactionOrWiden(
       for {
         ps <- DbProblemTemplateDao.all
@@ -246,11 +256,11 @@ case class ApplicationImpl(
 
   def initCaches: Task[Unit] =
     db.transactionOrWiden(
-      for{
+      for {
         _ <- groups.initCaches
         _ <- teachers.initCaches
         _ <- admins.initCaches
-      } yield()
+      } yield ()
     )
 }
 
@@ -258,14 +268,22 @@ object ApplicationImpl {
 
   type Registies = CourseTemplateRegistry & ProblemInfoRegistry & AnswerVerificatorRegistry
 
-  type AppServices = AnswerService & GroupService & ProblemService & CoursesService & CourseTemplateService & UserService & VerificationService &
-    TeacherService & AdminService
+  type AppServices =
+    AnswerService &
+      GroupService &
+      ProblemService & ProblemTemplateService &
+      CoursesService & CourseTemplateService &
+      UserService &
+      VerificationService &
+      TeacherService &
+      AdminService
 
   type AppContext = Database & AppServices
 
   def constructAppServices: ZLayer[Database & Registies, Nothing, AppServices] = {
     val bus = MessageBus.layer
     val problem = bus >>> ProblemServiceImpl.layer
+    val problemsTemplates = (bus ++ problem) >>> ProblemTemplateServiceImpl.layer
     val courseTemplate = (bus ++ problem) >>> CourseTemplateServiceImpl.layer
     val verification = (bus ++ problem) >>> VerificationServiceImpl.layer
     val answer = (bus ++ verification) >>> AnswerServiceImpl.layer
@@ -274,7 +292,14 @@ object ApplicationImpl {
     val groups = (bus ++ courses ++ users) >>> GroupServiceImpl.layer
     val teacher = bus >>> TeacherServiceImpl.layer
     val admin = bus >>> AdminServiceImpl.layer
-    answer ++ groups ++ problem ++ courses ++ courseTemplate ++ users ++ verification ++ teacher ++ admin
+    answer ++
+      groups ++
+      problem ++ problemsTemplates ++
+      courses ++ courseTemplate ++
+      users ++
+      verification ++
+      teacher ++
+      admin
   }
 
   def constructRegistries: ULayer[Registies] =
@@ -290,13 +315,14 @@ object ApplicationImpl {
       as <- ZIO.service[AnswerService]
       gs <- ZIO.service[GroupService]
       ps <- ZIO.service[ProblemService]
+      pt <- ZIO.service[ProblemTemplateService]
       cs <- ZIO.service[CoursesService]
       cts <- ZIO.service[CourseTemplateService]
       us <- ZIO.service[UserService]
       ver <- ZIO.service[VerificationService]
       te <- ZIO.service[TeacherService]
       ad <- ZIO.service[AdminService]
-    } yield ApplicationImpl(db, as, gs, ps, cs, cts, us, ver, te, ad)
+    } yield ApplicationImpl(db, as, gs, ps, pt, cs, cts, us, ver, te, ad)
 
   def layerContext = ZLayer.fromZIO(liveContext)
 }

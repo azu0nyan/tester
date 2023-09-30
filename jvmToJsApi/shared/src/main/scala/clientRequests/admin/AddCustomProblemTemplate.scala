@@ -24,11 +24,11 @@ object AddCustomProblemTemplate extends Route[AddCustomProblemTemplateRequest, A
 
 
 //REQ
-case class AddCustomProblemTemplateRequest(token: String, problemAlias: String) extends WithToken
+case class AddCustomProblemTemplateRequest(token: String, problemAlias: String, title: String, html: String) extends WithToken
 
 //RES
 sealed trait AddCustomProblemTemplateResponse
-case class AddCustomProblemTemplateSuccess(idHex: String) extends AddCustomProblemTemplateResponse
+case class AddCustomProblemTemplateSuccess() extends AddCustomProblemTemplateResponse
 
 sealed trait AddCustomProblemTemplateFailure extends AddCustomProblemTemplateResponse
 case class UnknownAddCustomProblemTemplateFailure() extends AddCustomProblemTemplateFailure

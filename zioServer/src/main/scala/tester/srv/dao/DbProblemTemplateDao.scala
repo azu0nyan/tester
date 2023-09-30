@@ -32,8 +32,5 @@ object DbProblemTemplateDao extends AbstractDao[DbProblemTemplate]
 
   def setHtml(alias: String, html: String): TranzactIO[Boolean] =
     updateByAlias(alias, fr"html=$html")
-
-
-
 }
 

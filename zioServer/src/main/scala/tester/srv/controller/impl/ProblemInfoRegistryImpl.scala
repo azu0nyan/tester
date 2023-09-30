@@ -2,6 +2,7 @@ package tester.srv.controller.impl
 
 import otsbridge.ProblemInfo
 import tester.srv.controller.ProblemInfoRegistry
+import utils.safe
 import zio.*
 import zio.concurrent.ConcurrentMap
 
@@ -11,14 +12,11 @@ case class ProblemInfoRegistryImpl(map: ConcurrentMap[String, ProblemInfo]) exte
 
   override def registerProblemInfo(info: ProblemInfo): UIO[Unit] =
     for {
-      _ <- ZIO.log(s"Registering problem info ${info.alias} ${
-        try {
-          info.title(0)
-        } catch
-          case t: Throwable => t.toString
-      }")
+      _ <- ZIO.log(s"Registering problem info ${info.alias} - ${safe(info.title(0))}")
       _ <- map.put(info.alias, info)
     } yield ()
+    
+  override def removeProblemInfo(alias: String): UIO[Unit] = map.remove(alias).map(_ => ())
 }
 
 object ProblemInfoRegistryImpl {

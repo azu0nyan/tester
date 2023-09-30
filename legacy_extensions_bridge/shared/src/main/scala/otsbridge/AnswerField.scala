@@ -25,6 +25,7 @@ object AnswerField {
     val questionText: String
     def answerToString(answer: Answer): String = answer.toString
     def answerFromString(string: String): Option[Answer]
+    def toJson: String = this.asJson(resEnc).noSpaces
   }
   case class DoubleNumberField(override val questionText: String) extends AnswerField {
     override type Answer = Double

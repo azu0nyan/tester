@@ -91,7 +91,7 @@ case class ProblemServiceImpl private(
 
   def registerInfo(info: ProblemInfo): UIO[Unit] =
     infoRegistryZIO.registerProblemInfo(info)
-      .tap(_ => ZIO.log(s"Registered problem info ${info.alias} - ${info.title(0)}"))
+      
 }
 
 object ProblemServiceImpl {

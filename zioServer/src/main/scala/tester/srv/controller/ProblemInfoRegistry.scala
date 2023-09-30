@@ -6,4 +6,5 @@ import zio.UIO
 trait ProblemInfoRegistry {
   def problemInfo(alias: String): UIO[Option[ProblemInfo]]
   def registerProblemInfo(info: ProblemInfo): UIO[Unit]
+  def removeProblemInfo(alias: String): UIO[Unit]
 }
