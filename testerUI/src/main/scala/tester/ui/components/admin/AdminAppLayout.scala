@@ -24,9 +24,13 @@ object AdminAppLayout {
   }
 
   sealed trait AdminAppState
-  case object WelcomeScreenAdminAppState extends AdminAppState
-  case object UserListAdminAppState extends AdminAppState
-  case object GroupListAdminAppState extends AdminAppState
+  object AdminAppState {
+    case object WelcomeScreenAdminAppState extends AdminAppState
+    case object UserListAdminAppState extends AdminAppState
+    case object BatchRegisterAdminAppState extends AdminAppState
+    case object GroupListAdminAppState extends AdminAppState
+  }
+  import AdminAppState.*
 
 
   val component = FunctionalComponent[Props] { props =>
@@ -42,6 +46,7 @@ object AdminAppLayout {
     def siderGroupMenu: ReactElement = {
       Menu().theme(antdStrings.dark).mode(esInterfaceMod.MenuMode.inline) /*.defaultSelectedKeys(js.Array("1"))*/ (
         MenuItem.withKey("userList").onClick(_ => setState(UserListAdminAppState)).icon(AntdIcon(typings.antDesignIconsSvg.esAsnUserOutlinedMod.default))("Пользователи"),
+        MenuItem.withKey("batchRegistration").onClick(_ => setState(BatchRegisterAdminAppState)).icon(AntdIcon(typings.antDesignIconsSvg.esAsnUserAddOutlinedMod.default))("Регистрация"),
         MenuItem.withKey("groupList").onClick(_ => setState(GroupListAdminAppState)).icon(AntdIcon(typings.antDesignIconsSvg.esAsnUsergroupAddOutlinedMod.default))("Группы"),
         MenuItem.withKey("logout").onClick(_ => props.logout()).icon(AntdIcon(typings.antDesignIconsSvg.esAsnLogoutOutlinedMod.default))("Выход")
         //todo в учительскую
@@ -77,6 +82,8 @@ object AdminAppLayout {
               AdminUserList(props.loggedInUser)
             case GroupListAdminAppState =>
               AdminGroupList(props.loggedInUser)
+            case BatchRegisterAdminAppState =>
+              AdminBatchRegister(props.loggedInUser)
           }
         )
       ),
