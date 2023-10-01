@@ -81,7 +81,9 @@ case class ApplicationImpl(
         case LoginResult.LoggedIn(token) =>
           (for {
             u <- users.byLogin(req.login).map(_.get)
-          } yield LoginSuccessResponse(token, u, true, true)).mapError(db => db.fillInStackTrace()) //todo correct roles
+            isAdmin <- admins.isAdmin(u.id.toInt)
+            isTeacher <- teachers.isTeacher(u.id.toInt)
+          } yield LoginSuccessResponse(token, u, isTeacher = isTeacher, isAdmin = isAdmin)).mapError(db => db.fillInStackTrace())
         case LoginResult.UserNotFound(login) => ZIO.succeed(LoginFailureUserNotFoundResponse())
         case LoginResult.WrongPassword(login, password) => ZIO.succeed(LoginFailureWrongPasswordResponse())
     } yield res)

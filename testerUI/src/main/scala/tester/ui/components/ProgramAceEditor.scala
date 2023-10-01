@@ -7,12 +7,12 @@ import typings.antd.components.Select
 
 import scala.scalajs.js
 import slinky.core._
-import slinky.web.html.{code, _}
+import slinky.web.html.*
 import slinky.core.facade.Hooks.{useEffect, useState}
 import slinky.core.facade.{React, ReactElement}
 import tester.ui.Storage
 import typings.antd.components.{List => AntList, _}
-import tester.ui.components.DisplayPartialCourse.LoadedProblemData
+import tester.ui.components.CourseLayout.LoadedProblemData
 import typings.react.mod.CSSProperties
 import typings.reactAce.libAceMod
 import typings.reactAce.components.{Ace, ReactAce}

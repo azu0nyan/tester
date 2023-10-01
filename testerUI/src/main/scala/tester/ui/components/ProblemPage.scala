@@ -14,7 +14,7 @@ import slinky.core._
 import slinky.web.html._
 
 import slinky.core.facade.Hooks.{useEffect, useState}
-import tester.ui.components.DisplayPartialCourse.LoadedProblemData
+import tester.ui.components.CourseLayout.LoadedProblemData
 import tester.ui.requests.Request.sendRequest
 import typings.antd.components.{List => AntList, _}
 import typings.antd.antdStrings.{horizontal, primary, topRight}
@@ -40,7 +40,7 @@ import typings.reactAce.libAceMod
 import java.time.Instant
 
 
-object DisplayProblem {
+object ProblemPage {
   case class Props(loggedInUser: LoggedInUser, loadedData: LoadedProblemData, updateLoadedData: () => Unit)
   def apply(loggedInUser: LoggedInUser, loadedData: LoadedProblemData, updateLoadedData: () => Unit): ReactElement = {
     import slinky.core.KeyAddingStage.build

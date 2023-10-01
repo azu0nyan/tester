@@ -42,7 +42,7 @@ object TeacherConfirmAnswerForm {
       case Some(s@ProblemScore.MultipleRunsResultScore(runResults)) =>
         div(
           div(style := js.Dynamic.literal(maxWidth = "300px", margin = "5px"))(ProblemScoreDisplay(s, true, false)),
-          DisplayProblem.displayRunResultsTable(runResults)
+          ProblemPage.displayRunResultsTable(runResults)
         )
       case Some(score) => div(style := js.Dynamic.literal(maxWidth = "300px", margin = "5px"))(ProblemScoreDisplay(score, true, false))
       case None => p("Не оценено")

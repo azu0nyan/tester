@@ -44,7 +44,7 @@ object CourseLoaderLayout {
 
     courseData match {
       case Some(p) =>
-        DisplayPartialCourse(props.loggedInUser, p, props.logout, props.setAppState)
+        CourseLayout(props.loggedInUser, p, props.logout, props.setAppState)
       case None =>
         Helpers.basicLayout(Spin().tip(s"Загрузка курса...").size(large), props.logout, div(), props.loggedInUser, props.setAppState)
     }

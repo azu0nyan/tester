@@ -32,11 +32,13 @@ object CourseSelectionLayout {
 
     val (coursesList, setCoursesList) = useState[Seq[CourseInfoViewData]](Seq())
     val (selectedCourse, setSelectedCourse) = useState[Option[CourseInfoViewData]](None)
+    val (loaded, setLoaded) = useState[Boolean](false)
     useEffect(() => {
       sendRequest(CoursesList, clientRequests.CoursesListRequest(props.loggedInUser.token, props.loggedInUser.userViewData.id))(onComplete = {
         case clientRequests.GetCoursesListSuccess(courses) =>
           setCoursesList(courses.existing)
           setSelectedCourse(courses.existing.headOption)
+          setLoaded(true)
         case clientRequests.GetCoursesListFailure(fal) => //todo
       })
     }, Seq())
@@ -85,21 +87,20 @@ object CourseSelectionLayout {
         .style(CSSProperties().setHeight("100vh")
           .setPosition(PositionProperty.fixed)
           .setLeft(0).setTop(0).setBottom(0)
-          .setOverflowY(OverflowYProperty.auto))(coursesList match {
-          case Seq() => Spin().tip(s"Загрузка списка курсов...").size(large)
-          case courses =>
-            Menu().theme(dark).mode(inline) /*.defaultSelectedKeys(js.Array("1"))*/ (
-              (courses.map(course => MenuItem.withKey(course.courseId)(course.title).onClick(_ => setSelected(course)).build)
-                ++ controlMenuItems): _ *
-            )
-        })
+          .setOverflowY(OverflowYProperty.auto))(
+          Menu().theme(dark).mode(inline) /*.defaultSelectedKeys(js.Array("1"))*/ (
+            (coursesList.map(course => MenuItem.withKey(course.courseId)(course.title).onClick(_ => setSelected(course)).build)
+              ++ controlMenuItems): _ *
+          )
+        )
     }
 
     def content(selectedCourse: Option[CourseInfoViewData]) = {
       Layout.Content()
         .style(CSSProperties())(
           selectedCourse match {
-            case Some(course) => Card()
+            case Some(course) =>
+              Card()
               .style(CSSProperties().setMargin(20))
               .title(h1(course.title))(
                 p(course.description),
@@ -114,7 +115,11 @@ object CourseSelectionLayout {
                   .`type`(primary)
                   .onClick(e => props.onSelected(course))("Продолжить ")
               )
-            case None => div("Выберите курс")
+            case None =>
+              if(loaded) Card()
+                .style(CSSProperties().setMargin(20))
+                .title("Курсы не найдены")("Если тут должны быть курсы, а их нет, обратитесь к вашему преподавателю по програраммированию.")
+              else  Spin().tip(s"Загрузка списка курсов...").size(large)
           }
         )
 

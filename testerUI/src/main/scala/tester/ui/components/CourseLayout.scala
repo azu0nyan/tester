@@ -19,7 +19,7 @@ import typings.react.mod.CSSProperties
 import viewData.{CourseInfoViewData, PartialCourseViewData, ProblemRefViewData, ProblemViewData}
 
 
-object DisplayPartialCourse {
+object CourseLayout {
   case class Props(loggedInUser: LoggedInUser, partialCourse: PartialCourseViewData, logout: () => Unit, setAppState: ApplicationState => Unit)
   def apply(loggedInUser: LoggedInUser, partialCourse: PartialCourseViewData, logout: () => Unit, setAppState: ApplicationState => Unit): ReactElement = {
     import slinky.core.KeyAddingStage.build
@@ -85,7 +85,7 @@ object DisplayPartialCourse {
       selectedProblem match {
         case Some(problemRef) =>
           loadedProblems.get(problemRef.templateAlias) match {
-            case Some(loadedData) => DisplayProblem(props.loggedInUser, loadedData, () => {
+            case Some(loadedData) => ProblemPage(props.loggedInUser, loadedData, () => {
               sendRequest(clientRequests.ProblemData, clientRequests.ProblemDataRequest(props.loggedInUser.token, problemRef.problemId))(onComplete = {
                 case clientRequests.ProblemDataSuccess(pwd) => onProblemLoaded(problemRef, pwd)
                 case clientRequests.UnknownProblemDataFailure() => Notifications.showError(s"Не могу загрузить задачу")
