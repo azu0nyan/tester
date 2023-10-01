@@ -47,17 +47,15 @@ object Main {
   import ctx._
 
   def main(args: Array[String]): Unit = try {
-//    migrateUsers()
-//    migrateGroups()
-//    migrateUserToGroup()
-//    migrateCourses()
-//    migrateCourseTemplateForGroup()
-//    migrateCustomProblems()
+    migrateUsers()
+    migrateGroups()
+    migrateUserToGroup()
+    migrateCourses()
+    migrateCourseTemplateForGroup()
+    migrateCustomProblems()
     migrateCustomCourses()
-//    migrateProblems()
-//    migrateAnswers()
-
-
+    migrateProblems()
+    migrateAnswers()
   } catch {
     case t: Throwable =>
       t.printStackTrace()

@@ -20,25 +20,7 @@ object Helpers {
   val customErrorColor = "#af0000"
 
 
-  def makeHeader(content: ReactElement, logout: () => Unit, user:LoggedInUser, setAppState: ApplicationState => Unit): ReactElement = {
-    Layout.Header().style(CSSProperties().setHeight(64d))(
-      content,
-      if(user.isTeacher){
-        Button()
-          .style(CSSProperties().setFloat(FloatProperty.right))
-          .onClick(_ => setAppState(TeacherAppState))("В учительскую")
-      } else div(),
-      if (user.isAdmin) {
-        Button()
-          .style(CSSProperties().setFloat(FloatProperty.right))
-          .onClick(_ => setAppState(AdminAppState))("В админскую")
-      } else div(),
-      Button()
-        .style(CSSProperties().setFloat(FloatProperty.right))
-        .onClick(_ => logout())("Выход")
-    )
-  }
-
+ 
 
   def sizePair(x: Double, y: Double) = scala.scalajs.js.|.from[js.Tuple2[libSpaceMod.SpaceSize, libSpaceMod.SpaceSize], js.Tuple2[libSpaceMod.SpaceSize, libSpaceMod.SpaceSize], libSpaceMod.SpaceSize](js.Tuple2(scala.scalajs.js.|.from(x), scala.scalajs.js.|.from(y)))
 
@@ -50,9 +32,9 @@ object Helpers {
       //      .size(typings.antd.antdStrings.small)
       .size(sizePair(0, 48))(
         Layout()(
-          Helpers.makeHeader(headerContent, logout, user, setAppState),
+//          Helpers.makeHeader(headerContent, logout, user, setAppState),
           content,
-          Layout.Footer(i("Tester(c) 2049-present")),
+//          Layout.Footer(i("Tester(c) 2049-present")),
         )
       )
   }

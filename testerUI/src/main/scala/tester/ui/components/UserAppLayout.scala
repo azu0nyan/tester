@@ -28,8 +28,13 @@ object UserAppLayout {
 
     selectedCourse match {
       case Some(course) => CourseLoaderLayout(props.loggedInUser, course, props.logout, props.setAppState)
-      case None => Helpers.basicLayout(CourseSelectionLayout(loggedInUser = props.loggedInUser, onSelected = s => setSelectedCourse(Some(s))),
-        props.logout, div(), props.loggedInUser, props.setAppState)
+      case None =>
+        CourseSelectionLayout(
+          loggedInUser = props.loggedInUser,
+          onSelected = s => setSelectedCourse(Some(s)),
+          setAppState = props.setAppState,
+          logout = props.logout,
+        )
     }
 
   }
