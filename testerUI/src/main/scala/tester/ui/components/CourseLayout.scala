@@ -158,7 +158,8 @@ object CourseLayout {
     })
 
 
-    Helpers.basicLayout(content, props.logout, headerContent, props.loggedInUser, props.setAppState)
+//    Helpers.basicLayout(content, props.logout, headerContent, props.loggedInUser, props.setAppState)
+    content
   }
 
 
