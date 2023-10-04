@@ -72,7 +72,7 @@ case class ApplicationImpl(
       }
 
   override def coursesList(req: CoursesListRequest): Task[CoursesListResponse] =
-    db.transactionOrWiden(courses.userCourses(req.userId.toInt)).map(c => GetCoursesListSuccess(viewData.UserCoursesInfoViewData(Seq(), c.map(_.toInfo))))
+    db.transactionOrWiden(courses.userCourses(req.userId.toInt)).map(c => GetCoursesListSuccess(viewData.UserCoursesInfoViewData(Seq(), c)))
 
   override def login(req: LoginRequest): Task[LoginResponse] = //todo add metadata logging
     db.transactionOrWiden(for {

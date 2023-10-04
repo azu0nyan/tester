@@ -66,10 +66,14 @@ case class CoursesServiceImpl(bus: MessageBus,
         CourseStatus.Passing(courseOpt.get.endedAt), template.courseData.toJson, views.flatten)
     )
 
-  def userCourses(userId: Int): TranzactIO[Seq[viewData.CourseViewData]] =
+  def userCourses(userId: Int): TranzactIO[Seq[viewData.CourseInfoViewData]] =
     for {
       courses <- CourseDao.userCourses(userId)
-      res <- ZIO.foreach(courses)(course => courseViewData(course.id))
+      res <- ZIO.foreach(courses)(course =>
+        for{
+          t <- templateRegistry.courseTemplate(course.templateAlias)
+        } yield t.map( t => viewData.CourseInfoViewData(course.id.toString, t.courseTitle, CourseStatus.Passing(course.endedAt), t.description))
+      )
     } yield res.flatten
 }
 

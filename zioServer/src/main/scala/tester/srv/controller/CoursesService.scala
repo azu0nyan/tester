@@ -19,7 +19,7 @@ trait CoursesService {
 
   def partialCourseViewData(courseId: Int): TranzactIO[Option[PartialCourseViewData]]
 
-  def userCourses(userId: Int): TranzactIO[Seq[viewData.CourseViewData]]
+  def userCourses(userId: Int): TranzactIO[Seq[viewData.CourseInfoViewData]]
 
 }
 
