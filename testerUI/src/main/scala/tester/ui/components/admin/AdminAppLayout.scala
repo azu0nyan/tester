@@ -4,7 +4,8 @@ import slinky.core.*
 import slinky.core.facade.Hooks.{useEffect, useState}
 import slinky.core.facade.ReactElement
 import slinky.web.html.*
-import tester.ui.components.{LoggedInUser}
+import tester.ui.components.Application.{ApplicationState, StudentAppState, TeacherAppState}
+import tester.ui.components.LoggedInUser
 import tester.ui.requests.Request
 import typings.antDesignIcons.components.AntdIcon
 import typings.antd.components.*
@@ -16,11 +17,11 @@ import typings.react.mod.CSSProperties
 import scala.scalajs.js
 
 object AdminAppLayout {
-  case class Props(loggedInUser: LoggedInUser, logout: () => Unit)
+  case class Props(loggedInUser: LoggedInUser, logout: () => Unit, setAppState: ApplicationState => Unit)
 
-  def apply(loggedInUser: LoggedInUser, logout: () => Unit): ReactElement = {
+  def apply(loggedInUser: LoggedInUser, logout: () => Unit, setAppState: ApplicationState => Unit): ReactElement = {
     import slinky.core.KeyAddingStage.build
-    build(component.apply(Props(loggedInUser, logout)))
+    build(component.apply(Props(loggedInUser, logout, setAppState)))
   }
 
   sealed trait AdminAppState
@@ -48,8 +49,9 @@ object AdminAppLayout {
         MenuItem.withKey("userList").onClick(_ => setState(UserListAdminAppState)).icon(AntdIcon(typings.antDesignIconsSvg.esAsnUserOutlinedMod.default))("Пользователи"),
         MenuItem.withKey("batchRegistration").onClick(_ => setState(BatchRegisterAdminAppState)).icon(AntdIcon(typings.antDesignIconsSvg.esAsnUserAddOutlinedMod.default))("Регистрация"),
         MenuItem.withKey("groupList").onClick(_ => setState(GroupListAdminAppState)).icon(AntdIcon(typings.antDesignIconsSvg.esAsnUsergroupAddOutlinedMod.default))("Группы"),
-        MenuItem.withKey("logout").onClick(_ => props.logout()).icon(AntdIcon(typings.antDesignIconsSvg.esAsnLogoutOutlinedMod.default))("Выход")
-        //todo в учительскую
+        MenuItem.withKey("teachers").onClick(_ => props.setAppState(TeacherAppState)).icon(AntdIcon(typings.antDesignIconsSvg.esAsnExperimentOutlinedMod.default))("В учительскую"),
+        MenuItem.withKey("users").onClick(_ => props.setAppState(StudentAppState)).icon(AntdIcon(typings.antDesignIconsSvg.esAsnSmileOutlinedMod.default))("Вид от пользователя"),
+        MenuItem.withKey("logout").onClick(_ => props.logout()).icon(AntdIcon(typings.antDesignIconsSvg.esAsnLogoutOutlinedMod.default))("Выход"),
       )
     }
 

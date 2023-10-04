@@ -20,10 +20,10 @@ import viewData.{CourseInfoViewData, PartialCourseViewData, ProblemRefViewData, 
 
 
 object CourseLayout {
-  case class Props(loggedInUser: LoggedInUser, partialCourse: PartialCourseViewData, logout: () => Unit, setAppState: ApplicationState => Unit)
-  def apply(loggedInUser: LoggedInUser, partialCourse: PartialCourseViewData, logout: () => Unit, setAppState: ApplicationState => Unit): ReactElement = {
+  case class Props(loggedInUser: LoggedInUser, partialCourse: PartialCourseViewData, logout: () => Unit, setAppState: ApplicationState => Unit, back: () => Unit)
+  def apply(loggedInUser: LoggedInUser, partialCourse: PartialCourseViewData, logout: () => Unit, setAppState: ApplicationState => Unit, back: () => Unit): ReactElement = {
     import slinky.core.KeyAddingStage.build
-    build(component.apply(Props(loggedInUser, partialCourse, logout, setAppState)))
+    build(component.apply(Props(loggedInUser, partialCourse, logout, setAppState, back)))
   }
 
 
@@ -129,7 +129,7 @@ object CourseLayout {
         .collapsedWidth(0)
         .width(300)
         .zeroWidthTriggerStyle(CSSProperties().setTop("0px"))(
-          CourseContents(props.partialCourse, cp => setSelectedCoursePiece(cp))
+          CourseContents(props.partialCourse, cp => setSelectedCoursePiece(cp), () => props.back())
         ),
       displayContent(),
 

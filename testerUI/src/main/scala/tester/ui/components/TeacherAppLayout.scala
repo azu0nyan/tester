@@ -10,6 +10,7 @@ import typings.antd.components.*
 import typings.antd.{antdInts, antdStrings}
 import slinky.core.facade.Hooks.{useEffect, useState}
 import slinky.core.facade.ReactElement
+import tester.ui.components.Application.ApplicationState
 import tester.ui.components.TeacherAppLayout.TeacherAppState.CourseEditing
 import tester.ui.requests.Request
 import typings.antDesignIcons.components.AntdIcon
@@ -19,11 +20,11 @@ import typings.react.mod.CSSProperties
 import viewData.GroupDetailedInfoViewData
 
 object TeacherAppLayout {
-  case class Props(loggedInUser: LoggedInUser, logout: () => Unit)
+  case class Props(loggedInUser: LoggedInUser, logout: () => Unit, setAppState: ApplicationState => Unit)
 
-  def apply(loggedInUser: LoggedInUser, logout: () => Unit): ReactElement = {
+  def apply(loggedInUser: LoggedInUser, logout: () => Unit, setAppState: ApplicationState => Unit): ReactElement = {
     import slinky.core.KeyAddingStage.build
-    build(component.apply(Props(loggedInUser, logout)))
+    build(component.apply(Props(loggedInUser, logout, setAppState)))
   }
 
   sealed trait TeacherAppState

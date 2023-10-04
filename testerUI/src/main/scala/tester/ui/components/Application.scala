@@ -73,11 +73,11 @@ object Application {
           case l: LoggedInUser =>
             appState match {
               case StudentAppState => UserAppLayout(l, logout = () => setLoggedInUser(NoUser()), setAppState)
-              case TeacherAppState => TeacherAppLayout(l, logout = () => setLoggedInUser(NoUser()))
+              case TeacherAppState => TeacherAppLayout(l, logout = () => setLoggedInUser(NoUser()), setAppState)
 
 //                div("Teacher UI")
 //              case WatcherAppState => div("Watcher UI")
-              case AdminAppState => AdminAppLayout(l, logout = () => setLoggedInUser(NoUser()))
+              case AdminAppState => AdminAppLayout(l, logout = () => setLoggedInUser(NoUser()), setAppState)
             }
           case NoUser() => LoginForm( tryLogin)
         }

@@ -16,10 +16,10 @@ import viewData.{CourseInfoViewData, PartialCourseViewData}
 
 
 object CourseLoaderLayout {
-  case class Props(loggedInUser: LoggedInUser, courseInfo: CourseInfoViewData, logout: () => Unit, setAppState: ApplicationState => Unit)
-  def apply(loggedInUser: LoggedInUser, courseInfo: CourseInfoViewData, logout: () => Unit, setAppState: ApplicationState => Unit):  ReactElement = {
+  case class Props(loggedInUser: LoggedInUser, courseInfo: CourseInfoViewData, logout: () => Unit, setAppState: ApplicationState => Unit, back: () => Unit)
+  def apply(loggedInUser: LoggedInUser, courseInfo: CourseInfoViewData, logout: () => Unit, setAppState: ApplicationState => Unit, back: () => Unit):  ReactElement = {
     import slinky.core.KeyAddingStage.build
-    build(component.apply(Props(loggedInUser, courseInfo, logout, setAppState)))
+    build(component.apply(Props(loggedInUser, courseInfo, logout, setAppState, back)))
   }
 
 
@@ -44,7 +44,7 @@ object CourseLoaderLayout {
 
     courseData match {
       case Some(p) =>
-        CourseLayout(props.loggedInUser, p, props.logout, props.setAppState)
+        CourseLayout(props.loggedInUser, p, props.logout, props.setAppState, props.back)
       case None =>
         Helpers.basicLayout(Spin().tip(s"Загрузка курса...").size(large), props.logout, div(), props.loggedInUser, props.setAppState)
     }

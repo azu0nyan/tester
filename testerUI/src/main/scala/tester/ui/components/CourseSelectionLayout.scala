@@ -64,7 +64,7 @@ object CourseSelectionLayout {
           .icon(AntdIcon(typings.antDesignIconsSvg.esAsnExperimentOutlinedMod.default))
           .build
       ),
-      scala.Option.when(props.loggedInUser.isTeacher)(
+      scala.Option.when(props.loggedInUser.isAdmin)(
         MenuItem
           .withKey("goToAdmin")("В админскую")
           .onClick(_ => props.setAppState(Application.AdminAppState))

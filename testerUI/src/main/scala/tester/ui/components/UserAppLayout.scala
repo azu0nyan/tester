@@ -27,7 +27,7 @@ object UserAppLayout {
     val (selectedCourse, setSelectedCourse) = useState[Option[CourseInfoViewData]](None)
 
     selectedCourse match {
-      case Some(course) => CourseLoaderLayout(props.loggedInUser, course, props.logout, props.setAppState)
+      case Some(course) => CourseLoaderLayout(props.loggedInUser, course, props.logout, props.setAppState, () => setSelectedCourse(None))
       case None =>
         CourseSelectionLayout(
           loggedInUser = props.loggedInUser,

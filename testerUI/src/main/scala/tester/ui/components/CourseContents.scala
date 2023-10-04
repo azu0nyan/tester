@@ -5,22 +5,22 @@ import otsbridge.CoursePiece
 import otsbridge.CoursePiece.{Container, CoursePiece}
 
 import scala.scalajs.js
-import slinky.core._
-import slinky.web.html._
-
+import slinky.core.*
+import slinky.web.html.*
 import slinky.core.facade.Hooks.{useEffect, useState}
 import slinky.core.facade.ReactElement
 import typings.StBuildingComponent
+import typings.antDesignIcons.components.AntdIcon
 import typings.antd.antdStrings.dark
-import typings.antd.components._
+import typings.antd.components.*
 import typings.antd.libMenuMenuItemMod.MenuItem
 import viewData.PartialCourseViewData
 
 object CourseContents {
-  case class Props(pcvd: PartialCourseViewData, onPieceSelected: CoursePiece => Unit)
-  def apply(pcvd: PartialCourseViewData, onPieceSelected: CoursePiece => Unit): ReactElement = {
+  case class Props(pcvd: PartialCourseViewData, onPieceSelected: CoursePiece => Unit, back: () => Unit)
+  def apply(pcvd: PartialCourseViewData, onPieceSelected: CoursePiece => Unit, back: () => Unit): ReactElement = {
     import slinky.core.KeyAddingStage.build
-    build(component.apply(Props(pcvd, onPieceSelected)))
+    build(component.apply(Props(pcvd, onPieceSelected, back)))
   }
 
   val component = FunctionalComponent[Props] { props =>
@@ -42,6 +42,7 @@ object CourseContents {
           case c: Container => Some(buildMenuFor(c))
           case _ => None
         })
+
         SubMenu.withKey(container.alias)
           /*.onTitleClick(_ => props.onPieceSelected(props.pcvd.courseData.findByAlias(container.alias).getOrElse(props.pcvd.courseData)))*/
           .title(title)(
@@ -52,13 +53,19 @@ object CourseContents {
 
     useEffect(() => {})
 
+    val backItem = MenuItem
+      .withKey(s"back_menu_item")
+      .icon(AntdIcon(typings.antDesignIconsSvg.esAsnBackwardFilledMod.default))
+    .onClick(_ => props.back())("Назад, к выбору курса")
+
+
     Menu()
       .onClick(ev => {
         props.onPieceSelected(props.pcvd.courseData.findByAlias(ev.key.toString).getOrElse(props.pcvd.courseData))
       })
       .theme(dark)
       .mode(typings.rcMenu.esInterfaceMod.MenuMode.inline) /*.defaultSelectedKeys(js.Array("1"))*/ (
-        props.pcvd.courseData.childs.collect { case c: Container => c }.map(buildMenuFor)
+        (props.pcvd.courseData.childs.collect { case c: Container => c }.map(buildMenuFor) :+ backItem) : _ *
       )
   }
 }

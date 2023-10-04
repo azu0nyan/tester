@@ -29,9 +29,7 @@ object ConnectionPool {
                                    password: String,
                                    connectionTimeout: String,
                                  )derives ConfigReader
-//  val config: ConfigReader.Result[DatabaseConfig] = ConfigSource.resources("application.conf").at("database").load[DatabaseConfig]
-//  val config: ConfigReader.Result[DatabaseConfig] = ConfigSource.string("{asdsad}").at("database").load[DatabaseConfig]
-//  val conf: DatabaseConfig = config.right.get
+
 
  val config = ZLayer.succeed{
    val config: ConfigReader.Result[DatabaseConfig] = ConfigSource.resources("application.conf").at("database").load[DatabaseConfig]
