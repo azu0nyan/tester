@@ -14,31 +14,54 @@ import org.postgresql.ds.PGSimpleDataSource
 
 object ConnectionPool {
 
+  import pureconfig._
+  import pureconfig.generic.derivation.default._
 
-//  val xa = Transactor.fromDriverManager[IO](
-//    driver = "org.postgresql.Driver", // JDBC driver classname
-//    url = "jdbc:postgresql:world", // Connect URL - Driver specific
-//    user = "postgres", // Database user name
-//    password = "password", // Database password
-//    logHandler = None // Don't setup logging for now. See Logging page for how to log events in detail
-//  )
+  final case class DatabaseConfig(
+                                   className: String,
+                                   serverName: String,
+                                   portNumber: String,
+                                   databaseName: String,
+                                   currentSchema: String,
+                                   applicationName: String,
 
-  type Conf = Any
+                                   user: String,
+                                   password: String,
+                                   connectionTimeout: String,
+                                 )derives ConfigReader
+//  val config: ConfigReader.Result[DatabaseConfig] = ConfigSource.resources("application.conf").at("database").load[DatabaseConfig]
+//  val config: ConfigReader.Result[DatabaseConfig] = ConfigSource.string("{asdsad}").at("database").load[DatabaseConfig]
+//  val conf: DatabaseConfig = config.right.get
 
-  val layer: ZLayer[Conf, Throwable, DataSource] = ZLayer.fromZIO(
+ val config = ZLayer.succeed{
+   val config: ConfigReader.Result[DatabaseConfig] = ConfigSource.resources("application.conf").at("database").load[DatabaseConfig]
+   if(config.isLeft) println(config) //todo log better
+   config.right.get
+ }
+  //  val xa = Transactor.fromDriverManager[IO](
+  //    driver = "org.postgresql.Driver", // JDBC driver classname
+  //    url = "jdbc:postgresql:world", // Connect URL - Driver specific
+  //    user = "postgres", // Database user name
+  //    password = "password", // Database password
+  //    logHandler = None // Don't setup logging for now. See Logging page for how to log events in detail
+  //  )
+
+  type Conf = DatabaseConfig
+
+  lazy val layer: ZLayer[Any, Throwable, DataSource] = ZLayer.fromZIO(
     ZIO.serviceWithZIO[Conf] { conf =>
       ZIO.attemptBlocking {
         val ds = new PGSimpleDataSource
-        ds.setServerNames(Array("localhost"))
-        ds.setPortNumbers(Array(5432))
-        ds.setDatabaseName("testerDB2")//todo use config
-        ds.setUser("postgres")
-        ds.setPassword("password")
-        ds.setCurrentSchema("tester")
-        ds.setApplicationName("tester")
+        ds.setServerNames(Array(conf.serverName))
+        ds.setPortNumbers(Array(conf.portNumber.toInt))
+        ds.setDatabaseName(conf.databaseName)
+        ds.setUser(conf.user)
+        ds.setPassword(conf.password)
+        ds.setCurrentSchema(conf.currentSchema)
+        ds.setApplicationName(conf.applicationName)
         ds
       }
-    }
+    }.provideSomeLayer(config)
   )
 
 }

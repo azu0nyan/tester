@@ -12,19 +12,19 @@ import tester.srv.controller.impl.{ApplicationImpl, SecureApplication}
 
 object AppBootstrap {
 
-  val datasource = ConnectionPool.layer
-  val database: ZLayer[Any, Throwable, Database] = datasource >>> Database.fromDatasource
-  val registries =  ApplicationImpl.constructRegistries
-  val context:ZLayer[Any, Throwable, ApplicationImpl.AppContext] = (database ++ registries) >>> (ApplicationImpl.constructAppServices ++ database)
+  lazy val datasource = ConnectionPool.layer
+  lazy val database: ZLayer[Any, Throwable, Database] = datasource >>> Database.fromDatasource
+  lazy val registries =  ApplicationImpl.constructRegistries
+  lazy val context:ZLayer[Any, Throwable, ApplicationImpl.AppContext] = (database ++ registries) >>> (ApplicationImpl.constructAppServices ++ database)
 
   type BootstrapedApp = (Application, SecureApplication)
-  val live: ZIO[Any, Throwable, BootstrapedApp]  =
+  lazy val live: ZIO[Any, Throwable, BootstrapedApp]  =
     (for{
       app <- ApplicationImpl.liveContext
       sec <- SecureApplication.liveContext.provideSomeLayer(ZLayer.succeed(app))
     } yield (app, sec)).provideLayer(context)
 
-  val layer: ZLayer[Any, Throwable, BootstrapedApp] = ZLayer.fromZIO(live)
+  lazy val layer: ZLayer[Any, Throwable, BootstrapedApp] = ZLayer.fromZIO(live)
 
 
 }

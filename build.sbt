@@ -65,7 +65,9 @@ val circe =  Seq(
     "io.circe" %% "circe-parser"
   ).map(_ % circeVersion)
 
-
+val pureConfig = Seq(
+  "com.github.pureconfig" %% "pureconfig-core" % "0.17.4"
+)
 
 lazy val zioDockerRunner = RootProject(file("zioDockerRunner"))
 /*lazy val jvmToJsApi = (project in file("jvmToJsApi"))
@@ -134,6 +136,7 @@ val zioServer = (project in file("zioServer"))
     libraryDependencies ++= grpcJvmDependencies,
     libraryDependencies ++= jwtDependencies,
     libraryDependencies ++= zioHTTP,
+    libraryDependencies ++= pureConfig,
 //    libraryDependencies += "org.typelevel" %% "cats-kernel" % "2.10.0",
 //    libraryDependencies += "org.typelevel" %% "cats-core" % "2.10.0",
 //    excludeDependencies += "org.typelevel" % "cats-kernel_2.13",
