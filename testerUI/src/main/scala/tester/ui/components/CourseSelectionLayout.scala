@@ -88,13 +88,9 @@ object CourseSelectionLayout {
             .build
         )
 
-    def coursesListMenu(coursesList: Seq[CourseInfoViewData], setSelected: CourseInfoViewData => Unit) = {
-      val rightBorderWhiteStyle = CSSProperties()
-        .setBorderRight("solid")
-        .setBorderRightWidth("10px")
-        .setBorderRightColor("white")
+    def coursesListMenu(coursesList: Seq[CourseInfoViewData], setSelected: CourseInfoViewData => Unit) = {     
       Menu()
-        .style(rightBorderWhiteStyle)
+        .style(Helpers.rightBorderWhiteStyle)
         .theme(dark)
         .mode(inline) /*.defaultSelectedKeys(js.Array("1"))*/ (
           coursesList.map(course => MenuItem.withKey(course.courseId)(course.title).onClick(_ => setSelected(course)).build): _ *

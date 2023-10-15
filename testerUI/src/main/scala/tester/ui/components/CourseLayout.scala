@@ -39,7 +39,7 @@ object CourseLayout {
   val component = FunctionalComponent[Props] { props =>
 
     val (leftCollapsed, setLeftCollapsed) = useState[Boolean](false)
-    val (rightCollapsed, setRightCollapsed) = useState[Boolean](true)
+    val (rightCollapsed, setRightCollapsed) = useState[Boolean](false)
 
     val (appMode, setAppMode) = useState[DisplayAppMode](DisplayCourseMode)
     val (loadedProblems, setLoadedProblems) = useState[Map[String, LoadedProblemData]](Map[String, LoadedProblemData]())
@@ -133,6 +133,14 @@ object CourseLayout {
             .build
         )
 
+    val backItem =
+      Menu().theme(light).mode(inline).selectable(false)(
+        MenuItem
+          .withKey(s"back_menu_item")
+          .icon(AntdIcon(typings.antDesignIconsSvg.esAsnBackwardFilledMod.default))
+          .onClick(_ => props.back())("Назад, к выбору курса")
+      )
+
     val leftSider =
       Layout.Sider()
         .collapsible(true)
@@ -143,7 +151,8 @@ object CourseLayout {
         .trigger(if (leftCollapsed) AntdIcon(typings.antDesignIconsSvg.esAsnForwardFilledMod.default) else null)
         .onCollapse((b, _) => setLeftCollapsed(b))(
           leftSiderHeader,
-          CourseContents(props.partialCourse, cp => setSelectedCoursePiece(cp), () => props.back())
+          CourseContents(props.partialCourse, cp => setSelectedCoursePiece(cp)),
+          backItem
         )
 
 
@@ -153,7 +162,7 @@ object CourseLayout {
           MenuItem
             .withKey("menuProgress")("Прогресс")
             .onClick(_ => setRightCollapsed(true))
-            .icon(AntdIcon(typings.antDesignIconsSvg.esAsnBackwardFilledMod.default))
+            .icon(AntdIcon(typings.antDesignIconsSvg.esAsnForwardFilledMod.default))
             .build
         )
 

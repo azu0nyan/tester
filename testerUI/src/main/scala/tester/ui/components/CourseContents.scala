@@ -17,10 +17,10 @@ import typings.antd.libMenuMenuItemMod.MenuItem
 import viewData.PartialCourseViewData
 
 object CourseContents {
-  case class Props(pcvd: PartialCourseViewData, onPieceSelected: CoursePiece => Unit, back: () => Unit)
-  def apply(pcvd: PartialCourseViewData, onPieceSelected: CoursePiece => Unit, back: () => Unit): ReactElement = {
+  case class Props(pcvd: PartialCourseViewData, onPieceSelected: CoursePiece => Unit)
+  def apply(pcvd: PartialCourseViewData, onPieceSelected: CoursePiece => Unit): ReactElement = {
     import slinky.core.KeyAddingStage.build
-    build(component.apply(Props(pcvd, onPieceSelected, back)))
+    build(component.apply(Props(pcvd, onPieceSelected)))
   }
 
   val component = FunctionalComponent[Props] { props =>
@@ -53,10 +53,7 @@ object CourseContents {
 
     useEffect(() => {})
 
-    val backItem = MenuItem
-      .withKey(s"back_menu_item")      
-      .icon(AntdIcon(typings.antDesignIconsSvg.esAsnBackwardFilledMod.default))
-    .onClick(_ => props.back())("Назад, к выбору курса")
+
 
 
     Menu()
@@ -64,8 +61,9 @@ object CourseContents {
         props.onPieceSelected(props.pcvd.courseData.findByAlias(ev.key.toString).getOrElse(props.pcvd.courseData))
       })
       .theme(dark)
+      .style(Helpers.rightBorderWhiteStyle)
       .mode(typings.rcMenu.esInterfaceMod.MenuMode.inline) /*.defaultSelectedKeys(js.Array("1"))*/ (
-        (props.pcvd.courseData.childs.collect { case c: Container => c }.map(buildMenuFor) :+ backItem) : _ *
+        (props.pcvd.courseData.childs.collect { case c: Container => c }.map(buildMenuFor)) : _ *
       )
   }
 }

@@ -54,6 +54,12 @@ object Helpers {
     .setBottom(0)
 
 
+  val rightBorderWhiteStyle = CSSProperties()
+    .setBorderRight("solid")
+    .setBorderRightWidth("10px")
+    .setBorderRightColor("white")
+  
+
   def toName(u: UserViewData): String = {
     val f = (u.lastName.getOrElse("").strip() + " " + u.firstName.getOrElse(" ").strip()).strip()
     if (f.isEmpty) u.login else f
