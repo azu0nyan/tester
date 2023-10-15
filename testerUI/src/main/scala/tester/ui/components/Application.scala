@@ -4,7 +4,8 @@ import clientRequests.*
 import slinky.core.*
 import slinky.web.ReactDOM
 import slinky.web.html.*
-import org.scalajs.dom.*
+import tester.ui.Storage
+//import org.scalajs.dom.*
 import slinky.core.facade.Hooks.useState
 import slinky.core.facade.ReactElement
 import tester.ui.components.admin.AdminAppLayout
@@ -53,6 +54,8 @@ object Application {
       sendRequest(Login, LoginRequest(lp.login, lp.password))(onComplete = {
         case LoginSuccessResponse(token, userData, isTeacher, isAdmin ) =>
           setLoggedInUser(LoggedInUser(token, userData, isTeacher, isAdmin))
+          Storage.setUserToken(token)
+          Storage.setUserLogin(userData.login)
         case LoginFailureUserNotFoundResponse() =>
           Notifications.showError(s"Неизвестный логин")
         case LoginFailureWrongPasswordResponse() =>
@@ -66,18 +69,24 @@ object Application {
     }
     //    useEffect(() => {})
 
+    def logout() = {
+      setLoggedInUser(NoUser())
+      Storage.setUserToken("")
+      Storage.setUserLogin("")
+    }
+
     mathJaxContextMod.MathJaxContext.apply(MathJaxContextProps.configMathJax3Configundef())(
       div(
         //      MathJaxContext.configMathJax3Configundef.build,
         loggedInUser match {
           case l: LoggedInUser =>
             appState match {
-              case StudentAppState => UserAppLayout(l, logout = () => setLoggedInUser(NoUser()), setAppState)
-              case TeacherAppState => TeacherAppLayout(l, logout = () => setLoggedInUser(NoUser()), setAppState)
+              case StudentAppState => UserAppLayout(l, logout = logout, setAppState)
+              case TeacherAppState => TeacherAppLayout(l, logout = logout, setAppState)
 
 //                div("Teacher UI")
 //              case WatcherAppState => div("Watcher UI")
-              case AdminAppState => AdminAppLayout(l, logout = () => setLoggedInUser(NoUser()), setAppState)
+              case AdminAppState => AdminAppLayout(l, logout = logout, setAppState)
             }
           case NoUser() => LoginForm( tryLogin)
         }

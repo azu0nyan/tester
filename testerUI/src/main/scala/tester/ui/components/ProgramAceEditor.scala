@@ -101,7 +101,7 @@ object ProgramAceEditor {
       )
 
 
-    val (theme, setTheme) = useState[String](Storage.getTheme())
+    val (theme, setTheme) = useState[String](Storage.getTheme)
 
     val selectThemeMenu = Select[String]()
       .defaultValue(theme)
@@ -113,7 +113,7 @@ object ProgramAceEditor {
         aceThemes.map(th => Select.Option(th)(th).build)
       )
 
-    val (fontSize, setFontSize) = useState[Int](Storage.getFontSize())
+    val (fontSize, setFontSize) = useState[Int](Storage.getFontSize)
     val fontSizes = Seq(8, 10, 12, 14, 16, 20, 24, 32, 48, 72)
     val selectFontSize = Select[Int]()
       .defaultValue(fontSize)

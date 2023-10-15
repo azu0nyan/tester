@@ -2,22 +2,41 @@ package tester.ui
 
 object Storage {
 
-  private var answers: Map[String, String] = Map()
+  import org.scalajs.dom.window.sessionStorage
+  import org.scalajs.dom.window.localStorage
 
-  def readUserAnswer(uniqueId: String): Option[String] = {
-    answers.get(uniqueId)
-  }
+  private def setSession(key: String, value: String): Unit =
+    sessionStorage.setItem(key, value)
 
-  def setUserAnswer(uniqueId: String, answer: String): Unit = {
-    answers += uniqueId -> answer
-  }
+  private def getSession(key: String): Option[String] =
+    Option(sessionStorage.getItem(key))
 
-  private var theme: String = "github"
-  def setTheme(t: String): Unit = theme = t
-  def getTheme() : String = theme
+  private def setLocal(key: String, value: String): Unit =
+    localStorage.setItem(key, value)
+
+  private def getLocal(key: String): Option[String] =
+    Option(localStorage.getItem(key))
+
+  private def setLocalPersonal(key: String, value: String): Unit =
+    setLocal(getUserLogin.getOrElse("") + "_" + key, value)
+
+  private def getLocalPersonal(key: String): Option[String] =
+    getLocal(getUserLogin.getOrElse("") + "_" + key)
 
 
-  private var fontSize: Int = 14
-  def setFontSize(t: Int): Unit = fontSize = t
-  def getFontSize(): Int = fontSize
+  def setUserLogin = setSession("user_login", _)
+  def getUserLogin = getSession("user_login")
+
+  def setUserToken = setSession("user_token", _)
+  def getUserToken = getSession("user_token")
+
+  def setTheme = setLocalPersonal("ace_theme", _)
+  def getTheme = getLocalPersonal("ace_theme").getOrElse("github")
+
+  def setFontSize(s: Int) = setLocalPersonal("ace_font_size", s.toString)
+  def getFontSize: Int = getLocalPersonal("ace_font_size").flatMap(_.toIntOption).getOrElse(14)
+
+  def readUserAnswer(uniqueId: String): Option[String] = getSession(uniqueId)
+  def setUserAnswer(uniqueId: String, answer: String): Unit = setSession(uniqueId, answer)
+
 }
