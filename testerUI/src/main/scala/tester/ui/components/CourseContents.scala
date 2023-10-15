@@ -54,7 +54,7 @@ object CourseContents {
     useEffect(() => {})
 
     val backItem = MenuItem
-      .withKey(s"back_menu_item")
+      .withKey(s"back_menu_item")      
       .icon(AntdIcon(typings.antDesignIconsSvg.esAsnBackwardFilledMod.default))
     .onClick(_ => props.back())("Назад, к выбору курса")
 

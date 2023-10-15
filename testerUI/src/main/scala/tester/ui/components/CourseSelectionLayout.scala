@@ -13,7 +13,7 @@ import tester.ui.DateFormat
 import tester.ui.components.Application.ApplicationState
 import tester.ui.requests.Request.sendRequest
 import typings.antDesignIcons.components.AntdIcon
-import typings.antd.antdStrings.{dark, large, light, primary}
+import typings.antd.antdStrings.{Icon, dark, large, light, primary}
 import typings.antd.{antdStrings, libSpaceMod}
 import typings.antd.components.{List as AntList, *}
 import typings.csstype.mod.{OverflowYProperty, PositionProperty}
@@ -65,7 +65,7 @@ object CourseSelectionLayout {
           .icon(AntdIcon(typings.antDesignIconsSvg.esAsnExperimentOutlinedMod.default))
           .build
       ),
-      scala.Option.when(props.loggedInUser.isAdmin)(
+      scala.Option.when(props.loggedInUser.isAdmin)(        
         MenuItem
           .withKey("goToAdmin")("В админскую")
           .onClick(_ => props.setAppState(Application.AdminAppState))

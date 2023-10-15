@@ -12,12 +12,14 @@ import slinky.core.facade.ReactContext.RichReactContext
 import tester.ui.components.Application.ApplicationState
 import tester.ui.components.Helpers.SetInnerHtml
 import tester.ui.requests.Request.sendRequest
-import typings.antd.antdStrings.{dark, large, primary}
-import typings.antd.components.{List as AntList, *}
 import typings.rcMenu.esInterfaceMod
 import typings.react.mod.CSSProperties
 import viewData.{CourseInfoViewData, PartialCourseViewData, ProblemRefViewData, ProblemViewData}
-
+import typings.antd.antdStrings.{dark, large, light, primary}
+import typings.antd.{antdStrings, libSpaceMod}
+import typings.antd.components.{List as AntList, *}
+import typings.csstype.mod.{OverflowYProperty, PositionProperty}
+import typings.rcMenu.esInterfaceMod.MenuMode.inline
 
 object CourseLayout {
   case class Props(loggedInUser: LoggedInUser, partialCourse: PartialCourseViewData, logout: () => Unit, setAppState: ApplicationState => Unit, back: () => Unit)
@@ -37,7 +39,7 @@ object CourseLayout {
   val component = FunctionalComponent[Props] { props =>
 
     val (leftCollapsed, setLeftCollapsed) = useState[Boolean](false)
-    val (rightCollapsed, setRightCollapsed) = useState[Boolean](false)
+    val (rightCollapsed, setRightCollapsed) = useState[Boolean](true)
 
     val (appMode, setAppMode) = useState[DisplayAppMode](DisplayCourseMode)
     val (loadedProblems, setLoadedProblems) = useState[Map[String, LoadedProblemData]](Map[String, LoadedProblemData]())
@@ -90,7 +92,7 @@ object CourseLayout {
                 case clientRequests.ProblemDataSuccess(pwd) => onProblemLoaded(problemRef, pwd)
                 case clientRequests.UnknownProblemDataFailure() => Notifications.showError(s"Не могу загрузить задачу")
               })
-            })//.withKey(problemRef.problemId) todo ????
+            }) //.withKey(problemRef.problemId) todo ????
             case None =>
               ProblemLoader(props.loggedInUser, problemRef.problemId, p => onProblemLoaded(problemRef, p))
           }
@@ -120,29 +122,59 @@ object CourseLayout {
         div()
     })
 
+    import typings.antDesignIcons.components.AntdIcon
+    def leftSiderHeader =
+      Menu().theme(light).mode(inline).selectable(false)
+        .style(CSSProperties().setMarginTop("5px"))(
+          MenuItem
+            .withKey("menuHeader")("Оглавление")
+            .onClick(_ => setLeftCollapsed(true))
+            .icon(AntdIcon(typings.antDesignIconsSvg.esAsnBackwardFilledMod.default))
+            .build
+        )
 
-    val content = Layout().style(CSSProperties().setMinHeight("100vh"))(
+    val leftSider =
       Layout.Sider()
         .collapsible(true)
         .collapsed(leftCollapsed)
-        .onCollapse((b, _) => setLeftCollapsed(b))
         .collapsedWidth(0)
         .width(300)
-        .zeroWidthTriggerStyle(CSSProperties().setTop("0px"))(
+        .zeroWidthTriggerStyle(CSSProperties().setTop("0px"))
+        .trigger(if (leftCollapsed) AntdIcon(typings.antDesignIconsSvg.esAsnForwardFilledMod.default) else null)
+        .onCollapse((b, _) => setLeftCollapsed(b))(
+          leftSiderHeader,
           CourseContents(props.partialCourse, cp => setSelectedCoursePiece(cp), () => props.back())
-        ),
-      displayContent(),
+        )
 
+
+    def rightSiderHeader =
+      Menu().theme(light).mode(inline).selectable(false)
+        .style(CSSProperties().setMarginTop("5px"))(
+          MenuItem
+            .withKey("menuProgress")("Прогресс")
+            .onClick(_ => setRightCollapsed(true))
+            .icon(AntdIcon(typings.antDesignIconsSvg.esAsnBackwardFilledMod.default))
+            .build
+        )
+
+    val rightSider =
       Layout.Sider()
         .collapsible(true)
         .collapsed(rightCollapsed)
         .collapsedWidth(0)
         .width(300)
         .zeroWidthTriggerStyle(CSSProperties().setRight("0px").setTop("0px"))
-        //        .trigger(div("Показать"))
+        .trigger(if (rightCollapsed) AntdIcon(typings.antDesignIconsSvg.esAsnBackwardFilledMod.default) else null)
         .onCollapse((b, _) => setRightCollapsed(b))(
+          rightSiderHeader,
           CourseProblemSelector(props.partialCourse, spRef => setSelectedProblem(Some(spRef)))
-        ),
+        )
+
+
+    val content = Layout().style(CSSProperties().setMinHeight("100vh"))(
+      leftSider,
+      displayContent(),
+      rightSider
     )
 
     val headerContent = Button().`type`(primary).onClick(_ => appMode match {
@@ -158,7 +190,7 @@ object CourseLayout {
     })
 
 
-//    Helpers.basicLayout(content, props.logout, headerContent, props.loggedInUser, props.setAppState)
+    //    Helpers.basicLayout(content, props.logout, headerContent, props.loggedInUser, props.setAppState)
     content
   }
 

@@ -60,12 +60,12 @@ lazy val npmDeps: Project => Project =
   _.settings(
     stTypescriptVersion := "3.9.3",
     Compile / npmDependencies ++= Seq(
-      "react" -> "16.13.1",
-      "react-dom" -> "16.13.1",
-      "@types/react" -> "16.9.42",
-      "@types/react-dom" -> "16.9.8",
+      "react" -> "18.2.0",
+      "react-dom" -> "18.2.0",
+      "@types/react" -> "18.2.0",
+      "@types/react-dom" -> "18.2.0",
       "csstype" -> "2.6.11",
-      "@types/prop-types" -> "15.7.3",
+      "@types/prop-types" -> "15.7.8",
       //
       "antd" -> "4.9.4",
       "react-ace" -> "10.1.0",
