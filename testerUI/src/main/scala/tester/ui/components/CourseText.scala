@@ -36,29 +36,46 @@ object CourseText {
 
 
   val component = FunctionalComponent[Props] { props =>
-
-    def genLinkFor(c: CoursePiece) : ReactElement = c match {
+    //should ignore DisplayMe
+    def genLinkFor(c: CoursePiece): ReactElement = c match {
       case container: CoursePiece.Container => container match {
         case CoursePiece.CourseRoot(title, annotation, childs) =>
-          Button().`type`(antdStrings.primary).onClick(_ => props.setSelectedCoursePiece(c))(title)
+          Card
+            .title(Title().level(antdInts.`4`)(title))(
+              Button().`type`(antdStrings.primary).onClick(_ => props.setSelectedCoursePiece(c))("Открыть курс")
+            )
         case CoursePiece.Theme(alias, title, textHtml, childs, displayMe) =>
-          Button().`type`(antdStrings.primary).onClick(_ => props.setSelectedCoursePiece(c))(title)
+          Card
+            .title(Title().level(antdInts.`4`)(title))(
+              Button().`type`(antdStrings.primary).onClick(_ => props.setSelectedCoursePiece(c))("Открыть тему")
+            )
         case CoursePiece.SubTheme(alias, title, textHtml, childs, displayMe) =>
-          Button().`type`(antdStrings.primary).onClick(_ => props.setSelectedCoursePiece(c))(title)
+          Card
+            .title(Title().level(antdInts.`4`)(title))(
+              Button().`type`(antdStrings.primary).onClick(_ => props.setSelectedCoursePiece(c))("Открыть подтему")
+            )
       }
       case CoursePiece.HtmlToDisplay(alias, displayMe, htmlRaw) =>
-        Button().`type`(antdStrings.primary).onClick(_ => props.setSelectedCoursePiece(c))("Перейти к тексту")
+        Card(
+          Button().`type`(antdStrings.primary).onClick(_ => props.setSelectedCoursePiece(c))("Открыть")
+        )
       case CoursePiece.TextWithHeading(alias, heading, bodyHtml, displayMe, displayInContentsHtml) =>
-        Button().`type`(antdStrings.primary).onClick(_ => props.setSelectedCoursePiece(c))(heading)
+        Card(
+          Button().`type`(antdStrings.primary).onClick(_ => props.setSelectedCoursePiece(c))(heading)
+        )
       case CoursePiece.Paragraph(alias, bodyHtml, displayMe) =>
-        Button().`type`(antdStrings.primary).onClick(_ => props.setSelectedCoursePiece(c))("Перейти к тексту")
+        Card(
+          Button().`type`(antdStrings.primary).onClick(_ => props.setSelectedCoursePiece(c))("Открыть")
+        )
       case CoursePiece.Problem(problemAlias, displayMe, displayInContentsHtml) =>
         props.partialCourse.refByAlias(problemAlias) match {
-          case Some(pref) => div(
-            Title().level(antdInts.`4`)(s"Задача ${pref.title}", ProblemScoreDisplay(pref.score, true, false)), //todo load data
-            Button().`type`(antdStrings.primary).onClick(_ => props.setSelectedProblem(pref))("К условию")
-          )
-          case None => div(s"Задача $problemAlias не найдена, сначала учитель должен добавить её в курс.")
+          case Some(pref) =>
+            Card.title(
+              Title().level(antdInts.`4`)(s"${pref.title}", ProblemScoreDisplay(pref.score, true, false)))(
+              Button().`type`(antdStrings.primary).onClick(_ => props.setSelectedProblem(pref))("Условие")
+            )
+          case None =>
+            div(s"Задача $problemAlias не найдена, сначала учитель должен добавить её в курс.")
         }
     }
 
@@ -68,7 +85,7 @@ object CourseText {
           case DisplayMe.OwnPage => genLinkFor(f)
           case DisplayMe.Inline => matchPiece(f)
         }
-      ) : _ *)
+        ): _ *)
     }
 
     //todo add next|prev buttons
