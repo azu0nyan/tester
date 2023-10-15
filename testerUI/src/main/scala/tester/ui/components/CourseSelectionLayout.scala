@@ -13,7 +13,7 @@ import tester.ui.DateFormat
 import tester.ui.components.Application.ApplicationState
 import tester.ui.requests.Request.sendRequest
 import typings.antDesignIcons.components.AntdIcon
-import typings.antd.antdStrings.{dark, large, primary}
+import typings.antd.antdStrings.{dark, large, light, primary}
 import typings.antd.{antdStrings, libSpaceMod}
 import typings.antd.components.{List as AntList, *}
 import typings.csstype.mod.{OverflowYProperty, PositionProperty}
@@ -78,6 +78,14 @@ object CourseSelectionLayout {
         .build)
     ).flatten.toSeq
 
+    def leftSiderHeader =
+      Menu().theme(light).mode(inline).selectable(false)(
+        MenuItem
+          .withKey("menuHeader")("Выберите курс")
+          .icon(AntdIcon(typings.antDesignIconsSvg.esAsnInfoCircleFilledMod.default))
+          .build
+      )
+
 
     val leftSiderWidth = 300
 
@@ -88,38 +96,40 @@ object CourseSelectionLayout {
           .setPosition(PositionProperty.fixed)
           .setLeft(0).setTop(0).setBottom(0)
           .setOverflowY(OverflowYProperty.auto))(
+          leftSiderHeader,
           Menu().theme(dark).mode(inline) /*.defaultSelectedKeys(js.Array("1"))*/ (
             (coursesList.map(course => MenuItem.withKey(course.courseId)(course.title).onClick(_ => setSelected(course)).build)
-              ++ controlMenuItems): _ *
-          )
+              ): _ *
+          ),
+          Menu().theme(light).mode(inline)(controlMenuItems: _ *)
         )
     }
 
     def content(selectedCourse: Option[CourseInfoViewData]) = {
       Layout.Content()
-        .style(CSSProperties())(
+        .style(CSSProperties().setHeight("100vh").setOverflowY(OverflowYProperty.auto))(
           selectedCourse match {
             case Some(course) =>
               Card()
-              .style(CSSProperties().setMargin(20))
-              .title(h1(course.title))(
-                p(course.description),
-                p(course.status match {
-                  case CourseStatus.Passing(endsAt) => endsAt match {
-                    case Some(value) => div("Активен до " + DateFormat.dateFormatter.format(value))
-                    case None => div("Активен")
-                  }
-                  case CourseStatus.Finished() => div("Завершен")
-                }),
-                Button()
-                  .`type`(primary)
-                  .onClick(e => props.onSelected(course))("Продолжить ")
-              )
+                .style(CSSProperties().setMargin(20))
+                .title(h1(course.title))(
+                  p(course.description),
+                  p(course.status match {
+                    case CourseStatus.Passing(endsAt) => endsAt match {
+                      case Some(value) => div("Активен до " + DateFormat.dateFormatter.format(value))
+                      case None => div("Активен")
+                    }
+                    case CourseStatus.Finished() => div("Завершен")
+                  }),
+                  Button()
+                    .`type`(primary)
+                    .onClick(e => props.onSelected(course))("Продолжить ")
+                )
             case None =>
-              if(loaded) Card()
+              if (loaded) Card()
                 .style(CSSProperties().setMargin(20))
                 .title("Курсы не найдены")("Если тут должны быть курсы, а их нет, обратитесь к вашему преподавателю по програраммированию.")
-              else  Spin().tip(s"Загрузка списка курсов...").size(large)
+              else Spin().tip(s"Загрузка списка курсов...").size(large)
           }
         )
 
