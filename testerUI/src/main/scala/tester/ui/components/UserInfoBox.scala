@@ -11,19 +11,22 @@ import typings.react.mod.CSSProperties
 import viewData.UserViewData
 
 object UserInfoBox {
-  case class Props(l: LoggedInUser) {
+
+  val defaultStyle = CSSProperties().setMaxWidth("200px")
+  case class Props(l: LoggedInUser, style: CSSProperties = defaultStyle) {
     def u: UserViewData = l.userViewData
   }
-  def apply(u: LoggedInUser): ReactElement = {
+  def apply(u: LoggedInUser, style: CSSProperties = defaultStyle): ReactElement = {
     import slinky.core.KeyAddingStage.build
-    build(component.apply(Props(u)))
+    build(component.apply(Props(u, style)))
   }
 
   val component = FunctionalComponent[Props] { props =>
+
     Card()
       .title("Профиль")
       .bordered(true)
-      .style(CSSProperties().setMaxWidth("200px"))(
+      .style(props.style)(
         Descriptions()
           .layout(antdStrings.vertical)
           .column(1d)

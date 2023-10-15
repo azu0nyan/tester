@@ -45,6 +45,7 @@ object CourseSelectionLayout {
 
 
     def rightSider(l: LoggedInUser) = {
+      val userBoxStyle = CSSProperties().setMaxWidth("200px").setMargin("10px")
       Layout.Sider()
         .style(CSSProperties()
           //      .setOverflow(OverflowBlockProperty.auto)
@@ -53,7 +54,7 @@ object CourseSelectionLayout {
           //      .setLeft(0)
           //      .setTop(0)
           //      .setBottom(0)
-        )(UserInfoBox(l))
+        )(UserInfoBox(l, userBoxStyle))
     }
 
     def controlMenuItems = Seq(
@@ -79,35 +80,47 @@ object CourseSelectionLayout {
     ).flatten.toSeq
 
     def leftSiderHeader =
-      Menu().theme(light).mode(inline).selectable(false)(
-        MenuItem
-          .withKey("menuHeader")("Выберите курс")
-          .icon(AntdIcon(typings.antDesignIconsSvg.esAsnInfoCircleFilledMod.default))
-          .build
-      )
+      Menu().theme(light).mode(inline).selectable(false)
+        .style(CSSProperties().setMarginTop("5px"))(
+          MenuItem
+            .withKey("menuHeader")("Выберите курс")
+            .icon(AntdIcon(typings.antDesignIconsSvg.esAsnInfoCircleFilledMod.default))
+            .build
+        )
 
+    def coursesListMenu(coursesList: Seq[CourseInfoViewData], setSelected: CourseInfoViewData => Unit) = {
+      val rightBorderWhiteStyle = CSSProperties()
+        .setBorderRight("solid")
+        .setBorderRightWidth("10px")
+        .setBorderRightColor("white")
+      Menu()
+        .style(rightBorderWhiteStyle)
+        .theme(dark)
+        .mode(inline) /*.defaultSelectedKeys(js.Array("1"))*/ (
+          coursesList.map(course => MenuItem.withKey(course.courseId)(course.title).onClick(_ => setSelected(course)).build): _ *
+        )
+    }
 
     val leftSiderWidth = 300
 
     def leftSider(coursesList: Seq[CourseInfoViewData], setSelected: CourseInfoViewData => Unit) = {
+      val leftSiderStyle = CSSProperties().setHeight("100vh")
+        .setPosition(PositionProperty.fixed)
+        .setLeft(0).setTop(0).setBottom(0)
+        .setOverflowY(OverflowYProperty.auto)
       Layout.Sider()
         .width(leftSiderWidth)
-        .style(CSSProperties().setHeight("100vh")
-          .setPosition(PositionProperty.fixed)
-          .setLeft(0).setTop(0).setBottom(0)
-          .setOverflowY(OverflowYProperty.auto))(
+        .style(leftSiderStyle)(
           leftSiderHeader,
-          Menu().theme(dark).mode(inline) /*.defaultSelectedKeys(js.Array("1"))*/ (
-            (coursesList.map(course => MenuItem.withKey(course.courseId)(course.title).onClick(_ => setSelected(course)).build)
-              ): _ *
-          ),
+          coursesListMenu(coursesList, setSelected),
           Menu().theme(light).mode(inline)(controlMenuItems: _ *)
         )
     }
 
     def content(selectedCourse: Option[CourseInfoViewData]) = {
+      val contentStyle = CSSProperties().setHeight("100vh").setOverflowY(OverflowYProperty.auto)
       Layout.Content()
-        .style(CSSProperties().setHeight("100vh").setOverflowY(OverflowYProperty.auto))(
+        .style(contentStyle)(
           selectedCourse match {
             case Some(course) =>
               Card()
