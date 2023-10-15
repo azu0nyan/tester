@@ -12,7 +12,7 @@ import scala.scalajs.js.annotation.JSImport
 object Main {
 
   def main(args: Array[String]): Unit = {
-    hot.initialize()
+//    hot.initialize()
     IndexCSS
 //    val vd = UserViewData("sd","sa", None, None, None, Seq(), "noob", Instant.now())
     ReactDOM.render(
