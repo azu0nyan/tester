@@ -7,6 +7,7 @@ ThisBuild / connectInput := true
 val scalaVer = "3.3.0"
 //val scalaVer = "2.13.10"
 
+enablePlugins(JavaAppPackaging)
 
 val zioVersion = "2.0.13"
 val basicZioDependencies = Seq(
@@ -160,3 +161,4 @@ val zioTester = (project in file("zioTester"))
     scalaVersion := scalaVer,
     name := "zioTester")
   .dependsOn(zioServer, problems, zioDockerRunner)
+  .enablePlugins(JavaAppPackaging)

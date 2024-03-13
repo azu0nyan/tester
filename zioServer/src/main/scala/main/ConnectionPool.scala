@@ -31,11 +31,11 @@ object ConnectionPool {
                                  )derives ConfigReader
 
 
- val config = ZLayer.succeed{
-   val config: ConfigReader.Result[DatabaseConfig] = ConfigSource.resources("application.conf").at("database").load[DatabaseConfig]
-   if(config.isLeft) println(config) //todo log better
-   config.right.get
- }
+  val config = ZLayer.succeed {
+    val config: ConfigReader.Result[DatabaseConfig] = ConfigSource.resources("application.conf").at("database").load[DatabaseConfig]
+    if (config.isLeft) println(config) //todo log better
+    config.right.get
+  }
   //  val xa = Transactor.fromDriverManager[IO](
   //    driver = "org.postgresql.Driver", // JDBC driver classname
   //    url = "jdbc:postgresql:world", // Connect URL - Driver specific

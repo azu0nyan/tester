@@ -102,6 +102,7 @@ object CoursePiece {
           case Some(Seq("TextWithHeading")) => Decoder[TextWithHeading].tryDecode(c.downField("TextWithHeading"))
           case Some(Seq("Paragraph")) => Decoder[Paragraph].tryDecode(c.downField("Paragraph"))
           case Some(Seq("Problem")) => Decoder[Problem].tryDecode(c.downField("Problem"))
+          case Some(_) => Left(DecodingFailure("Unknown field", List()))
 
   /*{
     List[Decoder[CoursePiece]](
@@ -121,6 +122,7 @@ object CoursePiece {
     case t@TextWithHeading(alias, heading, bodyHtml, displayMe, displayInContentsHtml) => Json.obj(("TextWithHeading", t.asJson))
     case p@Paragraph(alias, bodyHtml, displayMe) => Json.obj(("Paragraph", p.asJson))
     case p@Problem(problemAlias, displayMe, displayInContentsHtml) => Json.obj(("Problem", p.asJson))
+    case c@CourseRoot(_, _, _) => Json.obj(("CourseRoot", c.asJson))//Не должно вызыватсья
   }
 
 

@@ -50,7 +50,7 @@ object TesterMain extends ZIOAppDefault {
     _ <- pApp.loadProblemTemplatesFromDb
     _ <- pApp.loadCourseTemplatesFromDb
     _ <- registetPacks(pApp.asInstanceOf[ApplicationImpl], cr)
-    _ <- HttpServer.startServer.provideSomeLayer(ZLayer.succeed(secApp))
+    _ <- HttpServer.startServer(8080).provideSomeLayer(ZLayer.succeed(secApp))
   } yield ())
     .provideSomeLayer(AppBootstrap.layer)
     .provideSomeLayer(runner)
