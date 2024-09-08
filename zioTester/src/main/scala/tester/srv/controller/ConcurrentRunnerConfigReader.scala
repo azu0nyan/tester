@@ -1,6 +1,7 @@
 package tester.srv.controller
 
 import com.github.dockerjava.core.{DefaultDockerClientConfig, DockerClientConfig}
+import main.Configs
 import zio.{ZIO, ZLayer}
 import zioDockerRunner.testRunner.ConcurrentRunner.ConcurrentRunnerConfig
 
@@ -50,7 +51,7 @@ object ConcurrentRunnerConfigReader {
       runnerName
     )
   }
-  
+
   case class RunnersConfigFromFile(
                                     queueSize: Int,
                                     runners: Seq[ConcurrentRunnerConfigFromFile],
@@ -60,8 +61,8 @@ object ConcurrentRunnerConfigReader {
   given ConfigReader[RunnersConfigFromFile] = deriveReader
 
   val config = ZIO.succeed {
-    val config: ConfigReader.Result[RunnersConfigFromFile] = 
-      ConfigSource.resources("application.conf").at("runners").load[RunnersConfigFromFile]
+    val config: ConfigReader.Result[RunnersConfigFromFile] =
+      Configs.config.at("runners").load[RunnersConfigFromFile]
     if (config.isLeft) println(config) //todo log better
     config.right.get
   }

@@ -34,10 +34,7 @@ object HttpServer {
 
 
   val httpServerConfig = ZIO.succeed {
-    val resourceConfig = ConfigSource.resources("application.conf")
-    val fileConfig = ConfigSource.file("../workdir/application.conf")
-    val config = fileConfig.optional.withFallback(resourceConfig)
-    val httpConfig: ConfigReader.Result[HttpServerConfig] = config.at("http").load[HttpServerConfig]
+    val httpConfig: ConfigReader.Result[HttpServerConfig] = Configs.config.at("http").load[HttpServerConfig]
     if (httpConfig.isLeft) println(httpConfig) //todo log better
     httpConfig.right.get
   }

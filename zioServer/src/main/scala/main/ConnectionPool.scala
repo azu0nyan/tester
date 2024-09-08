@@ -32,7 +32,7 @@ object ConnectionPool {
 
 
   val config = ZLayer.succeed {
-    val config: ConfigReader.Result[DatabaseConfig] = ConfigSource.resources("application.conf").at("database").load[DatabaseConfig]
+    val config: ConfigReader.Result[DatabaseConfig] = Configs.config.at("database").load[DatabaseConfig]
     if (config.isLeft) println(config) //todo log better
     config.right.get
   }
