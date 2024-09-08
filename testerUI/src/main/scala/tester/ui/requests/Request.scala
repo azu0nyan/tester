@@ -8,9 +8,7 @@ import scala.util.{Failure, Success}
 
 object Request {
 
-//  def host = "http://tester:8007/"
-//  def host = "https://tester.lnmo.ru/api/"
-  def host = "http://0.0.0.0:8080/"
+  def host = "http://176.124.211.186:8000/api/"
 
   import scala.concurrent.ExecutionContext.Implicits.global
 

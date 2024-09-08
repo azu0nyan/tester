@@ -1,7 +1,6 @@
 
 USER="root"
 HOST="tester"
-RUNUSER="tester"
 
 FILETOCOPY="../zioTester/target/universal/tester.zip"
 FILE="tester.zip"
