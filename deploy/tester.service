@@ -1,0 +1,14 @@
+[Unit]
+Description=Tester backend service.
+After=postgresql.service
+StartLimitIntervalSec=0
+[Service]
+Type=simple
+Restart=always
+RestartSec=5
+User=root
+WorkingDirectory=/srv/tester/tester/bin/
+ExecStart=/srv/tester/tester/bin/ziotester
+
+[Install]
+WantedBy=multi-user.target

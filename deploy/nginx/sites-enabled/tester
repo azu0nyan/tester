@@ -1,12 +1,12 @@
 upstream tester_api {
-        server 127.0.0.1:8080;
+        server 127.0.0.1:6969;
 }
 
 server {
     listen 8000;
     listen [::]:8000;
     server_name testerUI;
-    root        /home/azu/www-testerUI;
+    root        /srv/testerUI;
     charset     utf-8;
     index index.html;
 #    access_log /var/log/nginx/access.log;
