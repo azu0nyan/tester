@@ -1,0 +1,22 @@
+upstream tester_api {
+        server 127.0.0.1:8080;
+}
+
+server {
+    listen 8000;
+    listen [::]:8000;
+    server_name testerUI;
+    root        /home/azu/www-testerUI;
+    charset     utf-8;
+    index index.html;
+#    access_log /var/log/nginx/access.log;
+     gzip on;
+     gzip_types text/html application/javascript application/json text/css;
+
+     location / {
+         try_files $uri $uri/ =404;
+     }
+     location /api/ {
+         proxy_pass http://tester_api/;
+     }
+}
