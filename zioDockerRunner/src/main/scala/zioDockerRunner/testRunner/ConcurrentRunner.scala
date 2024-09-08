@@ -59,6 +59,7 @@ case class ConcurrentRunner(queue: Queue[ConcurrentRunnerTask], configs: Seq[Con
 }
 
 object ConcurrentRunner {
+  
   case class ConcurrentRunnerConfig(
                                      fibersMax: Int,
                                      containerName: String,
@@ -82,4 +83,5 @@ object ConcurrentRunner {
     } yield cr
 
   def layer(config: Seq[ConcurrentRunnerConfig], queueSize: Int) = ZLayer.fromZIO(live(config, queueSize))
+  
 }

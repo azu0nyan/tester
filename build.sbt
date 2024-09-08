@@ -67,7 +67,7 @@ val circe =  Seq(
   ).map(_ % circeVersion)
 
 val pureConfig = Seq(
-  "com.github.pureconfig" %% "pureconfig-core" % "0.17.4"
+  "com.github.pureconfig" %% "pureconfig-generic-scala3" % "0.17.7"
 )
 
 lazy val zioDockerRunner = RootProject(file("zioDockerRunner"))

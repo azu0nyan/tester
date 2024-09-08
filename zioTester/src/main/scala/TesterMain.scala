@@ -1,6 +1,6 @@
 import main.AppBootstrap.BootstrapedApp
 import main.{AppBootstrap, HttpServer}
-import tester.srv.controller.{Application, DataPackOps, PrivateApp}
+import tester.srv.controller.{Application, ConcurrentRunnerConfigReader, DataPackOps, PrivateApp}
 import tester.srv.controller.impl.ApplicationImpl
 import zio.*
 import zio.logging.{ConsoleLoggerConfig, LogFilter, LogFormat}
@@ -25,10 +25,13 @@ object TesterMain extends ZIOAppDefault {
   override val bootstrap = Runtime.removeDefaultLoggers >>> logger
 
 
-  val conf = ConcurrentRunnerConfig(fibersMax = 6, containerName = "cont:0.1")
-  val runner = ConcurrentRunner.layer(Seq(conf), 16)
-
-
+  val runner: ULayer[ConcurrentRunner] =
+    ZLayer {
+      ConcurrentRunnerConfigReader.config
+        .flatMap(conf =>
+          ConcurrentRunner.live(conf.runners.map(_.toConcurrentRunnerConfig), conf.queueSize)
+        )
+    }
 
   def checkLogs = for {
     _ <- ZIO.logTrace("Checking log level TRACE")
