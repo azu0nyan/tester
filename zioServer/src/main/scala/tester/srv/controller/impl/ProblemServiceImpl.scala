@@ -31,9 +31,12 @@ case class ProblemServiceImpl private(
         case Some(info) =>
           val toInsert = Problem(0, courseId, templateAlias, scala.util.Random.nextInt(),
             info.initialScore.toJson, info.initialScore.percentage, None, None, info.requireConfirmation, java.time.Clock.systemUTC().instant())
-          ProblemDao.insertReturnId(toInsert)
+          ProblemDao
+            .insertReturnId(toInsert)
+            .tapError(error => ZIO.logErrorCause(error.getMessage, Cause.die(error)))
         case None =>
           ZIO.die(new Exception(s"Cant find problem with alias $templateAlias"))
+      _ <- ZIO.log(s"Inserted problem id: $res course id: $courseId template alias: $templateAlias")
     } yield res
   }
 
