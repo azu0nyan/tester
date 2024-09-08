@@ -162,7 +162,8 @@ val zioTester = (project in file("zioTester"))
     scalaVersion := scalaVer,
     name := "zioTester",
     Universal /  mappings ++= directory("workdir"),
-    Universal / packageName := "tester"
+    Universal / packageName := "tester",
+    Universal / javaOptions ++= Seq("-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:8001")
   )
   .dependsOn(zioServer, problems, zioDockerRunner)
   .enablePlugins(JavaAppPackaging)
