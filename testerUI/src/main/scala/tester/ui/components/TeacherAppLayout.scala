@@ -154,7 +154,7 @@ object TeacherAppLayout {
                 )
             case GroupInfo(groupId) =>
               groups.find(_.groupId == groupId) match {
-                case Some(gvd) => GroupDetailedInfo(gvd)
+                case Some(gvd) => GroupDetailedInfo(props.loggedInUser,gvd)
                 case None => div(s"Группа $groupId не найдена.")
               }
             case GroupResultsTableEditing(groupId) =>

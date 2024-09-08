@@ -64,7 +64,9 @@ case class GroupServiceImpl(
 
 
   def addCourseToGroupQuery(templateAlias: String, groupId: Int, forceStart: Boolean): TranzactIO[Boolean] =
-    CourseTemplateForGroupDao.insert(CourseTemplateForGroup(0, groupId, templateAlias, forceStart))
+    CourseTemplateForGroupDao
+      .insertReturnId(CourseTemplateForGroup(0, groupId, templateAlias, forceStart))
+      .map(res => res >= 0)
 
 
   def addCourseTemplateToGroup(templateAlias: String, groupId: Int, forceStart: Boolean): TranzactIO[Boolean] =

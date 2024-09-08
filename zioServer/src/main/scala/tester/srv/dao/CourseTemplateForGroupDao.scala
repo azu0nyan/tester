@@ -10,9 +10,12 @@ import doobie.implicits.javasql.*
 import doobie.postgres.*
 import doobie.postgres.implicits.*
 import doobie.postgres.pgisimplicits.*
+import tester.srv.dao.AbstractDao.ById
 
 
-object CourseTemplateForGroupDao extends AbstractDao[CourseTemplateForGroup] {
+object CourseTemplateForGroupDao 
+extends AbstractDao[CourseTemplateForGroup]
+  with ById[CourseTemplateForGroup] {
   case class CourseTemplateForGroup(id: Int, groupId: Int, templateAlias: String, forceStartForGroupMembers: Boolean)
 
   override val schema: Schema[CourseTemplateForGroup] = DeriveSchema.gen[CourseTemplateForGroup]
