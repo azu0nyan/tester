@@ -156,9 +156,12 @@ val zioServer = (project in file("zioServer"))
 
 val problems = RootProject(file("../problemsAndTests"))
 
+import NativePackagerHelper._
 val zioTester = (project in file("zioTester"))
   .settings(version := "2.0.5",
     scalaVersion := scalaVer,
-    name := "zioTester")
+    name := "zioTester",
+    Universal /  mappings ++= directory("workdir")
+  )
   .dependsOn(zioServer, problems, zioDockerRunner)
   .enablePlugins(JavaAppPackaging)

@@ -34,8 +34,8 @@ object HttpServer {
 
 
   val httpServerConfig = ZIO.succeed {
-    val resourceConfig = ConfigSource.resources("apwplication.conf")
-    val fileConfig = ConfigSource.file("application.conf")
+    val resourceConfig = ConfigSource.resources("application.conf")
+    val fileConfig = ConfigSource.file("../workdir/application.conf")
     val config = fileConfig.optional.withFallback(resourceConfig)
     val httpConfig: ConfigReader.Result[HttpServerConfig] = config.at("http").load[HttpServerConfig]
     if (httpConfig.isLeft) println(httpConfig) //todo log better
@@ -53,7 +53,7 @@ object HttpServer {
           res <- func(req)
         } yield Response.json(route.encodeResponse(res)))
           .tapErrorCause(err => ZIO.logErrorCause(s"""Error processing request to '${route.route}'"""", err))
-          .mapError(err => Response.fromHttpError(InternalServerError())) //todo more specific error codes
+          .mapError(err => Response.fromHttpError(InternalServerError(err.getMessage, Some(err))))
           .tapDefect(err => ZIO.logErrorCause(s"Defect when processing request to ${route.route}", err))
           .catchAllDefect(t => ZIO.succeed(Response.fromHttpError(InternalServerError())))
     }
@@ -108,8 +108,4 @@ object HttpServer {
     _ <- Server.serve(httpServer(app)).provide(Server.defaultWithPort(config.port))
   } yield ()
 
-  //  override def run = for{
-  //    _ <- ZIO.log(s"Starting server")
-  //    _ <- Server.serve(httpServer(new ApplicationImpl(/*todo*/???, ???, ???, ???, ???, ???, ???))).provide(Server.defaultWithPort(8080))
-  //  } yield ()
 }
