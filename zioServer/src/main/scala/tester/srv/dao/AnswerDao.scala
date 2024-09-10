@@ -117,7 +117,7 @@ object AnswerDao extends AbstractDao[Answer]
         filter.groupId.map(gid => fr"G.id = $gid"),
         filter.userId.map(uid => fr"U.id = $uid"),
         andFrag
-      ) ++
+      ).get ++
       fr"GROUP By Answer.id, U.id, Course.templateAlias, Course.id, P.id, AnswerRejection.answerId, AnswerReview.answerId, AnswerVerificationConfirmation.answerId, AnswerVerification.answerId"
       )
 

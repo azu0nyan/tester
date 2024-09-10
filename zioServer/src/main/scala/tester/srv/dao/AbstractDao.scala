@@ -39,30 +39,30 @@ trait AbstractDao[T: Read : Write] {
   lazy val deleteFragment: Fragment = Fragment.const(s"""DELETE FROM $tableName""")
   lazy val updateFragment = Fragment.const(s"""UPDATE $tableName SET""")
 
-  def insert(t: T): TranzactIO[Boolean] = 
-  ZIO.log(insertString).flatMap { _ =>     
-    tzio {
-      val up = Update[T](insertString).toUpdate0(t)
-      up.run
-    }.map(_ == 1)
-    
-  }
+  def insert(t: T): TranzactIO[Boolean] =
+    ZIO.log(insertString).flatMap { _ =>
+      tzio {
+        val up = Update[T](insertString).toUpdate0(t)
+        up.run
+      }.map(_ == 1)
+
+    }
 
 
   def updateWhere(set: Fragment, where: Fragment): TranzactIO[Int] = tzio {
     (updateFragment ++ set ++ fr"WHERE" ++ where).update.run
   }
-  def updateWhereAnd(set: Fragment, where: Fragment*): TranzactIO[Int] = tzio {
-    (updateFragment ++ set ++ Fragments.whereAnd(where: _ *)).update.run
+  def updateWhereAnd(set: Fragment, where1: Fragment, wheres: Fragment*): TranzactIO[Int] = tzio {
+    (updateFragment ++ set ++ Fragments.whereAnd(where1, wheres: _ *)).update.run
   }
-  def updateWhereOr(set: Fragment, where: Fragment*): TranzactIO[Int] = tzio {
-    (updateFragment ++ set ++ Fragments.whereOr(where: _ *)).update.run
+  def updateWhereOr(set: Fragment, where1: Fragment, wheres: Fragment*): TranzactIO[Int] = tzio {
+    (updateFragment ++ set ++ Fragments.whereOr(where1, wheres: _ *)).update.run
   }
-  def updateWhereAndOpt(set: Fragment, where: Option[Fragment]*): TranzactIO[Int] = tzio {
-    (updateFragment ++ set ++ Fragments.whereAndOpt(where: _ *)).update.run
+  def updateWhereAndOpt(set: Fragment, where1: Option[Fragment], where2: Option[Fragment], wheres: Option[Fragment]*): TranzactIO[Int] = tzio {
+    (updateFragment ++ set ++ Fragments.whereAndOpt(where1, where2, wheres: _ *)).update.run
   }
-  def updateWhereOrOpt(set: Fragment, where: Option[Fragment]*): TranzactIO[Int] = tzio {
-    (updateFragment ++ set ++ Fragments.whereOrOpt(where: _ *)).update.run
+  def updateWhereOrOpt(set: Fragment, where1: Option[Fragment], where2: Option[Fragment], wheres: Option[Fragment]*): TranzactIO[Int] = tzio {
+    (updateFragment ++ set ++ Fragments.whereOrOpt(where1, where2, wheres: _ *)).update.run
   }
 
   def all: TranzactIO[List[T]] = tzio(selectFragment.query[T].to[List])
@@ -71,39 +71,47 @@ trait AbstractDao[T: Read : Write] {
   def selectWhere(fr: Fragment): TranzactIO[T] = tzio((selectFragment ++ fr"WHERE" ++ fr).query[T].unique)
   def selectWhereList(fr: Fragment): TranzactIO[List[T]] = tzio((selectFragment ++ fr"WHERE" ++ fr).query[T].to[List])
 
-  private def selectWhereAndQuery(frs: Fragment*): Fragment = selectFragment ++ Fragments.whereAnd(frs: _ *)
-  def selectWhereAnd(frs: Fragment*): TranzactIO[T] = tzio(selectWhereAndQuery(frs: _ *).query[T].unique)
-  def selectWhereAndOption(frs: Fragment*): TranzactIO[Option[T]] = tzio(selectWhereAndQuery(frs: _ *).query[T].option)
-  def selectWhereAndList(frs: Fragment*): TranzactIO[List[T]] = tzio(selectWhereAndQuery(frs: _ *).query[T].to[List])
+  private def selectWhereAndQuery(fr1: Fragment, frs: Fragment*): Fragment = selectFragment ++ Fragments.whereAnd(fr1, frs: _ *)
+  def selectWhereAnd(fr1: Fragment, frs: Fragment*): TranzactIO[T] = tzio(selectWhereAndQuery(fr1, frs: _ *).query[T].unique)
+  def selectWhereAndOption(fr1: Fragment, frs: Fragment*): TranzactIO[Option[T]] = tzio(selectWhereAndQuery(fr1, frs: _ *).query[T].option)
+  def selectWhereAndList(fr1: Fragment, frs: Fragment*): TranzactIO[List[T]] = tzio(selectWhereAndQuery(fr1, frs: _ *).query[T].to[List])
 
-  private def selectWhereOrQuery(frs: Fragment*): Fragment = selectFragment ++ Fragments.whereOr(frs: _ *)
-  def selectWhereOr(frs: Fragment*): TranzactIO[T] = tzio(selectWhereOrQuery(frs: _ *).query[T].unique)
-  def selectWhereOrOption(frs: Fragment*): TranzactIO[Option[T]] = tzio(selectWhereOrQuery(frs: _ *).query[T].option)
-  def selectWhereOrList(frs: Fragment*): TranzactIO[List[T]] = tzio(selectWhereOrQuery(frs: _ *).query[T].to[List])
+  private def selectWhereOrQuery(fr1: Fragment, frs: Fragment*): Fragment = selectFragment ++ Fragments.whereOr(fr1, frs: _ *)
+  def selectWhereOr(fr1: Fragment, frs: Fragment*): TranzactIO[T] = tzio(selectWhereOrQuery(fr1, frs: _ *).query[T].unique)
+  def selectWhereOrOption(fr1: Fragment, frs: Fragment*): TranzactIO[Option[T]] = tzio(selectWhereOrQuery(fr1, frs: _ *).query[T].option)
+  def selectWhereOrList(fr1: Fragment, frs: Fragment*): TranzactIO[List[T]] = tzio(selectWhereOrQuery(fr1, frs: _ *).query[T].to[List])
 
-  def selectWhereAndOptQuery(frs: Option[Fragment]*): Fragment = selectFragment ++ Fragments.whereAndOpt(frs: _ *)
-  def selectWhereAndOpt(frs: Option[Fragment]*): TranzactIO[T] = tzio(selectWhereAndOptQuery(frs: _ *).query[T].unique)
-  def selectWhereAndOptOption(frs: Option[Fragment]*): TranzactIO[Option[T]] = tzio(selectWhereAndOptQuery(frs: _ *).query[T].option)
-  def selectWhereAndOptList(frs: Option[Fragment]*): TranzactIO[List[T]] = tzio(selectWhereAndOptQuery(frs: _ *).query[T].to[List])
+  def selectWhereAndOptQuery(fr1: Option[Fragment], fr2: Option[Fragment], frs: Option[Fragment]*): Fragment =
+    selectFragment ++ Fragments.whereAndOpt(fr1, fr2, frs: _ *)
+  def selectWhereAndOpt(fr1: Option[Fragment], fr2: Option[Fragment], frs: Option[Fragment]*): TranzactIO[T] =
+    tzio(selectWhereAndOptQuery(fr1, fr2, frs: _ *).query[T].unique)
+  def selectWhereAndOptOption(fr1: Option[Fragment], fr2: Option[Fragment], frs: Option[Fragment]*): TranzactIO[Option[T]] =
+    tzio(selectWhereAndOptQuery(fr1, fr2, frs: _ *).query[T].option)
+  def selectWhereAndOptList(fr1: Option[Fragment], fr2: Option[Fragment], frs: Option[Fragment]*): TranzactIO[List[T]] =
+    tzio(selectWhereAndOptQuery(fr1, fr2, frs: _ *).query[T].to[List])
 
-  private def selectWhereOrOptQuery(frs: Option[Fragment]*): Fragment = selectFragment ++ Fragments.whereOrOpt(frs: _ *)
-  def selectWhereOrOpt(frs: Option[Fragment]*): TranzactIO[T] = tzio(selectWhereOrOptQuery(frs: _ *).query[T].unique)
-  def selectWhereOrOptOption(frs: Option[Fragment]*): TranzactIO[Option[T]] = tzio(selectWhereOrOptQuery(frs: _ *).query[T].option)
-  def selectWhereOrOptList(frs: Option[Fragment]*): TranzactIO[List[T]] = tzio(selectWhereOrOptQuery(frs: _ *).query[T].to[List])
+  private def selectWhereOrOptQuery(fr1: Option[Fragment], fr2: Option[Fragment], frs: Option[Fragment]*): Fragment =
+    selectFragment ++ Fragments.whereOrOpt(fr1, fr2, frs: _ *)
+  def selectWhereOrOpt(fr1: Option[Fragment], fr2: Option[Fragment], frs: Option[Fragment]*): TranzactIO[T] =
+    tzio(selectWhereOrOptQuery(fr1, fr2, frs: _ *).query[T].unique)
+  def selectWhereOrOptOption(fr1: Option[Fragment], fr2: Option[Fragment], frs: Option[Fragment]*): TranzactIO[Option[T]] =
+    tzio(selectWhereOrOptQuery(fr1, fr2, frs: _ *).query[T].option)
+  def selectWhereOrOptList(fr1: Option[Fragment], fr2: Option[Fragment], frs: Option[Fragment]*): TranzactIO[List[T]] =
+    tzio(selectWhereOrOptQuery(fr1, fr2, frs: _ *).query[T].to[List])
 
   def deleteWhere(fr: Fragment): TranzactIO[Int] = tzio((deleteFragment ++ fr"WHERE" ++ fr).update.run)
 
-  private def deleteWhereAndQuery(frs: Fragment*): Fragment = deleteFragment ++ Fragments.whereAnd(frs: _ *)
-  def deleteWhereAnd(frs: Fragment*): TranzactIO[Int] = tzio(deleteWhereAndQuery(frs: _ *).update.run)
+  private def deleteWhereAndQuery(fr1: Fragment, frs: Fragment*): Fragment = deleteFragment ++ Fragments.whereAnd(fr1, frs: _ *)
+  def deleteWhereAnd(fr1: Fragment, frs: Fragment*): TranzactIO[Int] = tzio(deleteWhereAndQuery(fr1, frs: _ *).update.run)
 
-  private def deleteWhereOrQuery(frs: Fragment*): Fragment = deleteFragment ++ Fragments.whereOr(frs: _ *)
-  def deleteWhereOr(frs: Fragment*): TranzactIO[Int] = tzio(deleteWhereOrQuery(frs: _ *).update.run)
+  private def deleteWhereOrQuery(fr1: Fragment, frs: Fragment*): Fragment = deleteFragment ++ Fragments.whereOr(fr1, frs: _ *)
+  def deleteWhereOr(fr1: Fragment, frs: Fragment*): TranzactIO[Int] = tzio(deleteWhereOrQuery(fr1, frs: _ *).update.run)
 
-  private def deleteWhereAndOptQuery(frs: Option[Fragment]*): Fragment = deleteFragment ++ Fragments.whereAndOpt(frs: _ *)
-  def deleteWhereAndOpt(frs: Option[Fragment]*): TranzactIO[Int] = tzio(deleteWhereAndOptQuery(frs: _ *).update.run)
+  private def deleteWhereAndOptQuery(fr1: Option[Fragment], fr2: Option[Fragment], frs: Option[Fragment]*): Fragment = deleteFragment ++ Fragments.whereAndOpt(fr1, fr2, frs: _ *)
+  def deleteWhereAndOpt(fr1: Option[Fragment], fr2: Option[Fragment], frs: Option[Fragment]*): TranzactIO[Int] = tzio(deleteWhereAndOptQuery(fr1, fr2, frs: _ *).update.run)
 
-  private def deleteWhereOrOptQuery(frs: Option[Fragment]*): Fragment = deleteFragment ++ Fragments.whereOrOpt(frs: _ *)
-  def deleteWhereOrOpt(frs: Option[Fragment]*): TranzactIO[Int] = tzio(deleteWhereOrOptQuery(frs: _ *).update.run)
+  private def deleteWhereOrOptQuery(fr1: Option[Fragment], fr2: Option[Fragment], frs: Option[Fragment]*): Fragment = deleteFragment ++ Fragments.whereOrOpt(fr1, fr2, frs: _ *)
+  def deleteWhereOrOpt(fr1: Option[Fragment], fr2: Option[Fragment], frs: Option[Fragment]*): TranzactIO[Int] = tzio(deleteWhereOrOptQuery(fr1, fr2, frs: _ *).update.run)
 
 }
 
@@ -117,7 +125,7 @@ object AbstractDao {
   }
 
   def orderBy(ords: Ord*): Fragment = ords.foldLeft(fr0"") {
-    case (left, Ord(expr, true)) =>  left ++ (if (left.internals.sql == "") fr0"" else fr0",") ++ expr ++ fr"ASC"
+    case (left, Ord(expr, true)) => left ++ (if (left.internals.sql == "") fr0"" else fr0",") ++ expr ++ fr"ASC"
     case (left, Ord(expr, false)) => left ++ (if (left.internals.sql == "") fr0"" else fr0",") ++ expr ++ fr"DESC"
   }
 
@@ -136,7 +144,7 @@ object AbstractDao {
         Fragment.const(s"($fieldString)") ++ fr"VALUES"
         ++ valuesStringDefaultIdFr(t))
         .update
-//      println(update.sql)
+      //      println(update.sql)
       update.withUniqueGeneratedKeys[Int]("id")
     }
 

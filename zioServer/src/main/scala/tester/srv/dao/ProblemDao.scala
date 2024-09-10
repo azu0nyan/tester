@@ -13,6 +13,7 @@ import AbstractDao.*
 import ProblemDao.Problem
 import cats.syntax.all.catsSyntaxSeqs
 import otsbridge.ProblemScore.ProblemScore
+import utils.SQL
 
 import java.time.Instant
 
@@ -68,7 +69,7 @@ object ProblemDao extends AbstractDao[Problem]
          |LEFT JOIN ${AnswerVerificationDao.tableName} as V on V.answerId = A.id
          |LEFT JOIN ${AnswerVerificationConfirmationDao.tableName} as VC on VC.answerId = A.id
          |LEFT JOIN ${AnswerReviewDao.tableName} as Rev on Rev.answerId = A.id
-         |""".stripMargin) ++ Fragments.whereAndOpt(filter.map(filterToFragment): _ *) ++
+         |""".stripMargin) ++ SQL.whereAndOpt(filter.map(filterToFragment): _ *) ++
       fr"GROUP BY P.id, C.userId, C.templateAlias"
     q.query[(Problem, ProblemMeta)].to[List]
   }

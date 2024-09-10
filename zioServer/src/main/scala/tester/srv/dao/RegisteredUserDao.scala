@@ -13,6 +13,7 @@ import doobie.postgres.pgisimplicits.*
 import RegisteredUserDao.RegisteredUser
 import AbstractDao.{ById, Ord}
 import clientRequests.admin.UserList.{UserFilter, UserOrder}
+import utils.SQL
 
 import java.time.Instant
 
@@ -55,9 +56,11 @@ object RegisteredUserDao extends AbstractDao[RegisteredUser]
 
   def byFilterInOrder(filters: Seq[UserFilter], order: Seq[UserOrder],
                       itemsPerPage: Int, page: Int): TranzactIO[Seq[RegisteredUser]] = tzio {
-    val fragment = selectFragment ++ fr"WHERE" ++ Fragments.and(filters.map(filterToFrag): _ *) ++
-      fr"ORDER BY" ++ AbstractDao.orderBy(order.map(orderToFrag): _ *) ++
-      Fragment.const(s"LIMIT $itemsPerPage OFFSET ${itemsPerPage * page}")
+    val fragment =
+      selectFragment ++
+        SQL.whereAnd(filters.map(filterToFrag): _ *) ++
+        fr"ORDER BY" ++ AbstractDao.orderBy(order.map(orderToFrag): _ *) ++
+        Fragment.const(s"LIMIT $itemsPerPage OFFSET ${itemsPerPage * page}")
 
     fragment
       .query[RegisteredUser].to[List]

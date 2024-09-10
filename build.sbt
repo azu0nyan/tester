@@ -9,7 +9,7 @@ val scalaVer = "3.3.0"
 
 enablePlugins(JavaAppPackaging)
 
-val zioVersion = "2.0.13"
+val zioVersion = "2.1.9"
 val basicZioDependencies = Seq(
   "dev.zio" %% "zio" % zioVersion,
   "dev.zio" %% "zio-streams" % zioVersion,
@@ -35,9 +35,9 @@ val zioTestDependencies = Seq(
 
 val doobieDependencies = Seq(
   "org.postgresql" % "postgresql" % "42.3.1",
-  "io.github.gaelrenoux" %% "tranzactio" % "4.2.0",
-  "org.tpolecat" %% "doobie-core"      % "1.0.0-RC2",
-  "org.tpolecat" %% "doobie-postgres"  % "1.0.0-RC2",
+  "io.github.gaelrenoux" %% "tranzactio-doobie" % "5.2.0",
+  "org.tpolecat" %% "doobie-core"      % "1.0.0-RC5",
+  "org.tpolecat" %% "doobie-postgres"  % "1.0.0-RC5",
 
 )
 val jwtDependencies = Seq(
