@@ -1,14 +1,17 @@
 package EmbeddedPG
 
-import doobie.util.transactor.Transactor
+import cats.effect.Resource
+import doobie.free.KleisliInterpreter
+import doobie.util.transactor.{Strategy, Transactor}
 import io.github.gaelrenoux.tranzactio.DatabaseOps
 import io.zonky.test.db.postgres.embedded.EmbeddedPostgres
 import zio.*
 
-import java.sql.DatabaseMetaData
+import java.sql.{DatabaseMetaData, Connection as JdbcConnection}
 import javax.sql.DataSource
 import scala.io.Source
 import io.github.gaelrenoux.tranzactio.doobie.*
+import zio.interop.catz.*
 
 object EmbeddedPG {
   val schemaSqlLines = Source.fromResource("schema.sql").getLines()
@@ -50,10 +53,13 @@ object EmbeddedPG {
 
   val connection: Task[Connection] = for {
     ds <- dataSource
-    conn <- Database.connectionFromJdbc{
+    conn <- ZIO.succeed {
       val res = ds.getConnection
       res.setSchema("tester")
-      res
+      val connect = (c: JdbcConnection) => Resource.pure[Task, JdbcConnection](c)
+      val interp = KleisliInterpreter[Task](doobie.util.log.LogHandler.noop).ConnectionInterpreter
+      val tran = Transactor(res, connect, interp, Strategy.void)
+      tran
     }
   } yield conn
 

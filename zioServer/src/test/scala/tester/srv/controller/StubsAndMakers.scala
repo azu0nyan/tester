@@ -102,6 +102,7 @@ object StubsAndMakers {
     reg <- ProblemInfoRegistryImpl.live
     _ <- reg.registerProblemInfo(ProblemInfoImpl("title1", "problemAlias1", None, BinaryScore(false), false, "", TextField("")))
     _ <- reg.registerProblemInfo(ProblemInfoImpl("title2", "problemAlias2", None, BinaryScore(false), false, "", TextField("")))
+    _ <- reg.registerProblemInfo(ProblemInfoImpl("title3", "problemAlias3", None, BinaryScore(false), false, "", TextField("")))
     _ <- reg.registerProblemInfo(ProblemInfoImpl("max 2 attempts", "max2", Some(2), BinaryScore(false), false, "", TextField("")))
     _ <- reg.registerProblemInfo(ProblemInfoImpl("require confirm", "require", None, BinaryScore(false), true, "", TextField("")))
   } yield reg
