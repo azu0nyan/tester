@@ -11,7 +11,7 @@ import zioDockerRunner.testRunner.RunVerificationResult.{RunVerificationSuccess,
 
 import scala.io.Source
 
-object ConcurrentRunnerTests extends ZIOSpecDefault{
+object ConcurrentRunnerSpec extends ZIOSpecDefault{
   val testContainerName = "cont:0.1"
 
   val javaFileText = Source.fromResource("java/EchoLineDelay.java").mkString("")

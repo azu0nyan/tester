@@ -8,13 +8,13 @@ import zio.test.Assertion.*
 import zio.test.TestAspect.*
 import zioDockerRunner.dockerIntegration.DockerOps
 import zioDockerRunner.testRunner.CompileResult.CompilationError
-import zioDockerRunner.testRunner.JavaRunnerTests.testContainerName
+import zioDockerRunner.testRunner.JavaRunnerSpec.testContainerName
 import zioDockerRunner.testRunner.RunResult.{CorrectAnswer, NotTested, SuccessffulRun, WrongAnswer}
 import zioDockerRunner.testRunner.RunVerificationResult.{RunVerificationSuccess, RunVerificationWrongAnswer}
 
 import scala.io.Source
 
-object RunnerTests extends ZIOSpecDefault {
+object RunnerSpec extends ZIOSpecDefault {
   def spec = suite("Runner tests")(
     compileAndRun,
     uncompillable

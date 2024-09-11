@@ -17,7 +17,7 @@ import java.util.concurrent.TimeUnit
 import scala.io.Source
 
 
-object JavaRunnerTests extends ZIOSpecDefault{
+object JavaRunnerSpec extends ZIOSpecDefault{
   val testContainerName = "cont:0.1"
 
   def spec = suite("JavaRunnerTests")(
