@@ -1,11 +1,11 @@
 package tester.srv.controller.impl
 
-import DbViewsShared.{AnswerStatus, CourseStatus}
+import DbViewsShared.CourseStatus.Passing
 import io.github.gaelrenoux.tranzactio.doobie.TranzactIO
 import tester.srv.controller.{CourseTemplateRegistry, CoursesService, MessageBus, ProblemService}
 import tester.srv.dao.CourseDao.Course
 import tester.srv.dao.ProblemDao.Problem
-import tester.srv.dao.{CourseDao, DbCourseTemplateDao, CourseTemplateProblemDao, ProblemDao}
+import tester.srv.dao.{CourseDao, CourseTemplateProblemDao, DbCourseTemplateDao, ProblemDao}
 import zio.*
 
 case class CoursesServiceImpl(bus: MessageBus,
@@ -52,7 +52,7 @@ case class CoursesServiceImpl(bus: MessageBus,
       problems <- courseProblems(courseId)
       views <- ZIO.foreach(problems)(p => problemService.getViewData(p.id)) //todo optimize
     } yield templateOpt.flatten.map(template =>
-      viewData.CourseViewData(courseId.toString, template.courseTitle, CourseStatus.Passing(courseOpt.get.endedAt),
+      viewData.CourseViewData(courseId.toString, template.courseTitle, Passing(courseOpt.get.endedAt),
         template.courseData, views.flatten, template.description))
 
   def partialCourseViewData(courseId: Int): TranzactIO[Option[viewData.PartialCourseViewData]] =
@@ -63,7 +63,7 @@ case class CoursesServiceImpl(bus: MessageBus,
       views <- ZIO.foreach(problems)(p => problemService.getRefViewData(p.id)) //todo optimize
     } yield templateOpt.flatten.map(template =>
       viewData.PartialCourseViewData(courseId.toString, template.courseTitle, template.description,
-        CourseStatus.Passing(courseOpt.get.endedAt), template.courseData.toJson, views.flatten)
+        Passing(courseOpt.get.endedAt), template.courseData.toJson, views.flatten)
     )
 
   def userCourses(userId: Int): TranzactIO[Seq[viewData.CourseInfoViewData]] =
@@ -72,7 +72,7 @@ case class CoursesServiceImpl(bus: MessageBus,
       res <- ZIO.foreach(courses)(course =>
         for{
           t <- templateRegistry.courseTemplate(course.templateAlias)
-        } yield t.map( t => viewData.CourseInfoViewData(course.id.toString, t.courseTitle, CourseStatus.Passing(course.endedAt), t.description))
+        } yield t.map( t => viewData.CourseInfoViewData(course.id.toString, t.courseTitle, Passing(course.endedAt), t.description))
       )
     } yield res.flatten
 }
