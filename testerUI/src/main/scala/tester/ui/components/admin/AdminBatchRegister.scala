@@ -68,7 +68,14 @@ object AdminBatchRegister {
           .toSeq
           .map(s => s.split(",").toSeq.map(_.strip()) match {
             case Seq(login, firstName, lastName, email, password) =>
-              Some(RegistrationRequest(login, firstName, lastName, email, password))
+              Some(RegistrationRequest(
+                login = login,
+                password = password,
+                firstName = firstName,
+                lastName = lastName,
+                email = email,
+              ))
+
             case _ => None
           })
       )
