@@ -8,7 +8,6 @@ import zio.test.Assertion.*
 import zio.test.TestAspect.*
 import zioDockerRunner.dockerIntegration.DockerOps
 import zioDockerRunner.testRunner.CompileResult.CompilationError
-import zioDockerRunner.testRunner.JavaRunnerSpec.testContainerName
 import zioDockerRunner.testRunner.RunResult.{CorrectAnswer, NotTested, SuccessffulRun, WrongAnswer}
 import zioDockerRunner.testRunner.RunVerificationResult.{RunVerificationSuccess, RunVerificationWrongAnswer}
 
@@ -18,7 +17,7 @@ object RunnerSpec extends ZIOSpecDefault {
   def spec = suite("Runner tests")(
     compileAndRun,
     uncompillable
-  ).provideLayer(DockerOps.dockerClientContextScoped(testContainerName)) @@ timeout(10.seconds) @@ withLiveClock
+  ).provideLayer(DockerOps.dockerClientContextScoped(Commons.testContainerName)) @@ timeout(10.seconds) @@ withLiveClock
 
   val compileAndRun = test("Running multiple run") {
     val javaFileText = Source.fromResource("java/EchoLine.java").mkString("")

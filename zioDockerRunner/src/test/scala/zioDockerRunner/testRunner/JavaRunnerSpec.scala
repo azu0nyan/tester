@@ -18,7 +18,6 @@ import scala.io.Source
 
 
 object JavaRunnerSpec extends ZIOSpecDefault{
-  val testContainerName = "cont:0.1"
 
   def spec = suite("JavaRunnerTests")(
     compileProgram,
@@ -28,7 +27,7 @@ object JavaRunnerSpec extends ZIOSpecDefault{
     runProgramRuntimeError,
     runTimeLimitExceeded,
     runLongRunning
-  ).provideLayer(DockerOps.dockerClientContextScoped(testContainerName)) @@ timeout(10.seconds) @@ withLiveClock
+  ).provideLayer(DockerOps.dockerClientContextScoped(Commons.testContainerName)) @@ timeout(10.seconds) @@ withLiveClock
 
   val compileProgram = test("Compiling java program with Runner") {
     val javaFileText = Source.fromResource("java/WithMainClass.java").mkString("")

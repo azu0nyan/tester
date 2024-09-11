@@ -12,7 +12,6 @@ import zioDockerRunner.testRunner.RunVerificationResult.{RunVerificationSuccess,
 import scala.io.Source
 
 object ConcurrentRunnerSpec extends ZIOSpecDefault{
-  val testContainerName = "cont:0.1"
 
   val javaFileText = Source.fromResource("java/EchoLineDelay.java").mkString("")
   val nonTrivialCrM = CompileAndRunMultiple(
@@ -45,7 +44,7 @@ object ConcurrentRunnerSpec extends ZIOSpecDefault{
 
   val basicCompileRun = test("Running single") {
 
-    val conf = ConcurrentRunnerConfig(fibersMax = 6, containerName = testContainerName)
+    val conf = ConcurrentRunnerConfig(fibersMax = 6, containerName = Commons.testContainerName)
     val crm = nonTrivialCrM
 
     for {
@@ -66,7 +65,7 @@ object ConcurrentRunnerSpec extends ZIOSpecDefault{
   //todo better test
   val runMultipleParallel = test("Running multiple parallel") {
 
-    val conf = ConcurrentRunnerConfig(fibersMax = 4, containerName = testContainerName)
+    val conf = ConcurrentRunnerConfig(fibersMax = 4, containerName = Commons.testContainerName)
     val crm = nonTrivialCrM
 
     for {
